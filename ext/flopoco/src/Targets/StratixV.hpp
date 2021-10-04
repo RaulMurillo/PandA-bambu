@@ -18,61 +18,7 @@ namespace flopoco{
 	public:
 
 		/** The default constructor. */  
-		StratixV() : Target()	{
-			id_							= "StratixV";
-			vendor_						= "Altera";
-			hasFastLogicTernaryAdders_	= true;
-			maxFrequencyMHz_			= 717;
-			sizeOfBlock_				= 20480; 		// the size of a primitive block is 2^11 * 10
-			
-			fastcarryDelay_				= 0.026e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
-			elemWireDelay_				= 0.110e-9;		// *obtained from Quartus 2 Chip Planner 11.1
-			lut2lutDelay_ 				= 0.410e-9;		// *obtained from Quartus 2 Chip Planner 11.1 - emulates R4+C3+Lab_Line
-			lutDelay_					= 0.433e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
-			ffDelay_					= 0.156e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
-			
-			multXInputs_				= 36;
-			multYInputs_				= 36;
-			lutInputs_					= 6;
-			almsPerLab_					= 10;			// there are 10 ALMs per LAB
-			// all these values are set precisely to match the Stratix 5
-			lut2_						= 0.298e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
-			lut3_						= 0.298e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
-			lut4_						= 0.298e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
-			
-			innerLABcarryDelay_			= 0.109e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
-			interLABcarryDelay_			= 0.231e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
-			shareOutToCarryOut_			= 0.287e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
-			muxStoO_					= 0.193e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
-			fdCtoQ_						= 0.110e-9; 	// TODO : check validity
-			carryInToSumOut_			= 0.116e-9;		// *obtained from Quartus 2 Chip Planner 11.1
-			
-			// DSP parameters
-			totalDSPs_					= 256;		
-			nrConfigs_					= 5;			// StratixV has 9, 16, 18, 27, 36 bit multipliers by default
-			
-			multiplierWidth_[0]			= 9;
-			multiplierWidth_[1]			= 16;
-			multiplierWidth_[2]			= 18;
-			multiplierWidth_[3]			= 27;
-			multiplierWidth_[4]			= 36;
-
-			// contains the delay of the DSP register = 0.745ns (for 36x36 bits )
-			multiplierDelay_[0]			= 1.875e-9; 	// *obtained experimentaly from Quartus 2 11.1
-			multiplierDelay_[1]			= 1.875e-9; 	// *obtained experimentaly from Quartus 2 11.1
-			multiplierDelay_[2]			= 1.875e-9; 	// *obtained experimentaly from Quartus 2 11.1
-			multiplierDelay_[3]			= 2.500e-9; 	// *obtained experimentaly from Quartus 2 11.1
-			multiplierDelay_[4]			= 2.905e-9; 	// *obtained experimentaly from Quartus 2 11.1
-			
-			DSPMultiplierDelay_			= 1.875e-9;
-			DSPAdderDelay_				= 1.030e-9;
-			DSPCascadingWireDelay_		= 0.266e-9;		// TODO: update
-			DSPToLogicWireDelay_		= 0.266e-9;		// TODO: update
-			
-			RAMDelay_					= 1.197e-9; 	// *obtained experimentaly from Quartus 2 11.1
-			RAMToLogicWireDelay_		= 0.090e-9; 	// *obtained experimentaly from Quartus 2 11.1 - TODO: - check validity
-			
-		}
+		StratixV();
 	
 		/** The destructor */
 		virtual ~StratixV() {}
@@ -80,11 +26,14 @@ namespace flopoco{
 		/** overloading the virtual functions of Target
 		 * @see the target class for more details 
 		 */
-		double carryPropagateDelay();
-		double adderDelay(int size);
+		double logicDelay(int inputs);
+		double adderDelay(int size, bool addRoutingDelay=true);
 		double adder3Delay(int size);
 		double eqComparatorDelay(int size);
 		double eqConstComparatorDelay(int size);
+		double lutDelay();
+
+		double carryPropagateDelay();
 		
 		double DSPMultiplierDelay(){ return DSPMultiplierDelay_;}
 		double DSPAdderDelay(){ return DSPAdderDelay_;} //TODO
@@ -97,10 +46,12 @@ namespace flopoco{
 		double RAMDelay() { return RAMDelay_; }
 		double RAMToLogicWireDelay() { return RAMToLogicWireDelay_; }
 		double LogicToRAMWireDelay() { return RAMToLogicWireDelay_; }
+
+		int maxLutInputs() {return 6;}
+		double lutConsumption(int lutInputSize);
 		
 		void   getAdderParameters(double &k1, double &k2, int size);
-		double localWireDelay(int fanout = 1);
-		double lutDelay();
+		double fanoutDelay(int fanout = 1);
 		double ffDelay();
 		double distantWireDelay(int n);
 		bool   suggestSubmultSize(int &x, int &y, int wInX, int wInY);
@@ -114,8 +65,6 @@ namespace flopoco{
 		long   sizeOfMemoryBlock();
 		DSP*   createDSP(); 
 		int    getEquivalenceSliceDSP();
-		int    getNumberOfDSPs();
-		void   getDSPWidths(int &x, int &y, bool sign = false);
 		int    getIntNAdderCost(int wIn, int n);
 		int*   getDSPMultiplierWidths(){return multiplierWidth_;};
 		int    getNrDSPMultiplier(){return nrConfigs_;};	

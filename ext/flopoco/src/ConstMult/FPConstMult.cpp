@@ -25,19 +25,22 @@
 #include <mpfr.h>
 #include <gmpxx.h>
 #include "../utils.hpp"
-#include "../sollya.h"
+#include <sollya.h>
 #include "../Operator.hpp"
 #include "FPConstMult.hpp"
-#include "../FPNumber.hpp"
+#include "../TestBenches/FPNumber.hpp"
 
 using namespace std;
+
+
+// FIXME the logic of instantiating icm, then doing the port maps is obsolete.
 
 
 namespace flopoco{
 
 	// The expert version // TODO define correctRounding
 
-	FPConstMult::FPConstMult(Target* target, int wE_in_, int wF_in_, int wE_out_, int wF_out_, int cstSgn_, int cst_exp_, mpz_class cstIntSig_):
+	FPConstMult::FPConstMult(OperatorPtr parentOp, Target* target, int wE_in_, int wF_in_, int wE_out_, int wF_out_, int cstSgn_, int cst_exp_, mpz_class cstIntSig_):
 		Operator(target), 
 		wE_in(wE_in_), wF_in(wF_in_), wE_out(wE_out_), wF_out(wF_out_), 
 		cstSgn(cstSgn_), cst_exp_when_mantissa_int(cst_exp_), cstIntSig(cstIntSig_), constant_is_zero(false)
@@ -89,8 +92,7 @@ namespace flopoco{
 
 			if(!mantissa_is_one) {
 				// sub component
-				icm = new IntConstMult(target, wF_in+1, cstIntSig);
-				oplist.push_back(icm);
+				icm = new IntConstMult(parentOp, target, wF_in+1, cstIntSig);
 			}
 
 		}
@@ -112,7 +114,7 @@ namespace flopoco{
 
 
 	// The rational version
-	FPConstMult::FPConstMult(Target* target, int wE_in_, int wF_in_, int wE_out_, int wF_out_, int a_, int b_):
+	FPConstMult::FPConstMult(OperatorPtr parentOp, Target* target, int wE_in_, int wF_in_, int wE_out_, int wF_out_, int a_, int b_):
 		Operator(target), 
 		wE_in(wE_in_), wF_in(wF_in_), wE_out(wE_out_), wF_out(wF_out_), constant_is_zero(false)
 	{
@@ -174,6 +176,7 @@ namespace flopoco{
 			expUpdate--;
 		}
 		
+		REPORT(DEBUG, "fraction " << a_ << "/" << b_ << " rewritten as 2^" << expUpdate << "*" << a << "/" << b  );
 		if(b==1) {
 			throw("This fraction does not have an infinite binary representation -- not implemented yet");
 		}
@@ -204,7 +207,7 @@ namespace flopoco{
 			headerSize=intlog2(header);
 
 			cc = aa - header*bb; // remainder
-			REPORT(DEBUG, "fraction " << a_ << "/" << b_ << " rewritten as " << header << "+" << cc << "/" << bb );
+			REPORT(DEBUG, "fraction " << a << "/" << b << " rewritten as " << header << "+" << cc << "/" << bb );
 			// Now look for the order of 2 modulo bb
 			periodSize=1;
 			mpz_class twotoperiodSize=2;
@@ -282,7 +285,7 @@ namespace flopoco{
 			
 
 			cst_exp_when_mantissa_1_2 = mpfr_get_exp(mpfrC) - 1; //mpfr_get_exp() assumes significand in [1/2,1)  
-			cst_exp_when_mantissa_1_2 += expUpdate;
+			//			cst_exp_when_mantissa_1_2 += expUpdate;
 			cst_exp_when_mantissa_int = cst_exp_when_mantissa_1_2 - cstWidth;
 
 			// Do we have trailing zeroes in the pattern ?
@@ -297,8 +300,7 @@ namespace flopoco{
 			REPORT(DETAILED, "Periodic pattern has " << patternLSBZeroes << " zero(s) at the LSB");
 
 
-			icm = new IntConstMult(target, wF_in+1, cstIntSig, periodicPattern, patternLSBZeroes, periodSize, header, headerSize, i, j);
-			oplist.push_back(icm);
+			icm = new IntConstMult(parentOp, target, wF_in+1, cstIntSig, periodicPattern, patternLSBZeroes, periodSize, header, headerSize, i, j);
 
 		}
 		
@@ -321,53 +323,53 @@ namespace flopoco{
 
 
 
-#ifdef HAVE_SOLLYA
 
 
 	// The parser version
-	FPConstMult::FPConstMult(Target* target, int wE_in_, int wF_in_, int wE_out_, int wF_out_, int wF_C, string constant):
+	FPConstMult::FPConstMult(OperatorPtr parentOp, Target* target, int wE_in_, int wF_in_, int wE_out_, int wF_out_, int wF_C, string constant):
 		Operator(target), 
 		wE_in(wE_in_), wF_in(wF_in_), wE_out(wE_out_), wF_out(wF_out_), cstWidth(wF_C), mantissa_is_one(false), constant_is_zero(false)
 	{
-		sollya_node_t node;
+		sollya_obj_t node;
 
 		srcFileName="FPConstMult";
 		/* Convert the input string into a sollya evaluation tree */
-		node = parseString(constant.c_str());	/* If conversion did not succeed (i.e. parse error) */
-		if (node == 0) {
-			ostringstream error;
-			error << srcFileName << ": Unable to parse string "<< constant << " as a numeric constant" <<endl;
-			throw error.str();
-		}
+		node = sollya_lib_parse_string(constant.c_str());	
+		/* If  parse error throw an exception */
+		if (sollya_lib_obj_is_error(node))
+			{
+				ostringstream error;
+				error << srcFileName << ": Unable to parse string "<< constant << " as a numeric constant" <<endl;
+				throw error.str();
+			}
 		//     flopoco -verbose=1 FPConstMultParser 8 23 8 23 30 "1/7"
 
 
 		mpfr_inits(mpfrC, NULL);
-		evaluateConstantExpression(mpfrC, node,  getToolPrecision());
+		sollya_lib_get_constant(mpfrC, node);
 		REPORT(DEBUG, "Constant evaluates to " << mpfr_get_d(mpfrC, GMP_RNDN));
+		
+		
+		
+		// Nonperiodic version
 
+		if(wF_C==0) //  means: please compute wF_C for faithful rounding
+			cstWidth=wF_out+3;
+		else
+			cstWidth=wF_C;
+		
+		mpfr_set_prec(mpfrC, cstWidth);
+		sollya_lib_get_constant(mpfrC, node);
+		
 
-
-			// Nonperiodic version
-
-			if(wF_C==0) //  means: please compute wF_C for faithful rounding
-				cstWidth=wF_out+3;
-			else
-				cstWidth=wF_C;
-			
-			mpfr_set_prec(mpfrC, wF_out+3);
-			evaluateConstantExpression(mpfrC, node,  cstWidth);
-
-
-			setupSgnAndExpCases();
-			computeExpSig();
-			computeIntExpSig();
-			normalizeCst();
-
-			if(!constant_is_zero && !mantissa_is_one) {
-				icm = new IntConstMult(target, wF_in+1, cstIntSig);
-				oplist.push_back(icm);
-			}
+		setupSgnAndExpCases();
+		computeExpSig();
+		computeIntExpSig();
+		normalizeCst();
+		
+		if(!constant_is_zero && !mantissa_is_one) {
+			icm = new IntConstMult(parentOp, target, wF_in+1, cstIntSig);
+		}
 			
 		
 		
@@ -381,8 +383,6 @@ namespace flopoco{
 		
 		buildVHDL();
 	}
-
-#endif //HAVE_SOLLYA
 
 
 
@@ -481,7 +481,7 @@ namespace flopoco{
 
 
 
-	FPConstMult::FPConstMult(Target* target, int wE_in, int wF_in, int wE_out, int wF_out):
+	FPConstMult::FPConstMult(OperatorPtr parentOp, Target* target, int wE_in, int wF_in, int wE_out, int wF_out):
 		Operator(target),
 		wE_in(wE_in), wF_in(wF_in), wE_out(wE_out), wF_out(wF_out) 
 	{
@@ -491,9 +491,9 @@ namespace flopoco{
 	FPConstMult::~FPConstMult() {
 		// TODO but who cares really
 		// clean up memory -- with ifs, because in some cases they have not been init'd
-        mpfr_clear(mpfrC);
-        mpfr_clear(cstSig);
-        mpfr_clear(mpfr_xcut_sig);
+		if(mpfrC) mpfr_clear(mpfrC);
+		if(cstSig) mpfr_clear(cstSig);
+		if(mpfr_xcut_sig) mpfr_clear(mpfr_xcut_sig);
 	}
 
 
@@ -560,32 +560,32 @@ namespace flopoco{
 				vhdl << tab << declare("r_frac", wF_out) << " <= X" << range(wF_in-1, wF_out -wF_in) << ";"<<endl;
 			}
 			vhdl << tab << declare("norm") << " <= '0';"<<endl;
-			setSignalDelay("norm", 0.0); // save the delay for later
+			// TODO setSignalDelay("norm", 0.0); // save the delay for later
 		}
 
 
 
 		else{ // normal case, mantissa is not one
-			inPortMap  (icm, "X", "x_sig");
-			outPortMap (icm, "R","sig_prod");
+			inPortMap  ("X", "x_sig");
+			outPortMap ("R","sig_prod");
 			vhdl << instance(icm, "sig_mult");
 			
-			setCycleFromSignal("sig_prod"); 
-			setCriticalPath(icm->getOutputDelay("R"));
+			// TODO setCycleFromSignal("sig_prod"); 
+			// TODO setCriticalPath(icm->getOutputDelay("R"));
 			vhdl << tab << declare("norm") << " <= sig_prod" << of(icm->rsize -1) << ";"<<endl;
-			setSignalDelay("norm", getCriticalPath()); // save the delay for later
+			// TODO setSignalDelay("norm", getCriticalPath()); // save the delay for later
 			
 			// one mux controlled by the diffusion of the "norm" bit
-			manageCriticalPath(target_->localWireDelay(wF_out+1) + target_->lutDelay());
+			// TODO manageCriticalPath(getTarget()->localWireDelay(wF_out+1) + getTarget()->lutDelay());
 			
 			vhdl << tab << declare("shifted_frac",    wF_out+1) << " <= sig_prod("<<icm->rsize -2<<" downto "<<icm->rsize - wF_out-2 <<")  when norm = '1'"<<endl
 			     << tab << "           else sig_prod("<<icm->rsize -3<<" downto "<<icm->rsize - wF_out - 3<<");"<<endl;  
 		}
 		
 		// Here if mantissa was 1 critical path is 0. Otherwise we want to reset critical path to the norm bit
-		setCycleFromSignal("norm", getSignalDelay("norm"));
+		//TODO		setCycleFromSignal("norm", getSignalDelay("norm"));
 		
-		manageCriticalPath(target_->localWireDelay() + target_->adderDelay(wE_sum+1));
+		// TODO manageCriticalPath(getTarget()->localWireDelay() + getTarget()->adderDelay(wE_sum+1));
 		vhdl <<endl << tab << "-- exponent processing"<<endl;
 		
 		vhdl << tab << declare("abs_unbiased_cst_exp",wE_sum+1) << " <= \""
@@ -603,6 +603,7 @@ namespace flopoco{
 			vhdl << tab << declare("expfrac_rnd",   wE_out+1+wF_out) << " <= r_exp_br & r_frac;"<<endl;
 		} 
 		else {
+			// TODO manageCriticalPath(getTarget()->localWireDelay() + getTarget()->adderDelay(wE_out+1+wF_out+1));
 			vhdl << tab << declare("expfrac_br",   wE_out+1+wF_out+1) << " <= r_exp_br & shifted_frac;"<<endl;
 			// add the rounding bit //TODO: No  round to nearest here. OK for faithful. For CR, does this case ever appear?
 			vhdl << tab << declare("expfrac_rnd1",  wE_out+1+wF_out+1) << " <= (("<<wE_out+1+wF_out <<" downto 1 => '0') & '1') + expfrac_br;"<<endl;
@@ -643,9 +644,6 @@ namespace flopoco{
 
 
 	}
-
-
-
 
 
 
@@ -690,10 +688,87 @@ namespace flopoco{
 		}
 	}
 
+
+	
+	void FPConstMult::buildStandardTestCases(TestCaseList* tcl){
+		TestCase *tc;
+
+		tc = new TestCase(this); 
+		tc->addFPInput("X", 1.0);
+		emulate(tc);
+		tcl->add(tc);
+
+		tc = new TestCase(this); 
+		tc->addFPInput("X", FPNumber::plusDirtyZero);
+		emulate(tc);
+		tcl->add(tc);
+
+		tc = new TestCase(this); 
+		tc->addFPInput("X", FPNumber::minusDirtyZero);
+		emulate(tc);
+		tcl->add(tc);
+	}
+
+
+	
+	OperatorPtr FPConstMult::parse(OperatorPtr parentOp, Target* target, vector<string>& args)
+	{
+		int wE_in, wE_out, wF_in, wF_out, cst_width;
+		string constant;
+
+		UserInterface::parseStrictlyPositiveInt(args, "wE_in", &wE_in);
+		UserInterface::parseStrictlyPositiveInt(args, "wE_out", &wE_out);
+		UserInterface::parseStrictlyPositiveInt(args, "wF_in", &wF_in);
+		UserInterface::parseStrictlyPositiveInt(args, "wF_out", &wF_out);
+		UserInterface::parsePositiveInt(args, "cst_width", &cst_width);
+		UserInterface::parseString(args, "constant", &constant);
+
+		return new FPConstMult(parentOp, target, wE_in, wF_in, wE_out, wF_out, cst_width, constant);
+	}
+
+	OperatorPtr FPConstMult::parseRational(OperatorPtr parentOp, Target* target, vector<string>& args)
+	{
+		int wE_in, wE_out, wF_in, wF_out, a, b;
+
+		UserInterface::parseStrictlyPositiveInt(args, "wE_in", &wE_in);
+		UserInterface::parseStrictlyPositiveInt(args, "wE_out", &wE_out);
+		UserInterface::parseStrictlyPositiveInt(args, "wF_in", &wF_in);
+		UserInterface::parseStrictlyPositiveInt(args, "wF_out", &wF_out);
+		UserInterface::parseStrictlyPositiveInt(args, "a", &a);
+		UserInterface::parseStrictlyPositiveInt(args, "b", &b);
+
+		return new FPConstMult(parentOp, target, wE_in, wF_in, wE_out, wF_out, a, b);
+	}
+
+	void FPConstMult::registerFactory()
+	{
+		UserInterface::add(
+					"FPConstMult", 
+					"Floating-point constant multiplier using the shift-and-add approach.",
+					"ConstMultDiv",
+					"",
+					"wE_in(int): input exponent width;"
+					"wF_in(int): input significand part width;"
+					"wE_out(int): output exponent width;"
+					"wF_out(int): output significand width;"
+					"constant(string): constant in sollya formalism (e.g. \"cos(3*pi/2)\" or \"13176795b-22\");"
+					"cst_width(int)=0:constant precision. If set to zero, the actual width will be computed in order to get a faithful result.",
+					"An early version of the technique used is described in  <a href=\"bib/flopoco.html#BrisebarreMullerDinechin2008:ASAP\">this article</a>.",
+					parse
+				);
+		UserInterface::add(
+					"FPConstMultRational", 
+					"Correctly rounded floating-point multiplier by a rational constant.",
+					"ConstMultDiv",
+					"",
+					"wE_in(int): input exponent width;"
+					"wF_in(int): input significand part width;"
+					"wE_out(int): output exponent width;"
+					"wF_out(int): output significand width;"
+					"a(int): numerator;"
+					"b(int): denominator",
+					"The technique used is described in  <a href=\"bib/flopoco.html#Dinechin2012-TCASII\">this article</a>.",
+					parseRational
+				);
+	}
 }
-
-#if 0
-
-
-
-#endif

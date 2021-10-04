@@ -14,8 +14,6 @@
 
  */
 
-// works only with sollya
-#ifdef HAVE_SOLLYA
 #include "LNSAdd.hpp"
 #include <sstream>
 #include <vector>
@@ -34,7 +32,7 @@ namespace flopoco{
 
 		ostringstream name;
 		name<<"LNSAdd_"<< wE <<"_"<< wF; 
-		setName(name.str()); 
+		setNameWithFreqAndUID(name.str()); 
 
 		setCopyrightString("Sylvain Collange (2008)");		
 		setCombinatorial(); // TODO this should no longer be useful in the new framework
@@ -135,4 +133,3 @@ namespace flopoco{
 
 #endif
 }
-#endif// HAVE_SOLLYA

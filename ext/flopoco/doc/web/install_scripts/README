@@ -1,0 +1,7 @@
+These are install scripts for various versions of flopoco on various environments.
+They are intended to work as well in vagrant as in docker.
+Remarks:
+ "full" means an installation of FloPoCo with all the bells and whistles.
+ "plain" means a simpler installation with a reduced number of dependencies.
+ "bionic" means Ubuntu 18.04
+ "focal"  means Ubuntu 20.04  (both are Long-Term Releases)

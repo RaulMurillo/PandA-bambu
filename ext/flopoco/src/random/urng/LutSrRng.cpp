@@ -122,7 +122,7 @@ unsigned  int no_tuple=sizeof(table)/sizeof(table[0]);
   		// definition of the name of the operator
   		ostringstream name;
   		name << "lut_sr_rng_" << tr << "_" << t << "_" << k;
-  		setName(name.str());
+  		setNameWithFreqAndUID(name.str());
   		// Copyright 
   		setCopyrightString("Junfei Yan and David Thomas 2011");
 		

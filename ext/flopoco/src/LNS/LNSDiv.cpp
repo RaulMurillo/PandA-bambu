@@ -29,7 +29,7 @@ namespace flopoco{
 			wE = width of the integral part of the exponent
 			wF = width of the fractional part of the exponent */
 		name << "LNSDiv_" << wE << "_" << wF; 
-		setName(name.str()); 
+		setNameWithFreqAndUID(name.str()); 
 		setCombinatorial(); // TODO this should no longer be useful in the new framework
 
 
