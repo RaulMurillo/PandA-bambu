@@ -150,81 +150,6 @@ void TilingAndCompressionOptILP::solve()
 #endif
 }
 
-    void TilingAndCompressionOptILP::parseTilingSolution(long long &optTruncNumericErr) {
-        //parse tiling solution
-        unsigned long long int new_constant = 0;
-        double sum[4] = {0, 0, 0, 0};                   //variable to sum the rounded and double decision variables to check for numeric problems
-        if(wOut < (int) prodWidth) cout << "centerErrConstant was: " << centerErrConstant << endl;//new error re-centering constant for truncation from solution
-        double total_cost = 0 ;
-        int dsp_cost = 0, own_lut_cost=0;
-        for(auto &p:bestResult.values)
-        {
-            if(p.second > 0.5){     //parametrize all multipliers at a certain position, for which the solver returned 1 as solution, to flopoco solution structure
-                string var_name = p.first->getName();
-                //cout << var_name << "\t " << p.second << endl;
-                switch(var_name.substr(0,1).at(0)){
-                    case 'd':{
-                        int mult_id = stoi(var_name.substr(1, dpS));
-                        int x_negative = (var_name.substr(1 + dpS, 1) == "m") ? 1 : 0;
-                        int m_x_pos = stoi(var_name.substr(1 + dpS + x_negative, dpX)) * ((x_negative) ? (-1) : 1);
-                        int y_negative = (var_name.substr(1 + dpS + x_negative + dpX, 1) == "m") ? 1 : 0;
-                        int m_y_pos = stoi(var_name.substr(1 + dpS + dpX + x_negative + y_negative, dpY)) * ((y_negative) ? (-1) : 1);
-                        cout << "is true:  " << setfill(' ') << setw(dpY) << mult_id << " " << setfill(' ') << setw(dpY) << m_x_pos << " " << setfill(' ') << setw(
-                                dpY) << m_y_pos << " cost: " << setfill(' ') << setw(5) << tiles[mult_id]->getLUTCost(m_x_pos, m_y_pos, wX, wY, signedIO) << endl;
-
-                        total_cost += (double) tiles[mult_id]->getLUTCost(m_x_pos, m_y_pos, wX, wY, signedIO);
-                        own_lut_cost += tiles[mult_id]->ownLUTCost(m_x_pos, m_y_pos, wX, wY, signedIO);
-                        dsp_cost += tiles[mult_id]->getDSPCost();
-                        auto coord = make_pair(m_x_pos, m_y_pos);
-                        TilingStrategy::solution.push_back(make_pair(
-                                tiles[mult_id]->getParametrisation().tryDSPExpand(m_x_pos, m_y_pos, wX, wY, signedIO), coord));
-                        break;
-                    }
-                    case 'k':{
-                        //the compressors are processed in compressionAlgorithm()
-                        break;
-                    }
-                    case 'c':{
-                        int c_id = stoi(var_name.substr(1, dpC));
-                        new_constant |= (1ULL << c_id);
-                        cout << var_name << " pos " << c_id << " dpC " << dpC << endl;
-                        break;
-                    }
-                    default:
-                        continue;
-                }
-            }
-            //check variables for numeric derivations due to rounding for optimal truncation.
-            if (p.first->getName().substr(1, 1) == "b") {
-                int m_x_pos = stoi(p.first->getName().substr(2, dpX)) ;
-                int m_y_pos = stoi(p.first->getName().substr(2 + dpX, dpY));
-                sum[0] += p.second * (double)(1LL << (m_x_pos + m_y_pos));
-                if (p.second >= 0.5) sum[1] += (double)(1LL << (m_x_pos + m_y_pos));
-            }
-            if (p.first->getName().substr(0, 1) == "c") {
-                int shift = stoi(p.first->getName().substr(1, dpC));
-                sum[2] += p.second * (1 << shift);
-                if (p.second >= 0.5) sum[3] += (1 << shift);
-            }
-        }
-        cout << "Total LUT cost:" << total_cost << endl;
-        cout << "Own LUT cost:" << own_lut_cost << endl;
-        cout << "Total DSP cost:" << dsp_cost << endl;
-
-        if(performOptimalTruncation){
-            //refresh centerErrConstant according to ILP solution
-            mpz_import(centerErrConstant.get_mpz_t(), 1, -1, sizeof new_constant, 0, 0, &new_constant);
-            cout << "centerErrConstant now is: " << centerErrConstant << endl;
-
-            //check for numeric errors in solution
-            optTruncNumericErr = (long long)ceil(fabs((sum[0] + sum[2]) - (sum[1] + sum[3])));
-            if(0 < optTruncNumericErr){
-                cout << "Warning: Numeric problems in solution, repeating ILP with Offset for Error of " << optTruncNumericErr << endl;
-                errorBudget -= optTruncNumericErr;      //Reduce errorBudget by scope of numeric derivation for next iteration
-            }
-        }
-    }
-
     void TilingAndCompressionOptILP::compressionAlgorithm() {
 #ifndef HAVE_SCALP
 		throw "Error, TilingAndCompressionOptILP::compressionAlgorithm() was called but FloPoCo was not built with ScaLP library";
@@ -707,7 +632,80 @@ void TilingAndCompressionOptILP::constructProblem(int s_max)
         }
     }
 
-#endif
+    void TilingAndCompressionOptILP::parseTilingSolution(long long &optTruncNumericErr) {
+        //parse tiling solution
+        unsigned long long int new_constant = 0;
+        double sum[4] = {0, 0, 0, 0};                   //variable to sum the rounded and double decision variables to check for numeric problems
+        if(wOut < (int) prodWidth) cout << "centerErrConstant was: " << centerErrConstant << endl;//new error re-centering constant for truncation from solution
+        double total_cost = 0 ;
+        int dsp_cost = 0, own_lut_cost=0;
+        for(auto &p:bestResult.values)
+        {
+            if(p.second > 0.5){     //parametrize all multipliers at a certain position, for which the solver returned 1 as solution, to flopoco solution structure
+                string var_name = p.first->getName();
+                //cout << var_name << "\t " << p.second << endl;
+                switch(var_name.substr(0,1).at(0)){
+                    case 'd':{
+                        int mult_id = stoi(var_name.substr(1, dpS));
+                        int x_negative = (var_name.substr(1 + dpS, 1) == "m") ? 1 : 0;
+                        int m_x_pos = stoi(var_name.substr(1 + dpS + x_negative, dpX)) * ((x_negative) ? (-1) : 1);
+                        int y_negative = (var_name.substr(1 + dpS + x_negative + dpX, 1) == "m") ? 1 : 0;
+                        int m_y_pos = stoi(var_name.substr(1 + dpS + dpX + x_negative + y_negative, dpY)) * ((y_negative) ? (-1) : 1);
+                        cout << "is true:  " << setfill(' ') << setw(dpY) << mult_id << " " << setfill(' ') << setw(dpY) << m_x_pos << " " << setfill(' ') << setw(
+                                dpY) << m_y_pos << " cost: " << setfill(' ') << setw(5) << tiles[mult_id]->getLUTCost(m_x_pos, m_y_pos, wX, wY, signedIO) << endl;
+
+                        total_cost += (double) tiles[mult_id]->getLUTCost(m_x_pos, m_y_pos, wX, wY, signedIO);
+                        own_lut_cost += tiles[mult_id]->ownLUTCost(m_x_pos, m_y_pos, wX, wY, signedIO);
+                        dsp_cost += tiles[mult_id]->getDSPCost();
+                        auto coord = make_pair(m_x_pos, m_y_pos);
+                        TilingStrategy::solution.push_back(make_pair(
+                                tiles[mult_id]->getParametrisation().tryDSPExpand(m_x_pos, m_y_pos, wX, wY, signedIO), coord));
+                        break;
+                    }
+                    case 'k':{
+                        //the compressors are processed in compressionAlgorithm()
+                        break;
+                    }
+                    case 'c':{
+                        int c_id = stoi(var_name.substr(1, dpC));
+                        new_constant |= (1ULL << c_id);
+                        cout << var_name << " pos " << c_id << " dpC " << dpC << endl;
+                        break;
+                    }
+                    default:
+                        continue;
+                }
+            }
+            //check variables for numeric derivations due to rounding for optimal truncation.
+            if (p.first->getName().substr(1, 1) == "b") {
+                int m_x_pos = stoi(p.first->getName().substr(2, dpX)) ;
+                int m_y_pos = stoi(p.first->getName().substr(2 + dpX, dpY));
+                sum[0] += p.second * (double)(1LL << (m_x_pos + m_y_pos));
+                if (p.second >= 0.5) sum[1] += (double)(1LL << (m_x_pos + m_y_pos));
+            }
+            if (p.first->getName().substr(0, 1) == "c") {
+                int shift = stoi(p.first->getName().substr(1, dpC));
+                sum[2] += p.second * (1 << shift);
+                if (p.second >= 0.5) sum[3] += (1 << shift);
+            }
+        }
+        cout << "Total LUT cost:" << total_cost << endl;
+        cout << "Own LUT cost:" << own_lut_cost << endl;
+        cout << "Total DSP cost:" << dsp_cost << endl;
+
+        if(performOptimalTruncation){
+            //refresh centerErrConstant according to ILP solution
+            mpz_import(centerErrConstant.get_mpz_t(), 1, -1, sizeof new_constant, 0, 0, &new_constant);
+            cout << "centerErrConstant now is: " << centerErrConstant << endl;
+
+            //check for numeric errors in solution
+            optTruncNumericErr = (long long)ceil(fabs((sum[0] + sum[2]) - (sum[1] + sum[3])));
+            if(0 < optTruncNumericErr){
+                cout << "Warning: Numeric problems in solution, repeating ILP with Offset for Error of " << optTruncNumericErr << endl;
+                errorBudget -= optTruncNumericErr;      //Reduce errorBudget by scope of numeric derivation for next iteration
+            }
+        }
+    }
 
     void TilingAndCompressionOptILP::writeSolutionFile(ScaLP::Result result) {
         ofstream result_file;
@@ -715,6 +713,8 @@ void TilingAndCompressionOptILP::constructProblem(int s_max)
         result_file << result;
         result_file.close();
     }
+
+#endif
 
 
 }   //end namespace flopoco
