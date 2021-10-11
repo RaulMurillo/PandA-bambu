@@ -62,7 +62,7 @@
 #include "utils.hpp"
 #include <gmpxx.h>
 
-#include "FPAdderSinglePath.hpp"
+#include "FPAddSub/FPAddSinglePath.hpp"
 #include "FPgt_expr.hpp"
 
 #include "custom_map.hpp"
@@ -104,19 +104,20 @@ namespace flopoco
       addOutput("R", 1);
 
       /*	VHDL code description	*/
-      manageCriticalPath(_target->localWireDelay() + _target->lutDelay());
+      ////manageCriticalPath(_target->localWireDelay() + _target->lutDelay());
       vhdl << tab << declare("nY", wE + wF + 3) << "  <= Y" << range(wE + wF + 2, wE + wF + 1) << " & not(Y" << of(wE + wF) << ") & Y" << range(wE + wF - 1, 0) << ";" << endl;
-      FPAdderSinglePath* value_difference = new FPAdderSinglePath(_target, wE, wF, wE, wF, wE, wF);
+      ////FPAddSinglePath* value_difference = new FPAddSinglePath(_target, wE, wF, wE, wF, wE, wF);
+      FPAddSinglePath* value_difference = new FPAddSinglePath(nullptr, _target, wE, wF);
       value_difference->changeName(getName() + "value_difference");
       oplist.push_back(value_difference);
       inPortMap(value_difference, "X", "X");
       inPortMap(value_difference, "Y", "nY");
       outPortMap(value_difference, "R", "valueDiff");
       vhdl << instance(value_difference, "value_difference");
-      syncCycleFromSignal("valueDiff");
-      setCriticalPath(value_difference->getOutputDelay("R"));
+      ////syncCycleFromSignal("valueDiff");
+      ////setCriticalPath(value_difference->getOutputDelay("R"));
 
-      manageCriticalPath(_target->localWireDelay() + _target->lutDelay());
+      ////manageCriticalPath(_target->localWireDelay() + _target->lutDelay());
       vhdl << tab << "R(0) <= '1' when (valueDiff" << of(wE + wF) << "='0') and (valueDiff" << range(wE + wF + 2, wE + wF + 1) << " /= \"00\") else '0';" << endl;
    }
 
