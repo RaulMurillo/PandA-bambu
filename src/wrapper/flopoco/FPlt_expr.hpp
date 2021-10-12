@@ -63,7 +63,7 @@ namespace flopoco
        * @param[in]		wER			the with of the exponent in input
        * @param[in]		wFR			the with of the fraction in input
        */
-      FPlt_expr(Target* target, int wER, int wFR);
+      FPlt_expr(Operator* parentOp, Target* target, int wER, int wFR);
 
       /**
        *  destructor

@@ -83,7 +83,7 @@ namespace flopoco
 
 #define DEBUGVHDL 0
 
-   FPAssign::FPAssign(Target* _target, int wE, int wF) : Operator(_target)
+   FPAssign::FPAssign(Operator* parentOp, Target* _target, int wE, int wF) : Operator(parentOp, _target)
    {
       ostringstream name;
 

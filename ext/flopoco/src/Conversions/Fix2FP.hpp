@@ -24,7 +24,7 @@ namespace flopoco{
 		 * @param[in]		wER			the with of the exponent for the convertion result
 		 * @param[in]		wFR			the with of the fraction for the convertion result
 		 */
-		Fix2FP(Target* target, bool Signed, int MSBI, int LSBI, int wER, int wFR);
+		Fix2FP(Operator* parentOp, Target* target, bool Signed, int MSBI, int LSBI, int wER, int wFR);
 
 		/**
 		 * @brief destructor

@@ -88,7 +88,7 @@ namespace flopoco
 
 #define DEBUGVHDL 0
 
-   FPgt_expr::FPgt_expr(Target* _target, int wE, int wF) : Operator(_target)
+   FPgt_expr::FPgt_expr(Operator* parentOp, Target* _target, int wE, int wF) : Operator(parentOp, _target)
    {
       ostringstream name;
 
@@ -104,9 +104,9 @@ namespace flopoco
       addOutput("R", 1);
 
       /*	VHDL code description	*/
-      ////manageCriticalPath(_target->localWireDelay() + _target->lutDelay());
+      ////manageCriticalPath(parentOp, _target->localWireDelay() + _target->lutDelay());
       vhdl << tab << declare("nY", wE + wF + 3) << "  <= Y" << range(wE + wF + 2, wE + wF + 1) << " & not(Y" << of(wE + wF) << ") & Y" << range(wE + wF - 1, 0) << ";" << endl;
-      ////FPAddSinglePath* value_difference = new FPAddSinglePath(_target, wE, wF, wE, wF, wE, wF);
+      ////FPAddSinglePath* value_difference = new FPAddSinglePath(parentOp, _target, wE, wF, wE, wF, wE, wF);
       FPAddSinglePath* value_difference = new FPAddSinglePath(nullptr, _target, wE, wF);
       value_difference->changeName(getName() + "value_difference");
       oplist.push_back(value_difference);
@@ -117,7 +117,7 @@ namespace flopoco
       ////syncCycleFromSignal("valueDiff");
       ////setCriticalPath(value_difference->getOutputDelay("R"));
 
-      ////manageCriticalPath(_target->localWireDelay() + _target->lutDelay());
+      ////manageCriticalPath(parentOp, _target->localWireDelay() + _target->lutDelay());
       vhdl << tab << "R(0) <= '1' when (valueDiff" << of(wE + wF) << "='0') and (valueDiff" << range(wE + wF + 2, wE + wF + 1) << " /= \"00\") else '0';" << endl;
    }
 
