@@ -46,6 +46,7 @@ AM_CONDITIONAL(no_WIN32, test "x$OS_WIN32" = xno)
 dnl Check for libraries.
 AC_CHECK_LIB([gmpxx], [main], [], [AC_MSG_ERROR(libgmpxx is missing.)])
 AC_CHECK_LIB([gmp], [main], [], [AC_MSG_ERROR(libgmp is missing.)])
+AC_CHECK_LIB([mpfi], [main], [], [AC_MSG_ERROR(libmpfi is missing.)])
 AC_CHECK_LIB([mpfr], [main], [], [AC_MSG_ERROR(libmpfr is missing.)])
 AC_CHECK_LIB([sollya], [main], [], [AC_MSG_ERROR(libsollya is missing.)])
 AC_DEFINE(HAVE_SOLLYA, 1, "Found Sollya")
@@ -53,6 +54,7 @@ AC_DEFINE(HAVE_SOLLYA, 1, "Found Sollya")
 dnl Check for headers.
 AC_CHECK_HEADER([gmpxx.h], [], [AC_MSG_ERROR(gmpxx.h is missing.)])
 AC_CHECK_HEADER([gmp.h], [], [AC_MSG_ERROR(gmp.h is missing.)])
+AC_CHECK_HEADER([mpfi.h], [], [AC_MSG_ERROR(mpfi.h is missing.)])
 AC_CHECK_HEADER([mpfr.h], [], [AC_MSG_ERROR(mpfr.h is missing.)])
 dnl need to fix the sollya header test
 dnl AC_CHECK_HEADER([sollya.h], [], [AC_MSG_ERROR(sollya.h is missing.)])
