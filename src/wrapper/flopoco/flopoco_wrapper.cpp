@@ -204,6 +204,7 @@ flopoco_wrapper::flopoco_wrapper(int
    else
       THROW_UNREACHABLE("Non supported target architecture.");
 
+#if 0
    /// sollya initialization
    jmp_buf recover;
 
@@ -216,6 +217,7 @@ flopoco_wrapper::flopoco_wrapper(int
    setRecoverEnvironment(&recover);
    extern int recoverEnvironmentReady;
    recoverEnvironmentReady = 1;
+#endif
 }
 
 flopoco_wrapper::~flopoco_wrapper()
