@@ -1,7 +1,9 @@
 \subsection{evaluate}
 \label{labevaluate}
 \noindent Name: \textbf{evaluate}\\
-evaluates a function at a constant point or in a range\\
+\phantom{aaa}evaluates a function at a constant point or in a range\\[0.2cm]
+\noindent Library name:\\
+\verb|   sollya_obj_t sollya_lib_evaluate(sollya_obj_t, sollya_obj_t)|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{evaluate}(\emph{function}, \emph{constant}) : (\textsf{function}, \textsf{constant}) $\rightarrow$ \textsf{constant} $|$ \textsf{range}\\
@@ -38,7 +40,7 @@ Parameters:
    is performed in the same way as when the second argument is a constant but
    it produces a range as a result: \textbf{evaluate} automatically adjusts the precision
    of the intern computations and returns a range that contains at most three floating-point
-   consecutive numbers in precision \textbf{prec}. This correponds to the same accuracy
+   consecutive numbers in precision \textbf{prec}. This corresponds to the same accuracy
    as a faithful rounding of the actual result. If such a faithful rounding
    is not possible, \textbf{evaluate} has the same behavior as in the case when the
    second argument is a constant.
@@ -59,8 +61,8 @@ Parameters:
 \noindent Example 2: 
 \begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
 > print(evaluate(sin(pi * x), 2));
-[-1.72986452514381269516508615031098129542836767991679e-12715;7.5941198201187963
-145069564314525661706039084390067e-12716]
+[-3.100365765139897619749121887390789523854170596558e-13490;5.300240158585712760
+5350842426029223241500776302528e-13489]
 \end{Verbatim}
 \end{minipage}\end{center}
 \noindent Example 3: 
@@ -73,13 +75,13 @@ Parameters:
 \noindent Example 4: 
 \begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
 > print(evaluate(sin(pi * x), 2 + 0.25 * x));
-sin((pi) * (2 + 0.25 * x))
+sin((pi) * 2 + x * (pi) * 0.25)
 \end{Verbatim}
 \end{minipage}\end{center}
 \noindent Example 5: 
 \begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
 > print(evaluate(sin(pi * 1/x), 0));
-[@NaN@;@NaN@]
+[-1;1]
 \end{Verbatim}
 \end{minipage}\end{center}
 See also: \textbf{isevaluable} (\ref{labisevaluable})

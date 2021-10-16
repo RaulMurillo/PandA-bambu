@@ -1,7 +1,11 @@
 \subsection{dieonerrormode}
 \label{labdieonerrormode}
 \noindent Name: \textbf{dieonerrormode}\\
-global variable controlling if \sollya is exited on an error or not.\\
+\phantom{aaa}global variable controlling if \sollya is exited on an error or not.\\[0.2cm]
+\noindent Library names:\\
+\verb|   void sollya_lib_set_dieonerrormode_and_print(sollya_obj_t)|\\
+\verb|   void sollya_lib_set_dieonerrormode(sollya_obj_t)|\\
+\verb|   sollya_obj_t sollya_lib_get_dieonerrormode()|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{dieonerrormode} = \emph{activation value} : \textsf{on$|$off} $\rightarrow$ \textsf{void}\\
@@ -32,8 +36,8 @@ Die-on-error mode has been deactivated.
 Warning: one of the arguments of the for loop does not evaluate to a constant.
 The for loop will not be executed.
 > exp(17);
-Warning: rounding has happened. The value displayed is a faithful rounding of th
-e true result.
+Warning: rounding has happened. The value displayed is a faithful rounding to 16
+5 bits of the true result.
 2.41549527535752982147754351803858238798675673527224e7
 \end{Verbatim}
 \end{minipage}\end{center}
@@ -42,13 +46,13 @@ e true result.
 > verbosity = 1!;
 > dieonerrormode = off!;
 > 5 */  4;
-Warning: syntax error, unexpected DIVTOKEN.
+Warning: syntax error, unexpected /.
 The last symbol read has been "/".
 Will skip input until next semicolon after the unexpected token. May leak memory
 .
   exp(17);
-Warning: rounding has happened. The value displayed is a faithful rounding of th
-e true result.
+Warning: rounding has happened. The value displayed is a faithful rounding to 16
+5 bits of the true result.
 2.41549527535752982147754351803858238798675673527224e7
 \end{Verbatim}
 \end{minipage}\end{center}
@@ -72,7 +76,7 @@ As the die-on-error mode is activated, the tool will be exited.
 > verbosity = 1!;
 > dieonerrormode = on!;
 > 5 */  4;
-Warning: syntax error, unexpected DIVTOKEN.
+Warning: syntax error, unexpected /.
 The last symbol read has been "/".
 Will skip input until next semicolon after the unexpected token. May leak memory
 .

@@ -1,60 +1,68 @@
 /*
 
-Copyright 2006-2011 by
+  Copyright 2006-2018 by
 
-Laboratoire de l'Informatique du Parallelisme,
-UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668,
+  Laboratoire de l'Informatique du Parallelisme,
+  UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668,
 
-Laboratoire d'Informatique de Paris 6, equipe PEQUAN,
-UPMC Universite Paris 06 - CNRS - UMR 7606 - LIP6, Paris, France,
+  Laboratoire d'Informatique de Paris 6, equipe PEQUAN,
+  UPMC Universite Paris 06 - CNRS - UMR 7606 - LIP6, Paris, France,
 
-and by
+  Sorbonne Université
+  CNRS, Laboratoire d'Informatique de Paris 6, LIP6
+  F - 75005 Paris
+  France
 
-Centre de recherche INRIA Sophia-Antipolis Mediterranee, equipe APICS,
-Sophia Antipolis, France.
+  and by
 
-Contributors Ch. Lauter, S. Chevillard
+  Centre de recherche INRIA Sophia Antipolis Mediterranee, equipe APICS,
+  Sophia Antipolis, France.
 
-christoph.lauter@ens-lyon.org
-sylvain.chevillard@ens-lyon.org
+  Contributors Ch. Lauter, S. Chevillard
 
-This software is a computer program whose purpose is to provide an
-environment for safe floating-point code development. It is
-particularily targeted to the automatized implementation of
-mathematical floating-point libraries (libm). Amongst other features,
-it offers a certified infinity norm, an automatic polynomial
-implementer and a fast Remez algorithm.
+  christoph.lauter@ens-lyon.org
+  sylvain.chevillard@ens-lyon.org
 
-This software is governed by the CeCILL-C license under French law and
-abiding by the rules of distribution of free software.  You can  use,
-modify and/ or redistribute the software under the terms of the CeCILL-C
-license as circulated by CEA, CNRS and INRIA at the following URL
-"http://www.cecill.info".
+  This software is a computer program whose purpose is to provide an
+  environment for safe floating-point code development. It is
+  particularly targeted to the automated implementation of
+  mathematical floating-point libraries (libm). Amongst other features,
+  it offers a certified infinity norm, an automatic polynomial
+  implementer and a fast Remez algorithm.
 
-As a counterpart to the access to the source code and  rights to copy,
-modify and redistribute granted by the license, users are provided only
-with a limited warranty  and the software's author,  the holder of the
-economic rights,  and the successive licensors  have only  limited
-liability.
+  This software is governed by the CeCILL-C license under French law and
+  abiding by the rules of distribution of free software.  You can  use,
+  modify and/ or redistribute the software under the terms of the CeCILL-C
+  license as circulated by CEA, CNRS and INRIA at the following URL
+  "http://www.cecill.info".
 
-In this respect, the user's attention is drawn to the risks associated
-with loading,  using,  modifying and/or developing or reproducing the
-software by the user in light of its specific status of free software,
-that may mean  that it is complicated to manipulate,  and  that  also
-therefore means  that it is reserved for developers  and  experienced
-professionals having in-depth computer knowledge. Users are therefore
-encouraged to load and test the software's suitability as regards their
-requirements in conditions enabling the security of their systems and/or
-data to be ensured and,  more generally, to use and operate it in the
-same conditions as regards security.
+  As a counterpart to the access to the source code and  rights to copy,
+  modify and redistribute granted by the license, users are provided only
+  with a limited warranty  and the software's author,  the holder of the
+  economic rights,  and the successive licensors  have only  limited
+  liability.
 
-The fact that you are presently reading this means that you have had
-knowledge of the CeCILL-C license and that you accept its terms.
+  In this respect, the user's attention is drawn to the risks associated
+  with loading,  using,  modifying and/or developing or reproducing the
+  software by the user in light of its specific status of free software,
+  that may mean  that it is complicated to manipulate,  and  that  also
+  therefore means  that it is reserved for developers  and  experienced
+  professionals having in-depth computer knowledge. Users are therefore
+  encouraged to load and test the software's suitability as regards their
+  requirements in conditions enabling the security of their systems and/or
+  data to be ensured and,  more generally, to use and operate it in the
+  same conditions as regards security.
 
-This program is distributed WITHOUT ANY WARRANTY; without even the
-implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  The fact that you are presently reading this means that you have had
+  knowledge of the CeCILL-C license and that you accept its terms.
+
+  This program is distributed WITHOUT ANY WARRANTY; without even the
+  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 */
+
+#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 
 #include <gmp.h>
 #include <mpfr.h>
@@ -62,37 +70,94 @@ implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #include <stdio.h> /* fprintf, fopen, fclose, */
 #include <errno.h>
 #include <inttypes.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 #include "expression.h"
+#include "execute.h"
 #include "double.h"
 #include "general.h"
 #include "infnorm.h"
 
 
 typedef union {
-  int32_t i[2]; 
+  int32_t i[2];
   double d;
 } db_number;
 
 typedef union {
-  int32_t i; 
+  int32_t i;
   float f;
 } fl_number;
 
+/* Converts a string of the form [:space:]*(+)?(-)?(0x)?[0-9A-Fa-f]*
+   interpreted in hexadecimal into an int32.
+   If the string is not a valid hexadecimal string or if the number it
+   represents does not fit on an int32_t, the behavior of the function is not
+   determined.
 
+   Note: this function only exists because we cannot use strtoll as it is not
+   BSD compliant.
+*/
+int32_t convertHexadecimalStringToInt32(char *str) {
+  char *ptr;
+  int negate;
+  int32_t res;
+  uint32_t t, c;
+
+  negate = 0;
+  t = 0;
+
+  for (ptr=str;*ptr!='\0';ptr++) {
+    if (!isspace(*ptr)) break;
+  }
+
+  if (*ptr=='+') ptr++;
+  if (*ptr=='-') {
+    negate = 1;
+    ptr++;
+  }
+
+  if ((*ptr=='0') && (*(ptr+1)=='x')) ptr += 2;
+
+  for (;*ptr!='\0';ptr++) {
+    if (((*ptr>='0') && (*ptr<='9')) ||
+	((*ptr>='A') && (*ptr<='F')) ||
+	((*ptr>='a') && (*ptr<='f'))) {
+      t <<= 4;
+      if ((*ptr>='0') && (*ptr<='9')) {
+	c = *ptr - '0';
+      } else {
+	if ((*ptr>='A') && (*ptr<='F')) {
+	  c = *ptr - 'A' + 0xa;
+	} else {
+	  c = *ptr - 'a' + 0xa;
+	}
+      }
+      t += c;
+    } else {
+      t = 0;
+      break;
+    }
+  }
+
+  res = *((int32_t *) &t);
+  if (negate) res = -res;
+
+  return res;
+}
 
 int round_to_format(mpfr_t rop, mpfr_t op, int prec, mp_rnd_t mode) {
   mpfr_t res;
   int round_dir;
 
   mpfr_init2(res,(mp_prec_t)prec);
-  
+
   round_dir = mpfr_set(res,op, mode);
   if (mpfr_set(rop, res, GMP_RNDN) != 0) {
     if (!noRoundingWarnings) {
-      printMessage(1,"Warning: an undesired rounding occurred on invoking round_to_format.\n");
-      printMessage(1,"Try to increase the working precision.\n");
+      printMessage(1,SOLLYA_MSG_UNDESIRED_ROUNDING_IN_ROUND_TO_FORMAT,"Warning: an undesired rounding occurred on a rounding operator.\n");
+      printMessage(1,SOLLYA_MSG_CONTINUATION,"Try to increase the working precision.\n");
     }
   }
 
@@ -101,43 +166,30 @@ int round_to_format(mpfr_t rop, mpfr_t op, int prec, mp_rnd_t mode) {
 }
 
 
-
-int mpfr_round_to_double(mpfr_t rop, mpfr_t op) {
-  double d;
-  int res;
-
-  d = mpfr_get_d(op,GMP_RNDN);
-  if (mpfr_set_d(rop,d,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the double precision rounding operator.\n");
-      printMessage(1,"Try to increase the working precision.\n");
-    }
-  }
-  
-  res = mpfr_cmp(rop,op);
-
-  return res;
+static inline int __sollya_mpfr_round_to_double_mode_impl(mpfr_t rop, mpfr_srcptr op, mp_rnd_t mode) {
+  return mpfr_set_d(rop, sollya_mpfr_get_d(op, mode), GMP_RNDN);
 }
 
-int mpfr_round_to_double_mode(mpfr_t rop, mpfr_t op, mp_rnd_t mode) {
-  double d;
-  int res;
+int sollya_mpfr_round_to_double_mode(mpfr_t rop, mpfr_srcptr op, mp_rnd_t mode) {
+  int tern;
 
-  d = mpfr_get_d(op,mode);
-  if (mpfr_set_d(rop,d,GMP_RNDN) != 0) {
+  tern = __sollya_mpfr_round_to_double_mode_impl(rop, op, mode);
+
+  if (tern != 0) {
     if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the double precision rounding operator.\n");
-      printMessage(1,"Try to increase the working precision.\n");
+      printMessage(1,SOLLYA_MSG_DOUBLE_ROUNDING_IN_ROUND_TO_DOUBLE,"Warning: an undesired rounding occurred on a rounding to double.\n");
+      printMessage(1,SOLLYA_MSG_CONTINUATION,"Try to increase the working precision.\n");
     }
   }
-  
-  res = mpfr_cmp(rop,op);
 
-  return res;
+  return tern;
 }
 
+int sollya_mpfr_round_to_double(mpfr_t rop, mpfr_srcptr op) { 
+  return sollya_mpfr_round_to_double_mode(rop, op, GMP_RNDN);
+}
 
-int mpfr_round_to_prec(mpfr_t rop, mpfr_t op, mp_prec_t prec) {
+int sollya_mpfr_round_to_prec(mpfr_t rop, mpfr_t op, mp_prec_t prec) {
   mp_prec_t p;
   mpfr_t temp;
   int res;
@@ -147,526 +199,273 @@ int mpfr_round_to_prec(mpfr_t rop, mpfr_t op, mp_prec_t prec) {
   mpfr_set(temp,op,GMP_RNDN);
   if (mpfr_set(rop,temp,GMP_RNDN) != 0) {
     if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the double precision rounding operator.\n");
-      printMessage(1,"Try to increase the working precision.\n");
+      printMessage(1,SOLLYA_MSG_DOUBLE_ROUNDING_IN_ROUND_TO_PREC,"Warning: double rounding occurred on invoking the round-to-prec rounding operator.\n");
+      printMessage(1,SOLLYA_MSG_CONTINUATION,"Try to increase the working precision.\n");
     }
   }
   mpfr_clear(temp);
-  
+
   res = mpfr_cmp(rop,op);
 
   return res;
 }
 
+static inline int __sollya_mpfr_round_to_doubledouble_mode_impl(mpfr_t rop, mpfr_srcptr op, mp_rnd_t mode) {
+  mpfr_t h, d, l;
+  int tern;
 
-int mpfr_round_to_single(mpfr_t rop, mpfr_t x) {
-  int res;
-  double d, dd;
-  mpfr_t temp, tempRound, temp2;
-  fl_number xfl;
-  float xfloat;
+  /* Check for NaN, Inf or zero 
+     
+     The result is just the input, the ternary is zero.
 
-  mpfr_init2(temp,mpfr_get_prec(x));
-  mpfr_init2(temp2,mpfr_get_prec(x));
-  mpfr_init2(tempRound,24);
-
-  mpfr_set(tempRound,x,GMP_RNDN);
-
-  d = mpfr_get_d(tempRound,GMP_RNDN);
-  xfloat = d;
-  dd = xfloat;
-  if (mpfr_set_d(temp,dd,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
-    }
-  }
-  
-  res = mpfr_cmp(temp,x);
-  if (res && mpfr_number_p(x) && mpfr_number_p(temp)) {
-    xfl.f = xfloat;
-    if (xfl.i == 0x80000000U) {
-      xfl.i = 0x80000001U;
-    } else {
-      if (res < 0) {
-        if (xfl.i >= 0) {
-          xfl.i++;
-        } else {
-          xfl.i--;
-        }
-      } else {
-        if (xfl.i < 0) {
-          xfl.i--;
-        } else {
-          xfl.i++;
-        }
-      }
-    }
-    dd = xfl.f;
-    if (mpfr_set_d(temp2,dd,GMP_RNDN) != 0) {
-      if (!noRoundingWarnings) {
-        printMessage(1,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
-      }
-    }
-    mpfr_sub(temp,temp,x,GMP_RNDN);
-    mpfr_sub(temp2,temp2,x,GMP_RNDN);
-    if (mpfr_cmpabs(temp2,temp) < 0) {
-      xfloat = dd;
-      if (mpfr_set_d(temp,dd,GMP_RNDN) != 0) {
-        if (!noRoundingWarnings) {
-          printMessage(1,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
-        }
-      }
-    }
+  */
+  if (mpfr_nan_p(op) ||
+      mpfr_inf_p(op) ||
+      mpfr_zero_p(op)) {
+    mpfr_set(rop, op, GMP_RNDN);
+    return 0;
   }
 
-  dd = xfloat;
+  /* The input is a non-zero number 
 
-  if (mpfr_set_d(rop,dd,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the single rounding operator.\n");
-      printMessage(1,"Try to increase the working precision.\n");
-    }
+     We start by rounding the input to a double.
+
+  */
+  mpfr_init2(h, 64);
+  sollya_mpfr_round_to_double_mode(h, op, GMP_RNDN);
+
+  /* Check the high number for Inf or NaN.
+
+     In this case, h is the answer. The ternary is 
+     the one obtained when setting rop.
+
+  */
+  if (mpfr_inf_p(h) ||
+      mpfr_nan_p(h)) {
+    mpfr_clear(h);
+    return mpfr_set(rop, h, GMP_RNDN);
   }
 
-  res = mpfr_cmp(rop,x);
+  /* Here the high order double h is a finite number. 
 
-  mpfr_clear(temp);
-  mpfr_clear(temp2);
-  mpfr_clear(tempRound);
-  return res;
+     Compute the difference 
+
+     d = op - h
+
+     That operation is Sterbenz-exact if d has at least 
+     the precision of op and h.
+
+  */
+  mpfr_init2(d, ((mpfr_get_prec(op) > mpfr_get_prec(h)) ? mpfr_get_prec(op) : mpfr_get_prec(h)));
+  mpfr_sub(d, op, h, GMP_RNDN); /* exact */
+
+  /* Compute the low order double, this time taking mode into
+     account 
+  */
+  mpfr_init2(l, 64);
+  sollya_mpfr_round_to_double_mode(l, d, mode);
+
+  /* Clear d */
+  mpfr_clear(d);
+
+  /* The answer is h + l. The ternary is the one obtained when adding
+     h and l. 
+  */
+  tern = mpfr_add(rop, h, l, GMP_RNDN);
+
+  /* Clear h and l */
+  mpfr_clear(h);
+  mpfr_clear(l);
+
+  /* Return the ternary */
+  return tern;
 }
 
-int mpfr_round_to_single_mode(mpfr_t rop, mpfr_t x, mp_rnd_t mode) {
-  int res;
-  double d, dd;
-  mpfr_t temp, tempRound, temp2;
-  fl_number xfl;
-  float xfloat;
+int sollya_mpfr_round_to_doubledouble_mode(mpfr_t rop, mpfr_srcptr op, mp_rnd_t mode) {
+  int tern;
 
-  mpfr_init2(temp,mpfr_get_prec(x));
-  mpfr_init2(temp2,mpfr_get_prec(x));
-  mpfr_init2(tempRound,24);
+  tern = __sollya_mpfr_round_to_doubledouble_mode_impl(rop, op, mode);
 
-  mpfr_set(tempRound,x,GMP_RNDN);
-
-  d = mpfr_get_d(tempRound,GMP_RNDN);
-  xfloat = d;
-  dd = xfloat;
-  if (mpfr_set_d(temp,dd,GMP_RNDN) != 0) {
+  if (tern != 0) {
     if (!noRoundingWarnings) {
-      printMessage(1,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
+      printMessage(1,SOLLYA_MSG_DOUBLE_ROUNDING_IN_ROUND_TO_DOUBLE_DOUBLE,"Warning: an undesired rounding occurred on a rounding to double-double.\n");
+      printMessage(1,SOLLYA_MSG_CONTINUATION,"Try to increase the working precision.\n");
     }
   }
   
-  res = mpfr_cmp(temp,x);
-  if ((res != 0) && mpfr_number_p(x) && mpfr_number_p(temp)) {
-    xfl.f = xfloat;
-    if (xfl.i == 0x80000000U) {
-      xfl.i = 0x80000001U;
-    } else {
-      if (res < 0) {
-        if (xfl.i >= 0) {
-          xfl.i++;
-        } else {
-          xfl.i--;
-        }
-      } else {
-        if (xfl.i < 0) {
-          xfl.i--;
-        } else {
-          xfl.i++;
-        }
-      }
-    }
-    dd = xfl.f;
-    if (mpfr_set_d(temp2,dd,GMP_RNDN) != 0) {
-      if (!noRoundingWarnings) {
-        printMessage(1,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
-      }
-    }
-    mpfr_sub(temp,temp,x,GMP_RNDN);
-    mpfr_sub(temp2,temp2,x,GMP_RNDN);
-    if (mpfr_cmpabs(temp2,temp) < 0) {
-      xfloat = dd;
-      if (mpfr_set_d(temp,dd,GMP_RNDN) != 0) {
-        if (!noRoundingWarnings) {
-          printMessage(1,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
-        }
-      }
-    }
-  }
-
-  dd = xfloat;
-  if (mpfr_set_d(temp,dd,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
-    }
-  }
-
-  // Now, temp is equal to the single rounding of x under round to nearest
-  //
-  res = mpfr_cmp(temp,x);
-  if ((mode != GMP_RNDN) && 
-      mpfr_number_p(x) && 
-      mpfr_number_p(temp) && 
-      (res != 0))  {
-    // Here, we have an inexact single rounding to nearest that is a number
-    // but we must produce a directed rounding
-    if ((res < 0) && 
-	((mode == GMP_RNDU) || 
-	 ((mode == GMP_RNDZ) && (mpfr_sgn(x) < 0)))) {
-      // The rounded value is too small
-      xfl.f = xfloat;
-      if (xfl.i >= 0) {
-	xfl.i++;
-      } else {
-	xfl.i--;
-      }
-      dd = xfl.f;
-      if (mpfr_set_d(temp,dd,GMP_RNDN) != 0) {
-	if (!noRoundingWarnings) {
-	  printMessage(1,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
-	}
-      }
-    } else {
-      if ((res > 0) && 
-	  ((mode == GMP_RNDD) || 
-	   ((mode == GMP_RNDZ) && (mpfr_sgn(x) > 0)))) {
-	// The rounded value is too great
-	xfl.f = xfloat;
-	if (xfl.i >= 0) {
-	  xfl.i--;
-	} else {
-	  xfl.i++;
-	}
-	dd = xfl.f;
-	if (mpfr_set_d(temp,dd,GMP_RNDN) != 0) {
-	  if (!noRoundingWarnings) {
-	    printMessage(1,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
-	  }
-	}
-      } 
-    }
-  }
-
-  if (mpfr_set(rop,temp,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the single rounding operator.\n");
-      printMessage(1,"Try to increase the working precision.\n");
-    }
-  }
-
-  res = mpfr_cmp(rop,x);
-
-  mpfr_clear(temp);
-  mpfr_clear(temp2);
-  mpfr_clear(tempRound);
-  return res;
+  return tern;
 }
 
-
-
-int mpfr_round_to_doubledouble(mpfr_t rop, mpfr_t op) {
-  double d;
-  mpfr_t accu, temp, rest;
-  mp_prec_t prec;
-  int res;
-
-  prec = mpfr_get_prec(op);
-  if (prec < 106) {
-    prec = 106;
-  }
-
-  mpfr_init2(accu, prec);
-  mpfr_init2(temp, prec);
-  mpfr_init2(rest, prec);
-
-  d = mpfr_get_d(op,GMP_RNDN);
-  if (mpfr_set_d(accu,d,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the double-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on recasting to MPFR. This should not occur.\n");
-    }
-  }
-  if (mpfr_sub(rest,op,accu,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the double-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on substracting in MPFR. This should not occur.\n");
-    }
-  }
-  d = mpfr_get_d(rest,GMP_RNDN);
-  if (mpfr_set_d(temp,d,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the double-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on recasting to MPFR. This should not occur.\n");
-    }
-  }
-  if (mpfr_add(accu,accu,temp,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the double-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on substracting in MPFR. This should not occur.\n");
-    }
-  }
-  if (mpfr_set(rop,accu,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the double-double rounding operator.\n");
-      printMessage(1,"Try to increase the working precision.\n");
-    }
-  }
-
-  res = mpfr_cmp(rop,op);
-
-  mpfr_clear(accu);
-  mpfr_clear(temp);
-  mpfr_clear(rest);
-  return res;
+int sollya_mpfr_round_to_doubledouble(mpfr_t rop, mpfr_srcptr op) {
+  return sollya_mpfr_round_to_doubledouble_mode(rop, op, GMP_RNDN);
 }
 
-int mpfr_round_to_doubledouble_mode(mpfr_t rop, mpfr_t op, mp_rnd_t mode) {
-  double d;
-  mpfr_t accu, temp, rest;
-  mp_prec_t prec;
-  int res;
+static inline int __sollya_mpfr_round_to_tripledouble_mode_impl(mpfr_t rop, mpfr_srcptr op, mp_rnd_t mode) {
+  mpfr_t h, d, m, l, dd, t;
+  int tern;
 
-  prec = mpfr_get_prec(op);
-  if (prec < 106) {
-    prec = 106;
-  }
+  /* Check for NaN, Inf or zero 
+     
+     The result is just the input, the ternary is zero.
 
-  mpfr_init2(accu, prec);
-  mpfr_init2(temp, prec);
-  mpfr_init2(rest, prec);
-
-  d = mpfr_get_d(op,GMP_RNDN);
-  if (mpfr_set_d(accu,d,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the double-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on recasting to MPFR. This should not occur.\n");
-    }
-  }
-  if (mpfr_sub(rest,op,accu,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the double-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on substracting in MPFR. This should not occur.\n");
-    }
-  }
-  d = mpfr_get_d(rest,mode);
-  if (mpfr_set_d(temp,d,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the double-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on recasting to MPFR. This should not occur.\n");
-    }
-  }
-  if (mpfr_add(accu,accu,temp,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the double-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on substracting in MPFR. This should not occur.\n");
-    }
-  }
-  if (mpfr_set(rop,accu,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the double-double rounding operator.\n");
-      printMessage(1,"Try to increase the working precision.\n");
-    }
+  */
+  if (mpfr_nan_p(op) ||
+      mpfr_inf_p(op) ||
+      mpfr_zero_p(op)) {
+    mpfr_set(rop, op, GMP_RNDN);
+    return 0;
   }
 
-  res = mpfr_cmp(rop,op);
+  /* The input is a non-zero number 
 
-  mpfr_clear(accu);
-  mpfr_clear(temp);
-  mpfr_clear(rest);
-  return res;
+     We start by rounding the input to a double.
+
+  */
+  mpfr_init2(h, 64);
+  sollya_mpfr_round_to_double_mode(h, op, GMP_RNDN);
+
+  /* Check the high number for Inf or NaN.
+
+     In this case, h is the answer. The ternary is 
+     the one obtained when setting rop.
+
+  */
+  if (mpfr_inf_p(h) ||
+      mpfr_nan_p(h)) {
+    mpfr_clear(h);
+    return mpfr_set(rop, h, GMP_RNDN);
+  }
+
+  /* Here the high order double h is a finite number. 
+
+     Compute the difference 
+
+     d = op - h
+
+     That operation is Sterbenz-exact if d has at least 
+     the precision of op and h.
+
+  */
+  mpfr_init2(d, ((mpfr_get_prec(op) > mpfr_get_prec(h)) ? mpfr_get_prec(op) : mpfr_get_prec(h)));
+  mpfr_sub(d, op, h, GMP_RNDN); /* exact */
+
+  /* Compute the middle order double. */
+  mpfr_init2(m, 64);
+  sollya_mpfr_round_to_double_mode(m, d, GMP_RNDN);
+
+  /* Check the middle number for Inf or NaN.
+
+     In this case, h + m is the answer. The ternary is 
+     the one obtained when adding h and m.
+
+  */
+  if (mpfr_inf_p(m) ||
+      mpfr_nan_p(m)) {
+    tern = mpfr_add(rop, h, m, GMP_RNDN);
+    mpfr_clear(d);
+    mpfr_clear(m);
+    mpfr_clear(h);
+    return tern;
+  }
+
+  /* Here m is a finite number.
+
+     Exactly add h and m, yielding t. 
+
+     This addition is exact if t has at least twice the precision of op.
+
+  */
+  mpfr_init2(t, 2 * mpfr_get_prec(op));
+  mpfr_add(t, h, m, GMP_RNDN); /* exact */
+
+  /* Compute dd = op - t. 
+
+     This operation is Sterbenz-exact if dd has the same precision as
+     t.
+
+  */
+  mpfr_init2(dd, mpfr_get_prec(t));
+  mpfr_sub(dd, op, t, GMP_RNDN); /* exact */
+
+  /* Compute the low order double, this time taking mode into
+     account 
+  */
+  mpfr_init2(l, 64);
+  sollya_mpfr_round_to_double_mode(l, dd, mode);
+
+  /* Clear d and dd */
+  mpfr_clear(d);
+  mpfr_clear(dd);
+
+  /* The answer is t + l. The ternary is the one obtained when adding
+     t and l. 
+  */
+  tern = mpfr_add(rop, t, l, GMP_RNDN);
+
+  /* Clear h, m, l and t */
+  mpfr_clear(h);
+  mpfr_clear(m);
+  mpfr_clear(l);
+  mpfr_clear(t);
+
+  /* Return the ternary */
+  return tern;  
 }
 
+int sollya_mpfr_round_to_tripledouble_mode(mpfr_t rop, mpfr_srcptr op, mp_rnd_t mode) {
+  int tern;
 
-int mpfr_round_to_tripledouble(mpfr_t rop, mpfr_t op) {
-  double d;
-  mpfr_t accu, temp, rest;
-  mp_prec_t prec;
-  int res;
+  tern = __sollya_mpfr_round_to_tripledouble_mode_impl(rop, op, mode);
 
-  prec = mpfr_get_prec(op);
-  if (prec < 159) {
-    prec = 159;
-  }
-
-  mpfr_init2(accu, prec);
-  mpfr_init2(temp, prec);
-  mpfr_init2(rest, prec);
-
-  d = mpfr_get_d(op,GMP_RNDN);
-  if (mpfr_set_d(accu,d,GMP_RNDN) != 0) {
+  if (tern != 0) {
     if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the triple-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on recasting to MPFR. This should not occur.\n");
+      printMessage(1,SOLLYA_MSG_DOUBLE_ROUNDING_IN_ROUND_TO_TRIPLE_DOUBLE,"Warning: an undesired rounding occurred on a rounding to triple-double.\n");
+      printMessage(1,SOLLYA_MSG_CONTINUATION,"Try to increase the working precision.\n");
     }
   }
-  if (mpfr_sub(rest,op,accu,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the triple-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on substracting in MPFR. This should not occur.\n");
-    }
-  }
-  d = mpfr_get_d(rest,GMP_RNDN);
-  if (mpfr_set_d(temp,d,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the triple-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on recasting to MPFR. This should not occur.\n");
-    }
-  }
-  if (mpfr_add(accu,accu,temp,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the triple-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on substracting in MPFR. This should not occur.\n");
-    }
-  }
-  if (mpfr_sub(rest,op,accu,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the triple-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on substracting in MPFR. This should not occur.\n");
-    }
-  }
-  d = mpfr_get_d(rest,GMP_RNDN);
-  if (mpfr_set_d(temp,d,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the triple-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on recasting to MPFR. This should not occur.\n");
-    }
-  }
-  if (mpfr_add(accu,accu,temp,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the triple-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on substracting in MPFR. This should not occur.\n");
-    }
-  }
-  if (mpfr_set(rop,accu,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the triple-double rounding operator.\n");
-      printMessage(1,"Try to increase the working precision.\n");
-    }
-  }
-
-  res = mpfr_cmp(rop,op);
-
-  mpfr_clear(accu);
-  mpfr_clear(temp);
-  mpfr_clear(rest);
-
-  return res;
+  
+  return tern;
 }
 
-int mpfr_round_to_tripledouble_mode(mpfr_t rop, mpfr_t op, mp_rnd_t mode) {
-  double d;
-  mpfr_t accu, temp, rest;
-  mp_prec_t prec;
-  int res;
-
-  prec = mpfr_get_prec(op);
-  if (prec < 159) {
-    prec = 159;
-  }
-
-  mpfr_init2(accu, prec);
-  mpfr_init2(temp, prec);
-  mpfr_init2(rest, prec);
-
-  d = mpfr_get_d(op,GMP_RNDN);
-  if (mpfr_set_d(accu,d,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the triple-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on recasting to MPFR. This should not occur.\n");
-    }
-  }
-  if (mpfr_sub(rest,op,accu,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the triple-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on substracting in MPFR. This should not occur.\n");
-    }
-  }
-  d = mpfr_get_d(rest,GMP_RNDN);
-  if (mpfr_set_d(temp,d,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the triple-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on recasting to MPFR. This should not occur.\n");
-    }
-  }
-  if (mpfr_add(accu,accu,temp,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the triple-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on substracting in MPFR. This should not occur.\n");
-    }
-  }
-  if (mpfr_sub(rest,op,accu,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the triple-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on substracting in MPFR. This should not occur.\n");
-    }
-  }
-  d = mpfr_get_d(rest,mode);
-  if (mpfr_set_d(temp,d,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the triple-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on recasting to MPFR. This should not occur.\n");
-    }
-  }
-  if (mpfr_add(accu,accu,temp,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the triple-double rounding operator.\n");
-      printMessage(1,"The rounding occurred on substracting in MPFR. This should not occur.\n");
-    }
-  }
-  if (mpfr_set(rop,accu,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the triple-double rounding operator.\n");
-      printMessage(1,"Try to increase the working precision.\n");
-    }
-  }
-
-  res = mpfr_cmp(rop,op);
-
-  mpfr_clear(accu);
-  mpfr_clear(temp);
-  mpfr_clear(rest);
-
-  return res;
+int sollya_mpfr_round_to_tripledouble(mpfr_t rop, mpfr_srcptr op) {
+  return sollya_mpfr_round_to_tripledouble_mode(rop, op, GMP_RNDN);
 }
-
 
 int printDoubleInHexa(mpfr_t x) {
   int res;
   double d;
   mpfr_t temp;
-  db_number xdb, endianessdb;
+  db_number xdb, endiannessdb;
 
   mpfr_init2(temp,mpfr_get_prec(x));
-  
-  d = mpfr_get_d(x,GMP_RNDN);
+
+  d = sollya_mpfr_get_d(x,GMP_RNDN);
   if (mpfr_set_d(temp,d,GMP_RNDN) != 0) {
     if (!noRoundingWarnings) {
-      printMessage(1,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
+      printMessage(1,SOLLYA_MSG_ROUNDING_OCCURRED_WHILE_CONVERTING_FROM_DOUBLE,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
     }
   }
-  
+
   res = mpfr_cmp(temp,x);
 
   if (res) {
     if (!noRoundingWarnings) {
-      if (res < 0) 
-        printMessage(1,"Warning: rounding down occurred before printing a value as a double.\n");
-      else 
-        printMessage(1,"Warning: rounding up occurred before printing a value as a double.\n");
+      if (res < 0)
+        printMessage(1,SOLLYA_MSG_ROUNDING_DOWN_BEFORE_PRINTING_DOUBLE,"Warning: rounding down occurred before printing a value as a double.\n");
+      else
+        printMessage(1,SOLLYA_MSG_ROUNDING_UP_BEFORE_PRINTING_DOUBLE,"Warning: rounding up occurred before printing a value as a double.\n");
     }
   }
 
   xdb.d = d;
-  endianessdb.d = 1.0;
-  if ((endianessdb.i[1] == 0x3ff00000) && (endianessdb.i[0] == 0)) {
+  endiannessdb.d = 1.0;
+  if ((endiannessdb.i[1] == 0x3ff00000) && (endiannessdb.i[0] == 0)) {
     sollyaPrintf("0x%08x%08x\n",xdb.i[1],xdb.i[0]);
   } else {
-    if ((endianessdb.i[0] == 0x3ff00000) && (endianessdb.i[1] == 0)) {
+    if ((endiannessdb.i[0] == 0x3ff00000) && (endiannessdb.i[1] == 0)) {
       sollyaPrintf("0x%08x%08x\n",xdb.i[0],xdb.i[1]);
     } else {
-      printMessage(1,"Warning: could not figure out the endianess of the system. Will print 1.0 instead of the value.\n");
+      printMessage(1,SOLLYA_MSG_COULD_NOT_FIGURE_OUT_ENDIANESS,"Warning: could not figure out the endianness of the system. Will print 1.0 instead of the value.\n");
       sollyaPrintf("0x3ff0000000000000\n");
     }
   }
@@ -677,80 +476,36 @@ int printDoubleInHexa(mpfr_t x) {
 
 int printSimpleInHexa(mpfr_t x) {
   int res;
-  double d, dd;
-  mpfr_t temp, tempRound, temp2;
+  volatile double d;
+  mpfr_t tempRound;
   fl_number xfl;
-  float xfloat;
+  volatile float xfloat;
 
-  mpfr_init2(temp,mpfr_get_prec(x));
-  mpfr_init2(temp2,mpfr_get_prec(x));
-  mpfr_init2(tempRound,24);
+  if (mpfr_nan_p(x)) {
+    xfl.i = 0x7fc00003;
+    sollyaPrintf("0x%08x\n",xfl.i);
+    return 0;
+  }
 
-  mpfr_set(tempRound,x,GMP_RNDN);
+  mpfr_init2(tempRound,64);
+  sollya_mpfr_round_to_single(tempRound, x);
+  res = mpfr_cmp(tempRound, x);
 
-  d = mpfr_get_d(tempRound,GMP_RNDN);
+  d = sollya_mpfr_get_d(tempRound,GMP_RNDN);
   xfloat = d;
-  dd = xfloat;
-  if (mpfr_set_d(temp,dd,GMP_RNDN) != 0) {
-    if (!noRoundingWarnings) {
-      printMessage(1,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
-    }
-  }
-  
-  res = mpfr_cmp(temp,x);
-  if (res && mpfr_number_p(x) && mpfr_number_p(temp)) {
-    xfl.f = xfloat;
-    if (xfl.i == 0x80000000U) {
-      xfl.i = 0x80000001U;
-    } else {
-      if (res < 0) {
-        if (xfl.i >= 0) {
-          xfl.i++;
-        } else {
-          xfl.i--;
-        }
-      } else {
-        if (xfl.i < 0) {
-          xfl.i--;
-        } else {
-          xfl.i++;
-        }
-      }
-    }
-    dd = xfl.f;
-    if (mpfr_set_d(temp2,dd,GMP_RNDN) != 0) {
-      if (!noRoundingWarnings) {
-        printMessage(1,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
-      }
-    }
-    mpfr_sub(temp,temp,x,GMP_RNDN);
-    mpfr_sub(temp2,temp2,x,GMP_RNDN);
-    if (mpfr_cmpabs(temp2,temp) < 0) {
-      xfloat = dd;
-      if (mpfr_set_d(temp,dd,GMP_RNDN) != 0) {
-        if (!noRoundingWarnings) {
-          printMessage(1,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
-        }
-      }
-    }
-  }
-
-  res = mpfr_cmp(temp,x);
+  xfl.f = xfloat;
 
   if (res) {
     if (!noRoundingWarnings) {
-      if (res < 0) 
-        printMessage(1,"Warning: rounding down occurred before printing a value as a simple.\n");
-      else 
-        printMessage(1,"Warning: rounding up occurred before printing a value as a simple.\n");
+      if (res < 0)
+        printMessage(1,SOLLYA_MSG_ROUNDING_DOWN_BEFORE_PRINTING_SINGLE,"Warning: rounding down occurred before printing a value as a single.\n");
+      else
+        printMessage(1,SOLLYA_MSG_ROUNDING_DOWN_BEFORE_PRINTING_SINGLE,"Warning: rounding up occurred before printing a value as a single.\n");
     }
   }
 
-  xfl.f = xfloat;
   sollyaPrintf("0x%08x\n",xfl.i);
 
-  mpfr_clear(temp);
-  mpfr_clear(temp2);
   mpfr_clear(tempRound);
   return res;
 }
@@ -761,8 +516,8 @@ int readHexaDouble(mpfr_t res, char *c) {
   int32_t msb, lsb;
   double x;
   char msbstr[9], lsbstr[9];
-  db_number xdb, endianessdb;
-  
+  db_number xdb, endiannessdb;
+
   x = 1.0;
   c += 2; /* Skip over "0x" */
   for (i=0;i<9;i++) {
@@ -778,19 +533,19 @@ int readHexaDouble(mpfr_t res, char *c) {
     c++;
   }
 
-  msb = strtoll(msbstr,NULL,16);
-  lsb = strtoll(lsbstr,NULL,16);
+  msb = convertHexadecimalStringToInt32(msbstr);
+  lsb = convertHexadecimalStringToInt32(lsbstr);
 
-  endianessdb.d = 1.0;
-  if ((endianessdb.i[1] == 0x3ff00000) && (endianessdb.i[0] == 0)) {
+  endiannessdb.d = 1.0;
+  if ((endiannessdb.i[1] == 0x3ff00000) && (endiannessdb.i[0] == 0)) {
     xdb.i[1] = msb;
     xdb.i[0] = lsb;
   } else {
-    if ((endianessdb.i[0] == 0x3ff00000) && (endianessdb.i[1] == 0)) {
+    if ((endiannessdb.i[0] == 0x3ff00000) && (endiannessdb.i[1] == 0)) {
       xdb.i[0] = msb;
       xdb.i[1] = lsb;
     } else {
-      printMessage(1,"Warning: could not figure out the endianess of the system. Will read 1.0 instead of the value.\n");
+      printMessage(1,SOLLYA_MSG_COULD_NOT_FIGURE_OUT_ENDIANESS,"Warning: could not figure out the endianness of the system. Will read 1.0 instead of the value.\n");
       xdb.d = 1.0;
     }
   }
@@ -798,7 +553,7 @@ int readHexaDouble(mpfr_t res, char *c) {
   x = xdb.d;
 
   if ((!(x == x)) && ((msb & 0x00080000) == 0)) {
-    printMessage(1,"Warning: a sNaN might have been converted to a qNaN.\n");
+    printMessage(1,SOLLYA_MSG_SNAN_MIGHT_HAVE_BECOME_QNAN,"Warning: a sNaN might have been converted to a qNaN.\n");
   }
 
 
@@ -813,7 +568,7 @@ int readHexaSimple(mpfr_t res, char *c) {
   char msbstr[9];
   fl_number xfl;
   float xfloat;
-  
+
   x = 1.0;
   c += 2; /* Skip over "0x" */
   for (i=0;i<9;i++) {
@@ -823,9 +578,9 @@ int readHexaSimple(mpfr_t res, char *c) {
     msbstr[i] = *c;
     c++;
   }
-  
 
-  msb = strtoll(msbstr,NULL,16);
+
+  msb = convertHexadecimalStringToInt32(msbstr);
 
   xfl.i = msb;
 
@@ -834,7 +589,7 @@ int readHexaSimple(mpfr_t res, char *c) {
   x = xfloat;
 
   if ((!(x == x)) && ((msb & 0x00400000) == 0)) {
-    printMessage(1,"Warning: a sNaN might have been converted to a qNaN.\n");
+    printMessage(1,SOLLYA_MSG_SNAN_MIGHT_HAVE_BECOME_QNAN,"Warning: a sNaN might have been converted to a qNaN.\n");
   }
 
 
@@ -845,20 +600,24 @@ int readHexaSimple(mpfr_t res, char *c) {
 
 
 int readHexa(mpfr_t res, char *c) {
-  
-  if (strlen(c) == 18) 
+
+  if (strlen(c) == 18)
     return readHexaDouble(res, c);
 
-  if (strlen(c) == 10) 
+  if (strlen(c) == 10)
     return readHexaSimple(res, c);
 
-  printMessage(1,"Warning: unable to convert the hexadecimal sequence \"%s\" to a constant.\n");
-  
+  printMessage(1,SOLLYA_MSG_UNABLE_TO_CONVERT_FROM_HEXADECIMAL_CONSTANT,"Warning: unable to convert the hexadecimal sequence \"%s\" to a constant.\n");
+
   mpfr_set_nan(res);
 
   return 0;
 }
 
+static inline int __funny_ternary_wrapper(int (*roundFunc)(mpfr_t, mpfr_srcptr), mpfr_t rop, mpfr_srcptr op) {
+  roundFunc(rop, op);
+  return mpfr_cmp(rop, op);
+}
 
 node *roundPolynomialCoefficients(node *poly, chain *formats, mp_prec_t prec) {
   int degree, listLength, i, deg, res, fillUp, k;
@@ -873,7 +632,7 @@ node *roundPolynomialCoefficients(node *poly, chain *formats, mp_prec_t prec) {
   degree = getDegree(poly);
 
   if (degree < 0) {
-    printMessage(1,"Warning: the given function is not a polynomial.\n");
+    printMessage(1,SOLLYA_MSG_GIVEN_FUNCTION_IS_NO_POLYNOMIAL,"Warning: the given function is not a polynomial.\n");
     return copyTree(poly);
   }
 
@@ -886,7 +645,7 @@ node *roundPolynomialCoefficients(node *poly, chain *formats, mp_prec_t prec) {
     curr = formats;
     fillUp = 0;
     if (listLength < (degree + 1)) {
-      printMessage(1,"Warning: the number of the given formats does not correspond to the degree of the given polynomial.\n");
+      printMessage(1,SOLLYA_MSG_NUM_OF_FORMATS_DOES_NOT_CORRESPOND_TO_DEGREE,"Warning: the number of the given formats does not correspond to the degree of the given polynomial.\n");
       monomials = makeIntPtrChainFromTo(0, listLength-1);
       subPolyToRound = getSubpolynomial(poly, monomials, 0, prec);
       freeChain(monomials, freeIntPtr);
@@ -900,7 +659,7 @@ node *roundPolynomialCoefficients(node *poly, chain *formats, mp_prec_t prec) {
       return temp;
     }
   }
-  
+
   tempArray = (int *) safeCalloc(degree + 1,sizeof(int));
 
   i = 0;
@@ -910,7 +669,7 @@ node *roundPolynomialCoefficients(node *poly, chain *formats, mp_prec_t prec) {
     curr = curr->next;
   }
   k = i;
-  
+
   formatsArray = (int *) safeCalloc(degree + 1,sizeof(int));
 
   if (fillUp) {
@@ -926,16 +685,16 @@ node *roundPolynomialCoefficients(node *poly, chain *formats, mp_prec_t prec) {
     }
   }
 
-  free(tempArray);
+  safeFree(tempArray);
 
   getCoefficients(&deg,&coefficients,poly);
 
   if (deg != degree) {
-    printMessage(1,"Warning: an error occurred while extracting the coefficients of the polynomial.\n");
+    printMessage(1,SOLLYA_MSG_ERROR_WHILE_EXTRACTING_COEFFICIENTS_OF_POLY,"Warning: an error occurred while extracting the coefficients of the polynomial.\n");
     for (i=0;i<=deg;i++) {
       if (coefficients[i] != NULL) free_memory(coefficients[i]);
     }
-    free(coefficients);
+    safeFree(coefficients);
     return copyTree(poly);
   }
 
@@ -949,25 +708,25 @@ node *roundPolynomialCoefficients(node *poly, chain *formats, mp_prec_t prec) {
     if (coefficients[i] != NULL) {
       temp = simplifyTreeErrorfree(coefficients[i]);
       free_memory(coefficients[i]);
-      if (temp->nodeType != CONSTANT) {
+      if (accessThruMemRef(temp)->nodeType != CONSTANT) {
 	if (!noRoundingWarnings) {
-	  printMessage(1,"Warning: the %dth coefficient of the given polynomial does not evaluate to a floating-point constant without any rounding.\n",i);
-	  printMessage(1,"Will evaluate the coefficient in the current precision in floating-point before rounding to the target format.\n");
+	  printMessage(1,SOLLYA_MSG_ERROR_POLY_COEFF_GETS_ROUNDED,"Warning: the %dth coefficient of the given polynomial does not evaluate to a floating-point constant without any rounding.\n",i);
+	  printMessage(1,SOLLYA_MSG_CONTINUATION,"Will evaluate the coefficient in the current precision in floating-point before rounding to the target format.\n");
 	}
 	mpfr_init2(fpcoefficients[i],prec);
 	mpfr_init2(dummyX, prec);
 	mpfr_set_si(dummyX, 1, GMP_RNDN);
 	if (!evaluateFaithful(fpcoefficients[i], temp, dummyX, prec)) {
 	  if (!noRoundingWarnings) {
-	    printMessage(1,"Warning: the evaluation of the %dth coefficient is not faithful.\n",i);
+	    printMessage(1,SOLLYA_MSG_ERROR_EVALUATION_OF_POLY_COEFF_NOT_FAITHFUL,"Warning: the evaluation of the %dth coefficient is not faithful.\n",i);
 	  }
 	  evaluateConstantExpression(fpcoefficients[i], temp, 256 * prec);
 	}
 	mpfr_clear(dummyX);
 	res = 1;
       } else {
-	mpfr_init2(fpcoefficients[i],mpfr_get_prec(*(temp->value)));
-	mpfr_set(fpcoefficients[i],*(temp->value),GMP_RNDN);
+	mpfr_init2(fpcoefficients[i],mpfr_get_prec(*(accessThruMemRef(temp)->value)));
+	mpfr_set(fpcoefficients[i],*(accessThruMemRef(temp)->value),GMP_RNDN);
       }
       free_memory(temp);
     } else {
@@ -976,59 +735,61 @@ node *roundPolynomialCoefficients(node *poly, chain *formats, mp_prec_t prec) {
     }
     switch (formatsArray[i]) {
     case 7:
-      if (mpfr_round_to_quad(tempMpfr, fpcoefficients[i]) != 0) res = 1;
+      if (__funny_ternary_wrapper(sollya_mpfr_round_to_quad,tempMpfr, fpcoefficients[i]) != 0) res = 1;
       break;
     case 6:
-      if (mpfr_round_to_halfprecision(tempMpfr, fpcoefficients[i]) != 0) res = 1;
+      if (__funny_ternary_wrapper(sollya_mpfr_round_to_halfprecision,tempMpfr, fpcoefficients[i]) != 0) res = 1;
       break;
     case 5:
-      if (mpfr_round_to_single(tempMpfr, fpcoefficients[i]) != 0) res = 1;
+      if (__funny_ternary_wrapper(sollya_mpfr_round_to_single,tempMpfr, fpcoefficients[i]) != 0) res = 1;
       break;
     case 4:
-      if (mpfr_round_to_doubleextended(tempMpfr, fpcoefficients[i]) != 0) res = 1;
+      if (__funny_ternary_wrapper(sollya_mpfr_round_to_doubleextended,tempMpfr, fpcoefficients[i]) != 0) res = 1;
       break;
     case 3:
-      if (mpfr_round_to_tripledouble(tempMpfr, fpcoefficients[i]) != 0) res = 1;
+      if (__funny_ternary_wrapper(sollya_mpfr_round_to_tripledouble,tempMpfr, fpcoefficients[i]) != 0) res = 1;
       break;
     case 2:
-      if (mpfr_round_to_doubledouble(tempMpfr, fpcoefficients[i]) != 0) res = 1;
+      if (__funny_ternary_wrapper(sollya_mpfr_round_to_doubledouble,tempMpfr, fpcoefficients[i]) != 0) res = 1;
       break;
     case 1:
-      if (mpfr_round_to_double(tempMpfr, fpcoefficients[i]) != 0) res = 1;
+      if (__funny_ternary_wrapper(sollya_mpfr_round_to_double,tempMpfr, fpcoefficients[i]) != 0) res = 1;
       break;
     default:
-      if (formatsArray[i] > 5) {
-	if (mpfr_round_to_prec(tempMpfr, fpcoefficients[i], (mp_prec_t) (formatsArray[i] - 6)) != 0) 
+      if (formatsArray[i] > 7) {
+	sollya_mpfr_round_to_prec(tempMpfr, fpcoefficients[i], (mp_prec_t) (formatsArray[i] - 6));
+	if (mpfr_cmp(tempMpfr, fpcoefficients[i]) != 0) {
 	  res = 1;
+	}
       } else {
-	printMessage(1,"Warning: unknown expansion format found. No rounding will be performed.\n");
+	printMessage(1,SOLLYA_MSG_ERROR_UNKNOWN_EXPANSION_FORMAT,"Warning: unknown expansion format found. No rounding will be performed.\n");
 	mpfr_set(tempMpfr,fpcoefficients[i],GMP_RNDN);
       }
     }
     if (mpfr_set(fpcoefficients[i],tempMpfr,GMP_RNDN) != 0) {
       if (!noRoundingWarnings) {
-	printMessage(1,"Warning: double rounding occurred on internal handling of a coefficient.\nTry to increase the precision.\n");
+	printMessage(1,SOLLYA_MSG_DOUBLE_ROUNDING_ON_HANDLING_POLY_COEFF,"Warning: double rounding occurred on internal handling of a coefficient.\nTry to increase the precision.\n");
       }
     }
   }
 
-  free(coefficients);
+  safeFree(coefficients);
 
   if (res) {
     if (!noRoundingWarnings) {
-      printMessage(2,"Information: at least one coefficient has been rounded.\n");
+      printMessage(2,SOLLYA_MSG_AT_LEAST_ONE_POLY_COEFF_HAS_BEEN_ROUNDED,"Information: at least one coefficient has been rounded.\n");
     }
   } else {
     if (!noRoundingWarnings) {
-      printMessage(2,"Information: there has not been any rounding of the coefficients.\n");
+      printMessage(2,SOLLYA_MSG_NONE_OF_THE_POLY_COEFFS_HAS_BEEN_ROUNDED,"Information: there has not been any rounding of the coefficients.\n");
     }
   }
 
   roundedPoly = makePolynomial(fpcoefficients, degree);
 
   for (i=0;i<=degree;i++) mpfr_clear(fpcoefficients[i]);
-  free(fpcoefficients);
-  free(formatsArray);
+  safeFree(fpcoefficients);
+  safeFree(formatsArray);
   mpfr_clear(tempMpfr);
   return roundedPoly;
 }
@@ -1036,7 +797,7 @@ node *roundPolynomialCoefficients(node *poly, chain *formats, mp_prec_t prec) {
 int printDoubleExpansion(mpfr_t x) {
   double d;
   mpfr_t temp, rest;
-  db_number xdb, endianessdb;
+  db_number xdb, endiannessdb;
   int noBrackets, roundingOccured;
 
   mpfr_init2(temp,mpfr_get_prec(x));
@@ -1046,46 +807,46 @@ int printDoubleExpansion(mpfr_t x) {
 
   roundingOccured = 0;
   noBrackets = 0;
-  d = mpfr_get_d(x,GMP_RNDN);
+  d = sollya_mpfr_get_d(x,GMP_RNDN);
   if (mpfr_set_d(temp,d,GMP_RNDN) != 0) {
     if (!noRoundingWarnings) {
-      printMessage(1,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
+      printMessage(1,SOLLYA_MSG_ROUNDING_OCCURRED_WHILE_CONVERTING_FROM_DOUBLE,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
     }
     roundingOccured = 1;
   }
-  
+
   if (!mpfr_number_p(temp)) {
-    printMessage(1,"Warning: will not print a number that is not real as a double expansion.\n");
+    printMessage(1,SOLLYA_MSG_NON_REAL_NUMBER_CANNOT_BE_DOUBLE_EXPANSION,"Warning: will not print a number that is not real as a double expansion.\n");
     printValue(&temp);
     mpfr_clear(temp);
     mpfr_clear(rest);
     return 1;
   }
 
-  if (mpfr_cmp(temp,x) == 0) 
+  if (mpfr_cmp(temp,x) == 0)
     noBrackets = 1;
 
-  if (!noBrackets) 
+  if (!noBrackets)
     sollyaPrintf("(");
 
   do {
-    d = mpfr_get_d(rest,GMP_RNDN);
+    d = sollya_mpfr_get_d(rest,GMP_RNDN);
     if (mpfr_set_d(temp,d,GMP_RNDN) != 0) {
       if (!noRoundingWarnings) {
-	printMessage(1,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
+	printMessage(1,SOLLYA_MSG_ROUNDING_OCCURRED_WHILE_CONVERTING_FROM_DOUBLE,"Warning: rounding occurred unexpectedly on reconverting a double value.\n");
       }
       roundingOccured = 1;
     }
-    
+
     xdb.d = d;
-    endianessdb.d = 1.0;
-    if ((endianessdb.i[1] == 0x3ff00000) && (endianessdb.i[0] == 0)) {
+    endiannessdb.d = 1.0;
+    if ((endiannessdb.i[1] == 0x3ff00000) && (endiannessdb.i[0] == 0)) {
       sollyaPrintf("0x%08x%08x",xdb.i[1],xdb.i[0]);
     } else {
-      if ((endianessdb.i[0] == 0x3ff00000) && (endianessdb.i[1] == 0)) {
+      if ((endiannessdb.i[0] == 0x3ff00000) && (endiannessdb.i[1] == 0)) {
 	sollyaPrintf("0x%08x%08x",xdb.i[0],xdb.i[1]);
       } else {
-	printMessage(1,"Warning: could not figure out the endianess of the system. Will print 1.0 instead of the value.\n");
+	printMessage(1,SOLLYA_MSG_COULD_NOT_FIGURE_OUT_ENDIANESS,"Warning: could not figure out the endianness of the system. Will print 1.0 instead of the value.\n");
 	sollyaPrintf("0x3ff0000000000000\n");
 	roundingOccured = 1;
       }
@@ -1093,24 +854,24 @@ int printDoubleExpansion(mpfr_t x) {
 
     if (mpfr_sub(rest,rest,temp,GMP_RNDN) != 0) {
       if (!noRoundingWarnings) {
-	printMessage(1,"Warning: rounding occurred unexpectedly on subtracting.\n");
+	printMessage(1,SOLLYA_MSG_DOUBLE_ROUNDING_ON_CONVERSION,"Warning: rounding occurred unexpectedly on subtracting.\n");
       }
       roundingOccured = 1;
     }
-    
+
     if ((d != 0.0) && (!mpfr_zero_p(rest))) {
       sollyaPrintf(" + ");
     }
 
   } while ((d != 0.0) && (!mpfr_zero_p(rest)));
 
-  if (!noBrackets) 
+  if (!noBrackets)
     sollyaPrintf(")");
 
 
   if (!mpfr_zero_p(rest)) {
     if (!noRoundingWarnings) {
-      printMessage(1,"\nWarning: the expansion is not complete because of the limited exponent range of double precision.");
+      printMessage(1,SOLLYA_MSG_DOUBLE_EXPANSION_INCOMPLETE,"\nWarning: the expansion is not complete because of the limited exponent range of double precision.");
     }
     roundingOccured = 1;
   }
@@ -1135,13 +896,13 @@ int printPolynomialAsDoubleExpansion(node *poly, mp_prec_t prec) {
 
   if (!isPolynomial(simplifiedTreeSafe)) {
     if (!isPolynomial(simplifiedTree)) {
-      printMessage(1,"Warning: the given expression is not a polynomial.");
+      printMessage(1,SOLLYA_MSG_GIVEN_FUNCTION_IS_NO_POLYNOMIAL,"Warning: the given expression is not a polynomial.");
       free_memory(simplifiedTree);
       free_memory(simplifiedTreeSafe);
       return -1;
     } else {
       if (!noRoundingWarnings) {
-	printMessage(1,"Warning: rounding occurred while simplifying to a polynomial form.\n");
+	printMessage(1,SOLLYA_MSG_ROUNDING_WHILE_SIMPLIFYING_TO_POLYNOMIAL,"Warning: rounding occurred while simplifying to a polynomial form.\n");
       }
       roundingOccured = 1;
       myTree = simplifiedTree;
@@ -1163,9 +924,9 @@ int printPolynomialAsDoubleExpansion(node *poly, mp_prec_t prec) {
     if (coefficients[i] != NULL) {
       if (k > 0) {
 	if (k == 1) {
-	  sollyaPrintf("%s * ",variablename);
+	  sollyaPrintf("%s * ",((variablename == NULL) ? "_x_" : variablename));
 	} else {
-	  sollyaPrintf("%s^%d * ",variablename,k);
+	  sollyaPrintf("%s^%d * ",((variablename == NULL) ? "_x_" : variablename),k);
 	}
       }
 
@@ -1175,16 +936,15 @@ int printPolynomialAsDoubleExpansion(node *poly, mp_prec_t prec) {
       }
 
       tempNode = simplifyTreeErrorfree(coefficients[i]);
-      if (tempNode->nodeType == CONSTANT) {
-	roundingOccured |=  printDoubleExpansion(*(tempNode->value));
+      if (accessThruMemRef(tempNode)->nodeType == CONSTANT) {
+	roundingOccured |=  printDoubleExpansion(*(accessThruMemRef(tempNode)->value));
       } else {
 	if (!isConstant(tempNode)) {
-	  printMessage(1,"Error: a coefficient of a polynomial is not constant.\n");
-	  recoverFromError();
+	  printMessage(1,SOLLYA_MSG_POLY_COEFF_IS_NOT_CONSTANT,"Error: a coefficient of a polynomial is not constant.\n");
 	}
 	if (!evaluateFaithful(tempValue, tempNode, tempValue2, prec)) {
 	  if (!noRoundingWarnings) {
-	    printMessage(1,"Warning: an evaluation is not faithful.\n");
+	    printMessage(1,SOLLYA_MSG_SOME_EVALUATION_IS_NOT_FAITHFUL,"Warning: an evaluation is not faithful.\n");
 	  }
 	  evaluate(tempValue, tempNode, tempValue2, 256 * prec);
 	}
@@ -1202,10 +962,10 @@ int printPolynomialAsDoubleExpansion(node *poly, mp_prec_t prec) {
       k++;
     }
   }
-  for (i=0;i<l;i++) 
+  for (i=0;i<l;i++)
     sollyaPrintf(")");
 
-  free(coefficients);
+  safeFree(coefficients);
   mpfr_clear(tempValue);
   mpfr_clear(tempValue2);
   free_memory(myTree);
@@ -1214,28 +974,28 @@ int printPolynomialAsDoubleExpansion(node *poly, mp_prec_t prec) {
 }
 
 
-void mpfr_round_to_format(mpfr_t rop, mpfr_t op, int format) {
+void sollya_mpfr_round_to_format(mpfr_t rop, mpfr_srcptr op, int format) {
   switch (format) {
   case 7:
-    mpfr_round_to_quad(rop, op);
+    sollya_mpfr_round_to_quad(rop, op);
     break;
   case 6:
-    mpfr_round_to_halfprecision(rop, op);
+    sollya_mpfr_round_to_halfprecision(rop, op);
     break;
   case 5:
-    mpfr_round_to_single(rop, op);
+    sollya_mpfr_round_to_single(rop, op);
     break;
   case 4:
-    mpfr_round_to_doubleextended(rop, op);
+    sollya_mpfr_round_to_doubleextended(rop, op);
     break;
   case 3:
-    mpfr_round_to_tripledouble(rop, op);
+    sollya_mpfr_round_to_tripledouble(rop, op);
     break;
   case 2:
-    mpfr_round_to_doubledouble(rop, op);
+    sollya_mpfr_round_to_doubledouble(rop, op);
     break;
   case 1:
-    mpfr_round_to_double(rop, op);
+    sollya_mpfr_round_to_double(rop, op);
     break;
   default:
     sollyaFprintf(stderr,"Error: mpfr_round_to_format: unknown format type.\n");
@@ -1243,43 +1003,341 @@ void mpfr_round_to_format(mpfr_t rop, mpfr_t op, int format) {
   }
 }
 
-int round_to_expansion_format(mpfr_t rop, mpfr_t op, int format, mp_rnd_t mode) {
+int sollya_mpfr_round_to_quad_mode(mpfr_t rop, mpfr_srcptr op, mp_rnd_t mode);
+int sollya_mpfr_round_to_halfprecision_mode(mpfr_t rop, mpfr_srcptr op, mp_rnd_t mode);
+int sollya_mpfr_round_to_single_mode(mpfr_t rop, mpfr_srcptr op, mp_rnd_t mode);
+int sollya_mpfr_round_to_doubleextended_mode(mpfr_t rop, mpfr_srcptr op, mp_rnd_t mode);
+
+int round_to_expansion_format(mpfr_t rop, mpfr_srcptr op, int format, mp_rnd_t mode) {
   int res;
   switch (format) {
   case 7:
-    mpfr_round_to_quad_mode(rop, op, mode);
+    sollya_mpfr_round_to_quad_mode(rop, op, mode);
     break;
   case 6:
-    mpfr_round_to_halfprecision_mode(rop, op, mode);
+    sollya_mpfr_round_to_halfprecision_mode(rop, op, mode);
     break;
   case 5:
-    mpfr_round_to_single_mode(rop, op, mode);
+    sollya_mpfr_round_to_single_mode(rop, op, mode);
     break;
   case 4:
-    mpfr_round_to_doubleextended_mode(rop, op, mode);
+    sollya_mpfr_round_to_doubleextended_mode(rop, op, mode);
     break;
   case 3:
-    mpfr_round_to_tripledouble_mode(rop, op, mode);
+    sollya_mpfr_round_to_tripledouble_mode(rop, op, mode);
     break;
   case 2:
-    mpfr_round_to_doubledouble_mode(rop, op, mode);
+    sollya_mpfr_round_to_doubledouble_mode(rop, op, mode);
     break;
   case 1:
-    mpfr_round_to_double_mode(rop, op, mode);
+    sollya_mpfr_round_to_double_mode(rop, op, mode);
     break;
   default:
     sollyaFprintf(stderr,"Error: round_to_expansion_format: unknown format type.\n");
     exit(1);
   }
 
-  res = mpfr_cmp(rop,op);
+  if ((!mpfr_nan_p(op)) &&
+      (!mpfr_nan_p(rop))) {
+    res = mpfr_cmp(rop,op);
+  } else {
+    res = 0;
+  }
 
   return res;
 }
 
+int round_to_format_or_expansion_format(mpfr_t rop, mpfr_t op, int expansion_format_round, int format, mp_prec_t prec, mp_rnd_t mode) {
+  if (expansion_format_round) return round_to_expansion_format(rop, op, format, mode);
 
+  return round_to_format(rop, op, prec, mode);
+}
 
-int mpfr_mant_exp(mpfr_t rop, mp_exp_t *expo, mpfr_t op) {
+int round_constant_expr_to_format_or_expansion_format(int *ternary, int *ternaryOkay, mpfr_t rop, node *func, int expansion_format_round, int format, mp_prec_t prec, mp_rnd_t mode) {
+  mp_prec_t startPrec, p;
+  sollya_mpfi_t y, x;
+  mpfr_t ya, yb, rya, ryb, tya;
+  int ta, tb;
+  mp_rnd_t writeBackRnd;
+
+  /* Make compiler happy */
+  ta = 0;
+  tb = 0;
+  /* End of compiler happiness */
+
+  /* Check if expression is constant */
+  if (!isConstant(func)) return 0;
+
+  /* Check if we have a literal constant, in which case things are easy. */
+  if (accessThruMemRef(func)->nodeType == CONSTANT) {
+    *ternaryOkay = 1;
+    *ternary = round_to_format_or_expansion_format(rop, *(accessThruMemRef(func)->value), expansion_format_round, format, prec, mode);
+    return 1;
+  }
+
+  startPrec = 200;
+  if (!expansion_format_round) {
+    if (prec + 10 > startPrec) startPrec = prec + 10;
+  }
+
+  sollya_mpfi_init2(y, startPrec);
+  mpfr_init2(ya, startPrec);
+  mpfr_init2(yb, startPrec);
+  mpfr_init2(rya, startPrec);
+  mpfr_init2(ryb, startPrec);
+  sollya_mpfi_init2(x, 12);
+  sollya_mpfi_set_si(x, 1);
+
+  for (p = startPrec; p <= 512 * startPrec; p <<= 1) {
+    sollya_mpfi_set_prec(y, p);
+    mpfr_set_prec(ya, p);
+    mpfr_set_prec(yb, p);
+    evaluateInterval(y, func, NULL, x);
+    sollya_mpfi_get_left(ya, y);
+    sollya_mpfi_get_right(yb, y);
+    ta = round_to_format_or_expansion_format(rya, ya, expansion_format_round, format, prec, mode);
+    tb = round_to_format_or_expansion_format(ryb, yb, expansion_format_round, format, prec, mode);
+    if ((!mpfr_nan_p(rya)) &&
+	(!mpfr_nan_p(ryb)) &&
+	mpfr_equal_p(rya, ryb) &&
+	(ta == tb)) {
+      writeBackRnd = GMP_RNDN;
+      if (ta < 0) writeBackRnd = GMP_RNDD;
+      if (ta > 0) writeBackRnd = GMP_RNDU;
+      *ternary = ta;
+      *ternaryOkay = 1;
+      if ((ta = mpfr_set(rop, rya, writeBackRnd)) != 0) {
+	if (!noRoundingWarnings) {
+	  printMessage(1,SOLLYA_MSG_UNDESIRED_ROUNDING_IN_ROUND_TO_FORMAT,"Warning: an undesired rounding occurred on a rounding operator.\n");
+	  printMessage(1,SOLLYA_MSG_CONTINUATION,"Try to increase the working precision.\n");
+	}
+	*ternary = ta;
+      }
+      sollya_mpfi_clear(y);
+      mpfr_clear(ya);
+      mpfr_clear(yb);
+      mpfr_clear(rya);
+      mpfr_clear(ryb);
+      sollya_mpfi_clear(x);
+      return 1;
+    }
+  }
+
+  /* If we are here, we never got a correct rounding or we always got NaNs.
+
+     We are going to re-evaluate the values in ya and yb.
+
+     First, we check if either of them is a NaN, in which case we return NaN.
+
+  */
+  if (mpfr_nan_p(ya) || mpfr_nan_p(yb)) {
+    *ternaryOkay = 1;
+    if (mpfr_nan_p(ya)) {
+      *ternary = round_to_format_or_expansion_format(rop, ya, expansion_format_round, format, prec, mode);
+    } else {
+      *ternary = round_to_format_or_expansion_format(rop, yb, expansion_format_round, format, prec, mode);
+    }
+    sollya_mpfi_clear(y);
+    mpfr_clear(ya);
+    mpfr_clear(yb);
+    mpfr_clear(rya);
+    mpfr_clear(ryb);
+    sollya_mpfi_clear(x);
+    return 1;
+  }
+
+  /* Here, ya and yb can be either real numbers bounding func or infinities.
+
+     We continue by checking if either of them is an infinity.
+
+  */
+  if (mpfr_inf_p(ya) || mpfr_inf_p(yb)) {
+    /* At least one of ya and yb is an infinity. Check if both are infinity. */
+    if (mpfr_inf_p(ya) && mpfr_inf_p(yb)) {
+      /* Here, both numbers are infinity. Check if they are identical */
+      if ( ((mpfr_sgn(ya) > 0) && (mpfr_sgn(yb) > 0)) ||
+           ((mpfr_sgn(ya) < 0) && (mpfr_sgn(yb) < 0)) ) {
+        /* They are equal: return the rounding of infinity. */
+        *ternaryOkay = 1;
+        *ternary = round_to_format_or_expansion_format(rop, ya, expansion_format_round, format, prec, mode);
+        sollya_mpfi_clear(y);
+        mpfr_clear(ya);
+        mpfr_clear(yb);
+        mpfr_clear(rya);
+        mpfr_clear(ryb);
+        sollya_mpfi_clear(x);
+        return 1;
+      }
+      else {
+        /* They are different infinities. Return NaN */
+        if (!noRoundingWarnings) {
+          printMessage(1,SOLLYA_MSG_NO_CORRECT_ROUNDING_FOR_ROUND_OPERATOR,"Warning: no correctly rounded result could be obtained upon evaluation of a rounding operator.\n");
+          printMessage(2,SOLLYA_MSG_NO_CORRECT_TERNARY_VALUE_FOR_ROUND,"Warning: the actual rounding direction for a round operation could not be determined.\n");
+        }
+        *ternaryOkay = 0;
+        mpfr_set_nan(ya);
+        *ternary = round_to_format_or_expansion_format(rop, ya, expansion_format_round, format, prec, mode);
+        sollya_mpfi_clear(y);
+        mpfr_clear(ya);
+        mpfr_clear(yb);
+        mpfr_clear(rya);
+        mpfr_clear(ryb);
+        sollya_mpfi_clear(x);
+        return 1;
+      }
+    }
+
+    /* Here only one of ya or yb is an infinity, the other one is a real number
+
+       We simply display a warning and return the rounding of the one of ya and yb
+       that is a real number.
+
+    */
+    if (!noRoundingWarnings) {
+      printMessage(1,SOLLYA_MSG_NO_CORRECT_ROUNDING_FOR_ROUND_OPERATOR,"Warning: no correctly rounded result could be obtained upon evaluation of a rounding operator.\n");
+      printMessage(2,SOLLYA_MSG_NO_CORRECT_TERNARY_VALUE_FOR_ROUND,"Warning: the actual rounding direction for a round operation could not be determined.\n");
+    }
+    *ternaryOkay = 0;
+    if (mpfr_inf_p(ya)) {
+      *ternary = round_to_format_or_expansion_format(rop, yb, expansion_format_round, format, prec, mode);
+    } else {
+      *ternary = round_to_format_or_expansion_format(rop, ya, expansion_format_round, format, prec, mode);
+    }
+    sollya_mpfi_clear(y);
+    mpfr_clear(ya);
+    mpfr_clear(yb);
+    mpfr_clear(rya);
+    mpfr_clear(ryb);
+    sollya_mpfi_clear(x);
+    return 1;
+  }
+
+  /* Here both ya and yb are real numbers bounding func.
+
+     Distinguish two cases: directed rounding and rounding to nearest.
+
+     For the directed rounding modes, try to compute the value in
+     ROUND-TO-NEAREST first (which yields the rounding boundary). Then
+     round that rounding boundary.
+
+     For round-to-nearest, a special algorithm is used (see below).
+
+  */
+  if (mode != GMP_RNDN) {
+    /* Directed rounding mode */
+    ta = round_to_format_or_expansion_format(rya, ya, expansion_format_round, format, prec, GMP_RNDN);
+    tb = round_to_format_or_expansion_format(ryb, yb, expansion_format_round, format, prec, GMP_RNDN);
+    if ((!mpfr_nan_p(rya)) &&
+	(!mpfr_nan_p(ryb)) &&
+	mpfr_equal_p(rya, ryb)) {
+      if (!noRoundingWarnings) {
+	printMessage(1,SOLLYA_MSG_ROUNDING_OF_BOUNDARY_INSTEAD_OF_CORRECT_ROUNDING,"Warning: the returned rounding is the rounding of the rounding boundary because correct rounding has not been possible.\n");
+      }
+      *ternary = round_to_format_or_expansion_format(rop, rya, expansion_format_round, format, prec, mode);
+      *ternaryOkay = 0;
+      sollya_mpfi_clear(y);
+      mpfr_clear(ya);
+      mpfr_clear(yb);
+      mpfr_clear(rya);
+      mpfr_clear(ryb);
+      sollya_mpfi_clear(x);
+      return 1;
+    }
+
+    /* Here, we could not even compute the rounding boundary. We return some approximation. */
+    mpfr_add(ya, ya, yb, GMP_RNDN); /* might round but only need an approximation */
+    mpfr_div_2ui(ya, ya, 1, GMP_RNDN);
+    if (!noRoundingWarnings) {
+      printMessage(1,SOLLYA_MSG_NO_CORRECT_ROUNDING_FOR_ROUND_OPERATOR,"Warning: no correctly rounded result could be obtained upon evaluation of a rounding operator.\n");
+      printMessage(2,SOLLYA_MSG_NO_CORRECT_TERNARY_VALUE_FOR_ROUND,"Warning: the actual rounding direction for a round operation could not be determined.\n");
+    }
+    *ternary = round_to_format_or_expansion_format(rop, rya, expansion_format_round, format, prec, mode);
+    *ternaryOkay = 0;
+    sollya_mpfi_clear(y);
+    mpfr_clear(ya);
+    mpfr_clear(yb);
+    mpfr_clear(rya);
+    mpfr_clear(ryb);
+    sollya_mpfi_clear(x);
+    return 1;
+  }
+
+  /* Here, we are in round-to-nearest mode and we know that both ya and yb are real numbers.
+
+     We first check if rounding to nearest would actually be possible if we forgot about the
+     ternary value.
+
+  */
+  if ((!mpfr_nan_p(rya)) &&
+      (!mpfr_nan_p(ryb)) &&
+      mpfr_equal_p(rya, ryb)) {
+    /* Here, we know the correct rounding rya = ryb but we are unable to produce the ternary value. */
+    if (!noRoundingWarnings) {
+      printMessage(2,SOLLYA_MSG_NO_CORRECT_TERNARY_VALUE_FOR_ROUND_BUT_CORRECT_ROUNDING,"Warning: correct rounding was possible but the actual rounding direction could not be determined.\n");
+    }
+    writeBackRnd = GMP_RNDN;
+    if (ta < 0) writeBackRnd = GMP_RNDD;
+    if (ta > 0) writeBackRnd = GMP_RNDU;
+    *ternary = ta;
+    *ternaryOkay = 0;
+    if ((ta = mpfr_set(rop, rya, writeBackRnd)) != 0) {
+      if (!noRoundingWarnings) {
+	printMessage(1,SOLLYA_MSG_UNDESIRED_ROUNDING_IN_ROUND_TO_FORMAT,"Warning: an undesired rounding occurred on a rounding operator.\n");
+	printMessage(1,SOLLYA_MSG_CONTINUATION,"Try to increase the working precision.\n");
+      }
+      *ternary = ta;
+    }
+    sollya_mpfi_clear(y);
+    mpfr_clear(ya);
+    mpfr_clear(yb);
+    mpfr_clear(rya);
+    mpfr_clear(ryb);
+    sollya_mpfi_clear(x);
+    return 1;
+  }
+
+  /* Here, we are in round-to-nearest mode, ya and yb are real numbers
+     but we cannot produce a correct rounding.
+
+     We suppose that ya and yb are just around the midpoint for the
+     considered format but that [ya;yb] is in the interior of the
+     interval of the two consecutive floating-point numbers of the
+     format around that midpoint.
+
+     So we round ya down, yb up, take the middle and round it to the
+     target format.
+
+     We have no means to tell if our assumption was correct, as
+     we can no way perform nextabove or nextbelow operations
+     on double-double or triple-double expansions.
+
+     So in the worst case, we get some approximation first and a
+     correct rounding of that approximation.
+
+     In any case, we have to forget about the ternary value.
+  */
+  round_to_format_or_expansion_format(rya, ya, expansion_format_round, format, prec, GMP_RNDD);
+  round_to_format_or_expansion_format(ryb, yb, expansion_format_round, format, prec, GMP_RNDU);
+  mpfr_init2(tya, mpfr_get_prec(rya) + 10);
+  mpfr_add(tya, rya, ryb, GMP_RNDN);
+  mpfr_div_2ui(tya, tya, 1, GMP_RNDN);
+  if (!noRoundingWarnings) {
+    printMessage(1,SOLLYA_MSG_NO_CORRECT_ROUNDING_FOR_ROUND_OPERATOR,"Warning: no correctly rounded result could be obtained upon evaluation of a rounding operator.\n");
+    printMessage(2,SOLLYA_MSG_NO_CORRECT_TERNARY_VALUE_FOR_ROUND,"Warning: the actual rounding direction for a round operation could not be determined.\n");
+  }
+  *ternaryOkay = 0;
+  *ternary = round_to_format_or_expansion_format(rop, tya, expansion_format_round, format, prec, mode);
+  mpfr_clear(tya);
+  sollya_mpfi_clear(y);
+  mpfr_clear(ya);
+  mpfr_clear(yb);
+  mpfr_clear(rya);
+  mpfr_clear(ryb);
+  sollya_mpfi_clear(x);
+  return 1;
+}
+
+int sollya_mpfr_mant_exp(mpfr_t rop, mp_exp_t *expo, mpfr_t op) {
   mp_exp_t e;
   mp_prec_t p;
   mpfr_t temp;
@@ -1295,20 +1353,20 @@ int mpfr_mant_exp(mpfr_t rop, mp_exp_t *expo, mpfr_t op) {
     return mpfr_set(rop,op,GMP_RNDN);
   }
 
-  p = mpfr_get_prec(op);  
+  p = mpfr_get_prec(op);
   mpfr_init2(temp,p);
   mpfr_set(temp,op,GMP_RNDN);
-  
+
   e = mpfr_get_exp(temp) - p;
   mpfr_set_exp(temp,p);
-  
+
   while (mpfr_integer_p(temp)) {
     mpfr_div_2ui(temp,temp,1,GMP_RNDN);
     e++;
   }
   mpfr_mul_2ui(temp,temp,1,GMP_RNDN);
   e--;
-  
+
   *expo = e;
   res = mpfr_set(rop,temp,GMP_RNDN);
 
@@ -1329,7 +1387,7 @@ int roundRangeCorrectly(mpfr_t rop, mpfr_t a, mpfr_t b) {
     mpfr_set_nan(rop);
     return 0;
   }
-  
+
   expoA = mpfr_get_exp(a);
   expoB = mpfr_get_exp(b);
 
@@ -1386,6 +1444,8 @@ void continuedFrac(mpq_t q, sollya_mpfi_t x) {
   mpz_t u;
 
   t = sollya_mpfi_get_prec(x);
+  if (t<= tools_precision) t=tools_precision;
+
   sollya_mpfi_init2(xprime,t);
   mpfr_init2(a,t);
   mpfr_init2(b,t);
@@ -1396,31 +1456,30 @@ void continuedFrac(mpq_t q, sollya_mpfi_t x) {
 
   sollya_mpfi_get_left(a,x);
   sollya_mpfi_get_right(b,x);
-  mpfr_floor(m1,a);
-  mpfr_floor(m2,b);
+  mpfr_floor(m1,a); /* really a floor because m1 and a have the same precision */
+  mpfr_floor(m2,b); /* really a floor because m2 and b have the same precision */
 
-  if (mpfr_equal_p(m1,m2) && !mpfr_equal_p(a,m1)) {
-    mpfr_get_z(u,m1,GMP_RNDN); //exact
+  if (mpfr_equal_p(m1,m2) && (!mpfr_equal_p(a, m1))) {
+    mpfr_get_z(u,m1,GMP_RNDN); /* exact */
     mpfr_sub(a,a,m1,GMP_RNDD);
     mpfr_sub(b,b,m1,GMP_RNDU);
     sollya_mpfi_interv_fr(xprime,a,b);
     sollya_mpfi_inv(xprime,xprime);
     continuedFrac(res,xprime);
     mpq_inv(res,res);
-    mpq_set_num(q,u);
-    mpz_set_ui(u,1);
-    mpq_set_den(q,u);
+    mpq_set_z(q,u);
+
     mpq_add(q,q,res);
   }
   else {
-    mpfr_add(m1,a,b,GMP_RNDN);
-    mpfr_div_2ui(m1,m1,1,GMP_RNDN);
+    /* According to http://en.wikipedia.org/wiki/Continued_fraction,
+       section "Best rational within an interval", the best fraction
+       is given by taking the smallest integer in [a,b] */
+    if (!mpfr_equal_p(a,m1))  mpfr_add_ui(m1, m1,1,GMP_RNDU);
     mpfr_get_z(u,m1,GMP_RNDN);
-    mpq_set_num(q,u);
-    mpz_set_ui(u,1);
-    mpq_set_den(q,u);
+    mpq_set_z(q,u);
   }
-  
+
   sollya_mpfi_clear(xprime);
   mpfr_clear(a);
   mpfr_clear(b);
@@ -1431,7 +1490,8 @@ void continuedFrac(mpq_t q, sollya_mpfi_t x) {
   return;
 }
 
-node *rationalApprox(mpfr_t x, unsigned int n) {
+
+node *rationalApprox(mpfr_t x, int n) {
   mpq_t q;
   mpz_t u;
   sollya_mpfi_t xprime;
@@ -1441,14 +1501,22 @@ node *rationalApprox(mpfr_t x, unsigned int n) {
   mpfr_t *numerator;
   mpfr_t *denominator;
 
+  /* n should be >= 2 */
+  if (n<2) {
+    printMessage(1, SOLLYA_MSG_RATIONALAPPROX_SECOND_ARG_MUST_BE_GREATER_THAN_ONE, "Error in rationalapprox: the second argument of rationalapprox must be greater or equal to 2.\n");
+    return makeError();
+  }
+
   if ( (!mpfr_number_p(x)) || mpfr_zero_p(x) )  return makeConstant(x);
   mpq_init(q);
   mpz_init(u);
-  sollya_mpfi_init2(xprime,(mp_prec_t)n);
+  sollya_mpfi_init2(xprime,(mp_prec_t)(n+1));
 
-  sollya_mpfi_set_fr(xprime,x);
+  sollya_mpfi_set_fr(xprime,x); /* The bounds of xprime are two consecutive FP numbers at precision n+1.
+                                   Hence sup(xprime)-inf(xprime) <= 2^(1-(n+1))*inf(abs(xprime))
+                                   Hence, for any t in xprime, |x-t| <= 2^(-n)*|x| */
   continuedFrac(q,xprime);
- 
+
   mpq_get_num(u,q);
   numerator = (mpfr_t*) safeMalloc(sizeof(mpfr_t));
   mpfr_init2(*numerator,mp_bits_per_limb*mpz_size(u));
@@ -1459,10 +1527,10 @@ node *rationalApprox(mpfr_t x, unsigned int n) {
   mpfr_init2(*denominator,mp_bits_per_limb*mpz_size(u));
   mpfr_set_z(*denominator,u,GMP_RNDN);
 
-  tree = safeMalloc(sizeof(node));
+  tree = allocateNode();
   tree->nodeType = DIV;
-  num = safeMalloc(sizeof(node));
-  denom = safeMalloc(sizeof(node));
+  num = allocateNode();
+  denom = allocateNode();
   num->nodeType = CONSTANT;
   denom->nodeType = CONSTANT;
   num->value = numerator;
@@ -1476,7 +1544,7 @@ node *rationalApprox(mpfr_t x, unsigned int n) {
   return tree;
 }
 
-int mpfr_round_to_ieee_format(mpfr_t rop, mpfr_t op, mp_prec_t prec, unsigned int width, mp_rnd_t mode) {
+static inline int __sollya_mpfr_round_to_ieee_format(mpfr_t rop, mpfr_srcptr op, mp_prec_t prec, unsigned int width, mp_rnd_t mode, int silent) {
   int res;
   mpfr_t result;
   unsigned int exponent;
@@ -1591,9 +1659,9 @@ int mpfr_round_to_ieee_format(mpfr_t rop, mpfr_t op, mp_prec_t prec, unsigned in
            result = smallest * 2^(1-prec) * round_integer( 2^(prec-1)*op/smallest, mode)
 
            ( the interval [0, smallest) is sent to [0, 2^(prec-1) ) where fixed-point computations at
-             precision prec are exactly integer computations, and then we send it back to [0, smallest)
+           precision prec are exactly integer computations, and then we send it back to [0, smallest)
            )
-	 */
+        */
 	p = mpfr_get_prec(op);
 	mpfr_init2(temp, p);
 	mpfr_set(temp, op, GMP_RNDN); /* exact: precision of temp not less than the one of op */
@@ -1621,39 +1689,76 @@ int mpfr_round_to_ieee_format(mpfr_t rop, mpfr_t op, mp_prec_t prec, unsigned in
   /* Double-rounding may occur if the precision of rop is smaller than the prec.     */
   if (mpfr_set(rop,result,GMP_RNDN) != 0) {
     if (!noRoundingWarnings) {
-      printMessage(1,"Warning: double rounding occurred on invoking the IEEE 754-2008 general rounding operator.\n");
-      printMessage(1,"Try to increase the working precision.\n");
+      if (!silent) {
+	printMessage(1,SOLLYA_MSG_DOUBLE_ROUNDING_IN_ROUND_IEEE_754_2008_OPERATOR,"Warning: double rounding occurred on invoking the IEEE 754-2008 general rounding operator.\n");
+	printMessage(1,SOLLYA_MSG_CONTINUATION,"Try to increase the working precision.\n");
+      }
     }
   }
+  /* Compute the rounding direction that has finally been chosen */
+  res = mpfr_cmp(rop,result);
 
+  /* Clear the internal result */
   mpfr_clear(result);
 
-  /* Compute the rounding direction that has finally been chosen */
-  res = mpfr_cmp(rop,op);
-
+  /* Return the ternary */
   return res;
 }
 
-int mpfr_round_to_quad(mpfr_t rop, mpfr_t x) {
-  return mpfr_round_to_ieee_format(rop, x, 113, 15, GMP_RNDN);
+int sollya_mpfr_round_to_single_mode(mpfr_t rop, mpfr_srcptr x, mp_rnd_t mode) {
+  int tern;
+  
+  tern = __sollya_mpfr_round_to_ieee_format(rop, x, 24, 8, mode, 1);
+
+  if (tern != 0) {
+    if (!noRoundingWarnings) {
+      printMessage(1,SOLLYA_MSG_DOUBLE_ROUNDING_IN_ROUND_TO_SINGLE,"Warning: an undesired rounding occurred on a rounding to single.\n");
+      printMessage(1,SOLLYA_MSG_CONTINUATION,"Try to increase the working precision.\n");
+    }
+  }
+
+  return tern;
 }
 
-int mpfr_round_to_halfprecision(mpfr_t rop, mpfr_t x) {
-  return mpfr_round_to_ieee_format(rop, x, 11, 5, GMP_RNDN);
+int sollya_mpfr_round_to_single(mpfr_t rop, mpfr_srcptr x) {
+  return sollya_mpfr_round_to_single_mode(rop, x, GMP_RNDN);
 }
 
-int mpfr_round_to_quad_mode(mpfr_t rop, mpfr_t x, mp_rnd_t mode) {
-  return mpfr_round_to_ieee_format(rop, x, 113, 15, mode);
+int sollya_mpfr_round_to_quad_mode(mpfr_t rop, mpfr_srcptr x, mp_rnd_t mode) {
+  return __sollya_mpfr_round_to_ieee_format(rop, x, 113, 15, mode, 0);
 }
 
-int mpfr_round_to_halfprecision_mode(mpfr_t rop, mpfr_t x, mp_rnd_t mode) {
-  return mpfr_round_to_ieee_format(rop, x, 11, 5, mode);
+int sollya_mpfr_round_to_quad(mpfr_t rop, mpfr_srcptr x) {
+  return sollya_mpfr_round_to_quad_mode(rop, x, GMP_RNDN);
 }
 
-int mpfr_round_to_doubleextended(mpfr_t rop, mpfr_t op) {
-  return mpfr_round_to_ieee_format(rop, op, 64, 15, GMP_RNDN);
+int sollya_mpfr_round_to_halfprecision_mode(mpfr_t rop, mpfr_srcptr x, mp_rnd_t mode) {
+  return __sollya_mpfr_round_to_ieee_format(rop, x, 11, 5, mode, 0);
 }
 
-int mpfr_round_to_doubleextended_mode(mpfr_t rop, mpfr_t op, mp_rnd_t mode) {
-  return mpfr_round_to_ieee_format(rop, op, 64, 15, mode);
+int sollya_mpfr_round_to_halfprecision(mpfr_t rop, mpfr_srcptr x) {
+  return sollya_mpfr_round_to_halfprecision_mode(rop, x, GMP_RNDN);
+}
+
+int sollya_mpfr_round_to_doubleextended_mode(mpfr_t rop, mpfr_srcptr op, mp_rnd_t mode) {
+  return __sollya_mpfr_round_to_ieee_format(rop, op, 64, 15, mode, 0);
+}
+
+int sollya_mpfr_round_to_doubleextended(mpfr_t rop, mpfr_srcptr op) {
+  return sollya_mpfr_round_to_doubleextended_mode(rop, op, GMP_RNDN);
+}
+
+int sollya_mpfr_rint_nearestint(mpfr_t rop, mpfr_srcptr op, mpfr_rnd_t rnd) {
+  mpfr_t temp;
+  int res;
+
+  mpfr_init2(temp, mpfr_get_prec(op));
+
+  mpfr_rint(temp, op, GMP_RNDN); /* No double rounding possible because precision the same */
+  
+  res = mpfr_set(rop, temp, rnd);
+
+  mpfr_clear(temp);
+
+  return res;
 }

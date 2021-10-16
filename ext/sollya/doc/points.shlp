@@ -1,0 +1,35 @@
+#NAME $POINTS
+#QUICK_DESCRIPTION controls the number of points chosen by $SOLLYA in certain commands.
+
+#CALLING $COMMAND = <n>
+#TYPE $INTEGER_TYPE -> $VOID_TYPE
+#CALLING $COMMAND = <n> !
+#TYPE $INTEGER_TYPE -> $VOID_TYPE
+#CALLING $COMMAND
+#TYPE $CONSTANT_TYPE
+
+#LIBRARYNAME void sollya_lib_set_points_and_print(sollya_obj_t)
+#LIBRARYNAME void sollya_lib_set_points(sollya_obj_t)
+#LIBRARYNAME sollya_obj_t sollya_lib_get_points()
+
+#PARAMETERS <n> represents the number of points
+
+#DESCRIPTION 
+$COMMAND is a global variable. Its value represents the number of points
+used in numerical algorithms of $SOLLYA (namely $DIRTYINFNORM,
+$DIRTYINTEGRAL, $DIRTYFINDZEROS, $PLOT).
+
+#EXAMPLE
+f=x^2*sin(1/x);
+points=10;
+dirtyfindzeros(f, [0;1]);
+points=100;
+dirtyfindzeros(f, [0;1]);
+
+#SEEALSO $DIRTYINFNORM
+#SEEALSO $DIRTYINTEGRAL
+#SEEALSO $DIRTYFINDZEROS
+#SEEALSO $PLOT
+#SEEALSO $DIAM
+#SEEALSO $PREC
+

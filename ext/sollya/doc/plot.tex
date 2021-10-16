@@ -1,7 +1,10 @@
 \subsection{plot}
 \label{labplot}
 \noindent Name: \textbf{plot}\\
-plots one or several functions\\
+\phantom{aaa}plots one or several functions\\[0.2cm]
+\noindent Library names:\\
+\verb|   void sollya_lib_plot(sollya_obj_t, sollya_obj_t, ...)|\\
+\verb|   void sollya_lib_v_plot(sollya_obj_t, sollya_obj_t, va_list)|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{plot}(\emph{f1}, ... ,\emph{fn}, \emph{I}) : (\textsf{function}, ... ,\textsf{function}, \textsf{range}) $\rightarrow$ \textsf{void}\\
@@ -22,9 +25,9 @@ Parameters:
 \end{itemize}
 \noindent Description: \begin{itemize}
 
-\item This command plots one or several functions \emph{f1}, ... ,\emph{fn} on an interval \emph{I}.
-   Functions can be either given as parameters of \textbf{plot} or as a list \emph{L}
-   which elements are functions.
+\item This command plots one or several functions \emph{f1}, ... ,\emph{fn} on an
+   interval \emph{I}. Functions can be either given as parameters of \textbf{plot} or as a
+   list \emph{L} which elements are functions.
    The functions are drawn on the same plot with different colors.
 
 \item If \emph{L} contains an element that is not a function (or a constant), an error
@@ -37,7 +40,7 @@ Parameters:
    high precision. Each point is finally plotted.
    This should avoid numerical artefacts such as critical cancellations.
 
-\item You can save the function plot either as a data file or as a postscript file.
+\item The plot can be saved either as a data file or as a postscript file.
 
 \item If you use argument \textbf{file} with a string \emph{name}, \sollya will save a data file
    called name.dat and a gnuplot directives file called name.p. Invoking gnuplot
@@ -49,7 +52,9 @@ Parameters:
 \item If you use argument \textbf{postscriptfile} with a string \emph{name}, \sollya will 
    produce the corresponding name.dat, name.p and name.eps.
 
-\item This command uses gnuplot to produce the final plot.
+\item By default, this command uses gnuplot to produce the final plot. If \sollya
+   is run while the environment variable \verb|SOLLYA_GNUPLOT| is set, the content of
+   that variable is used as the gnuplot binary.
    If your terminal is not graphic (typically if you use \sollya through 
    ssh without -X)
    gnuplot should be able to detect that and produce an ASCII-art version on the

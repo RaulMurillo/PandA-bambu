@@ -1,0 +1,61 @@
+\subsection{mod}
+\label{labmodeucl}
+\noindent Name: \textbf{mod}\\
+\phantom{aaa}Computes the euclidian division of polynomials or numbers and returns the rest\\[0.2cm]
+\noindent Library name:\\
+\verb|   sollya_obj_t sollya_lib_euclidian_mod(sollya_obj_t, sollya_obj_t)|\\[0.2cm]
+\noindent Usage: 
+\begin{center}
+\textbf{mod}(\emph{a}, \emph{b}) : (\textsf{function}, \textsf{function}) $\rightarrow$ \textsf{function}\\
+\end{center}
+Parameters: 
+\begin{itemize}
+\item \emph{a} is a constant or a polynomial.
+\item \emph{b} is a constant or a polynomial.
+\end{itemize}
+\noindent Description: \begin{itemize}
+
+\item \textbf{mod}(\emph{a},\emph{b}) computes \emph{a} \textbf{$-$} (\emph{b} \textbf{$*$} \textbf{div}(\emph{a},\emph{b})).
+   In other words, it returns the remainder of the Euclidian division
+   of \emph{a} by \emph{b}.
+
+\item See \textbf{div} for subtle cases involving polynomials whose degree can
+   not easily be computed by the tool as their leading coefficient is
+   given as a constant expression that is mathematically zero but for
+   which the tool is unable to detect this fact.
+\end{itemize}
+\noindent Example 1: 
+\begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
+> mod(1001, 231);
+77
+> mod(13, 17);
+13
+> mod(-14, 15);
+1
+> mod(-213, -5);
+-3
+> print(mod(23/13, 11/17));
+105 / 221
+> print(mod(exp(13),-sin(17)));
+exp(13) + 460177 * sin(17)
+\end{Verbatim}
+\end{minipage}\end{center}
+\noindent Example 2: 
+\begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
+> mod(24 + 68 * x + 74 * x^2 + 39 * x^3 + 10 * x^4 + x^5, 4 + 4 * x + x^2);
+0
+> mod(24 + 68 * x + 74 * x^2 + 39 * x^3 + 10 * x^4 + x^5, 2 * x^3);
+24 + x * (68 + x * 74)
+> mod(x^2, x^3);
+x^2
+\end{Verbatim}
+\end{minipage}\end{center}
+\noindent Example 3: 
+\begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
+> mod(exp(x), x^2);
+exp(x)
+> mod(x^3, sin(x));
+x^3
+\end{Verbatim}
+\end{minipage}\end{center}
+See also: \textbf{gcd} (\ref{labgcd}), \textbf{div} (\ref{labdiveucl}), \textbf{numberroots} (\ref{labnumberroots})

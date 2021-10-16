@@ -1,0 +1,26 @@
+if test -z "${srcdir}"
+then
+    srcdir=`dirname "$0"`
+    SOLLYA="${srcdir}/${SOLLYA}"
+fi
+TEST=0
+for i in $TESTFILES
+do
+ if ! test -e ${srcdir}/$i
+ then
+  echo "Unexpected error: test input file seems to be missing. Are you in the right directory?" >&2
+  TEST=1
+ else
+  GNUTERM=unknown $SOLLYA < ${srcdir}/$i > $i.output
+  if ! diff $i.output ${srcdir}/$i.reference > /dev/null
+  then
+     TEST=$RETURN_CODE_IN_CASE_OF_FAILURE
+  else
+     rm $i.output
+  fi
+ fi
+done
+
+exit $TEST
+
+

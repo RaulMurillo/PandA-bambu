@@ -1,57 +1,65 @@
 /*
+  Copyright 2007-2017 by
 
-Copyright 2007-2011 by
+  Laboratoire de l'Informatique du Parallelisme,
+  UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668,
 
-Laboratoire de l'Informatique du Parallelisme,
-UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668,
+  Laboratoire d'Informatique de Paris 6 - Équipe PEQUAN
+  Sorbonne Universités
+  UPMC Univ Paris 06
+  UMR 7606, LIP6
+  Boîte Courrier 169
+  4, place Jussieu
+  F-75252 Paris Cedex 05
+  France,
 
-LORIA (CNRS, INPL, INRIA, UHP, U-Nancy 2)
+  LORIA (CNRS, INPL, INRIA, UHP, U-Nancy 2)
 
-and by
+  and by
 
-Laboratoire d'Informatique de Paris 6, equipe PEQUAN,
-UPMC Universite Paris 06 - CNRS - UMR 7606 - LIP6, Paris, France.
+  Laboratoire d'Informatique de Paris 6, equipe PEQUAN,
+  UPMC Universite Paris 06 - CNRS - UMR 7606 - LIP6, Paris, France.
 
-Contributors Ch. Lauter, S. Chevillard
+  Contributors Ch. Lauter, S. Chevillard
 
-christoph.lauter@ens-lyon.org
-sylvain.chevillard@ens-lyon.org
+  christoph.lauter@ens-lyon.org
+  sylvain.chevillard@ens-lyon.org
 
-This software is a computer program whose purpose is to provide an
-environment for safe floating-point code development. It is
-particularily targeted to the automatized implementation of
-mathematical floating-point libraries (libm). Amongst other features,
-it offers a certified infinity norm, an automatic polynomial
-implementer and a fast Remez algorithm.
+  This software is a computer program whose purpose is to provide an
+  environment for safe floating-point code development. It is
+  particularly targeted to the automated implementation of
+  mathematical floating-point libraries (libm). Amongst other features,
+  it offers a certified infinity norm, an automatic polynomial
+  implementer and a fast Remez algorithm.
 
-This software is governed by the CeCILL-C license under French law and
-abiding by the rules of distribution of free software.  You can  use,
-modify and/ or redistribute the software under the terms of the CeCILL-C
-license as circulated by CEA, CNRS and INRIA at the following URL
-"http://www.cecill.info".
+  This software is governed by the CeCILL-C license under French law and
+  abiding by the rules of distribution of free software.  You can  use,
+  modify and/ or redistribute the software under the terms of the CeCILL-C
+  license as circulated by CEA, CNRS and INRIA at the following URL
+  "http://www.cecill.info".
 
-As a counterpart to the access to the source code and  rights to copy,
-modify and redistribute granted by the license, users are provided only
-with a limited warranty  and the software's author,  the holder of the
-economic rights,  and the successive licensors  have only  limited
-liability.
+  As a counterpart to the access to the source code and  rights to copy,
+  modify and redistribute granted by the license, users are provided only
+  with a limited warranty  and the software's author,  the holder of the
+  economic rights,  and the successive licensors  have only  limited
+  liability.
 
-In this respect, the user's attention is drawn to the risks associated
-with loading,  using,  modifying and/or developing or reproducing the
-software by the user in light of its specific status of free software,
-that may mean  that it is complicated to manipulate,  and  that  also
-therefore means  that it is reserved for developers  and  experienced
-professionals having in-depth computer knowledge. Users are therefore
-encouraged to load and test the software's suitability as regards their
-requirements in conditions enabling the security of their systems and/or
-data to be ensured and,  more generally, to use and operate it in the
-same conditions as regards security.
+  In this respect, the user's attention is drawn to the risks associated
+  with loading,  using,  modifying and/or developing or reproducing the
+  software by the user in light of its specific status of free software,
+  that may mean  that it is complicated to manipulate,  and  that  also
+  therefore means  that it is reserved for developers  and  experienced
+  professionals having in-depth computer knowledge. Users are therefore
+  encouraged to load and test the software's suitability as regards their
+  requirements in conditions enabling the security of their systems and/or
+  data to be ensured and,  more generally, to use and operate it in the
+  same conditions as regards security.
 
-The fact that you are presently reading this means that you have had
-knowledge of the CeCILL-C license and that you accept its terms.
+  The fact that you are presently reading this means that you have had
+  knowledge of the CeCILL-C license and that you accept its terms.
 
-This program is distributed WITHOUT ANY WARRANTY; without even the
-implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  This program is distributed WITHOUT ANY WARRANTY; without even the
+  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 */
 
@@ -167,7 +175,7 @@ extern void endBuffer(void);
 #define DEBOUNDMIN 147
 #define DEBOUNDMID 148
 #define DIFF 149
-#define SIMPLIFY 150
+#define DIRTYSIMPLIFY 150
 #define SIMPLIFYSAFE 151
 #define REMEZ 152
 #define HORNER 153
@@ -286,14 +294,32 @@ extern void endBuffer(void);
 #define BASHEVALUATE 266
 #define HALFPRECISIONSYMBOL 267
 #define QUADSYMBOL 268
+#define COMPOSEPOLYNOMIALS 269
+#define BIND 270
+#define SHOWMESSAGENUMBERSASSIGN 271
+#define SHOWMESSAGENUMBERSSTILLASSIGN 272
+#define SHOWMESSAGENUMBERSDEREF 273
+#define SUPPRESSMESSAGE 274
+#define UNSUPPRESSMESSAGE 275
+#define GETSUPPRESSEDMESSAGES 276
+#define CHEBYSHEVFORM 277
+/* Attention: #define MEMREF 278 is used elsewhere */
+#define ANNOTATEFUNCTION 279
+#define OBJECTNAME 280
+#define GETBACKTRACE 281
+#define GCD 282
+#define EUCLDIV 283
+#define EUCLMOD 284
 
 int executeCommand(node *);
 
 node *copyThing(node *);
+node *deepCopyThing(node *);
 void *copyThingOnVoid(void *);
 void freeThing(node *);
 void rawPrintThing(node *);
 void freeThingOnVoid(void *);
+node *rewriteThingWithMemRefReuse(node *, node *);
 
 node *makeCommandList(chain *thinglist);
 node *makeWhile(node *thing1, node *thing2);
@@ -306,6 +332,8 @@ node *makeFalseQuit();
 node *makeFalseRestart();
 node *makeRestart();
 node *makePrint(chain *thinglist);
+node *makeSuppressMessage(chain *thinglist);
+node *makeUnsuppressMessage(chain *thinglist);
 node *makeNewFilePrint(node *thing, chain *thinglist);
 node *makeAppendFilePrint(node *thing, chain *thinglist);
 node *makePlot(chain *thinglist);
@@ -322,6 +350,7 @@ node *makeAppendFileWrite(node *thing, chain *thinglist);
 node *makeAsciiPlot(node *thing1, node *thing2);
 node *makeWorstCase(chain *thinglist);
 node *makeRename(char *string1, char *string2);
+node *makeBind(node *thing1, char *string1, node *thing2);
 node *makeAutoprint(chain *thinglist);
 node *makeAssignment(char *string, node *thing);
 node *makeFloatAssignment(char *string, node *thing);
@@ -333,6 +362,7 @@ node *makePointsAssign(node *thing);
 node *makeDiamAssign(node *thing);
 node *makeDisplayAssign(node *thing);
 node *makeVerbosityAssign(node *thing);
+node *makeShowMessageNumbersAssign(node *thing);
 node *makeCanonicalAssign(node *thing);
 node *makeAutoSimplifyAssign(node *thing);
 node *makeTaylorRecursAssign(node *thing);
@@ -351,6 +381,7 @@ node *makePointsStillAssign(node *thing);
 node *makeDiamStillAssign(node *thing);
 node *makeDisplayStillAssign(node *thing);
 node *makeVerbosityStillAssign(node *thing);
+node *makeShowMessageNumbersStillAssign(node *thing);
 node *makeCanonicalStillAssign(node *thing);
 node *makeAutoSimplifyStillAssign(node *thing);
 node *makeTaylorRecursStillAssign(node *thing);
@@ -432,9 +463,12 @@ node *makeDeboundMid(node *thing);
 node *makeEvalConst(node *thing);
 node *makeDiff(node *thing);
 node *makeBashevaluate(chain *thinglist);
-node *makeSimplify(node *thing);
+node *makeGetSuppressedMessages();
+node *makeGetBacktrace();
+node *makeDirtysimplify(node *thing);
 node *makeSimplifySafe(node *thing);
 node *makeRemez(chain *thinglist);
+node *makeAnnotateFunction(chain *thinglist);
 node *makeMin(chain *thinglist);
 node *makeMax(chain *thinglist);
 node *makeFPminimax(chain *thinglist);
@@ -443,11 +477,13 @@ node *makeCanonicalThing(node *thing);
 node *makeExpand(node *thing);
 node *makeTaylor(node *thing1, node *thing2, node *thing3);
 node *makeTaylorform(chain *thinglist);
+node *makeChebyshevform(chain *thinglist);
 node *makeAutodiff(chain *thinglist);
 node *makeDegree(node *thing);
 node *makeNumerator(node *thing);
 node *makeDenominator(node *thing);
 node *makeSubstitute(node *thing1, node *thing2);
+node *makeComposePolynomials(node *thing1, node *thing2);
 node *makeCoeff(node *thing1, node *thing2);
 node *makeSubpoly(node *thing1, node *thing2);
 node *makeRoundcoefficients(node *thing1, node *thing2);
@@ -461,6 +497,9 @@ node *makeSupnorm(chain *thinglist);
 node *makeFindZeros(node *thing1, node *thing2);
 node *makeFPFindZeros(node *thing1, node *thing2);
 node *makeDirtyInfnorm(node *thing1, node *thing2);
+node *makeGcd(node *thing1, node *thing2);
+node *makeEuclDiv(node *thing1, node *thing2);
+node *makeEuclMod(node *thing1, node *thing2);
 node *makeNumberRoots(node *thing1, node *thing2);
 node *makeIntegral(node *thing1, node *thing2);
 node *makeDirtyIntegral(node *thing1, node *thing2);
@@ -483,11 +522,13 @@ node *makeMantissa(node *thing);
 node *makeExponent(node *thing);
 node *makePrecision(node *thing);
 node *makeLength(node *thing);
+node *makeObjectName(node *thing);
 node *makePrecDeref();
 node *makePointsDeref();
 node *makeDiamDeref();
 node *makeDisplayDeref();
 node *makeVerbosityDeref();
+node *makeShowMessageNumbersDeref();
 node *makeCanonicalDeref();
 node *makeAutoSimplifyDeref();
 node *makeTaylorRecursDeref();
@@ -514,15 +555,17 @@ node *makeExternalProc(char *, node *, chain *);
 node *makeUnit();
 node *makeVariableDeclaration(chain *stringlist);
 node *makeProc(chain *stringlist, node *body, node *returnVal);
-node *makeMatchElement(node *, node *, node *); 
+node *makeMatchElement(node *, node *, node *);
 node *makeProcIllim(char *arg, node *body, node *returnVal);
 node *makeApply(node *thing, chain *thinglist);
+node *makeExternalProcedureUsage(libraryProcedure *proc);
 
 node *parseString(char *str);
 
-void computeFunctionWithProcedure(sollya_mpfi_t y, node *proc, sollya_mpfi_t x, unsigned int derivN);
+void computeFunctionWithProcedure(sollya_mpfi_t y, node *proc, sollya_mpfi_t x, unsigned int derivN, node *mr);
 void computeFunctionWithProcedureMpfr(mpfr_t rop, node *proc, mpfr_t op, unsigned int derivN);
 int isEqualThing(node *tree, node *tree2);
+int isEqualThingLibrary(node *tree, node *tree2);
 void fPrintThing(FILE *fd, node *thing);
 void printThing(node *thing);
 char *sPrintThing(node *thing);
@@ -538,7 +581,13 @@ int isPureFinalEllipticList(node *);
 int isPureList(node *);
 int isEmptyList(node *);
 int isStructure(node *tree);
-int evaluateThingToConstant(mpfr_t result, node *tree, mpfr_t *defaultVal, int silent);
+int isProcedure(node *tree);
+int isExternalProcedureUsage(node *tree);
+int isLibraryConstant(node *tree);
+int isError(node *);
+int evaluateThingToConstant(mpfr_t result, node *tree, mpfr_t *defaultVal, int silent, int superSilent);
+int evaluateThingToRange(mpfr_t a, mpfr_t b, node *tree);
+int evaluateThingToString(char **result, node *tree);
 int isMatchablePrepend(node *tree);
 int isMatchableAppend(node *tree);
 int isMatchableConcat(node *tree);
@@ -546,6 +595,15 @@ int isMatchableStructure(node *tree);
 int associationContainsDoubleEntries(chain *assoc);
 node *evaluateThing(node *tree);
 int isString(node *);
+int symbolNameAlreadyUsed(char *);
+
+int tryRepresentAsPolynomial(node *);
+int tryRepresentAsPolynomialNoConstants(node *);
+
+uint64_t hashThing(node *);
+uint64_t hashThingNoPolynomialHandling(node *);
+
+void freeBacktraceStack();
 
 
 #endif /* ifdef EXECUTE_H*/

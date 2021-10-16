@@ -1,0 +1,39 @@
+match exp(x) with 
+    exp(x)      : (1) 
+    sin(x)      : (2)
+    default     : (3);
+
+match sin(x) with 
+    exp(x)      : (1) 
+    sin(x)      : (2)
+    default     : (3);
+
+match exp(sin(x)) with
+    exp(x)      : ("Exponential of x")
+    exp(sin(x)) : ("Exponential of sine of x")
+    default     : ("Something else");
+
+match exp(sin(x)) with
+    exp(x)      : ("Exponential of x")
+    exp(a)      : ("Exponential of " @ a)
+    default     : ("Something else");
+
+
+procedure differentiate(f) {
+    return match f with 
+        g + h   : (differentiate(g) + differentiate(h))
+        g * h   : (differentiate(g) * h + differentiate(h) * g)
+        g / h   : ((differentiate(g) * h - differentiate(h) * g) / (h^2))
+        exp(_x_)  : (exp(_x_))
+        sin(_x_)  : (cos(_x_))
+        cos(_x_)  : (-sin(_x_))
+        g(h)    : ((differentiate(g))(h) * differentiate(h))
+        _x_       : (1)
+        h(_x_)    : (NaN)
+        c       : (0);
+};
+
+rename(x,y);
+differentiate(exp(sin(y + y)));
+diff(exp(sin(y + y)));
+

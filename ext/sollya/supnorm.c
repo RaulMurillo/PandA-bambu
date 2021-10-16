@@ -1,42 +1,51 @@
 /*
 
-  Copyright 2010-2011 by 
+  Copyright 2010-2016 by
 
   Laboratoire d'Informatique de Paris 6, equipe PEQUAN,
   UPMC Universite Paris 06 - CNRS - UMR 7606 - LIP6, Paris, France,
 
-  Laboratoire de l'Informatique du Parallelisme, 
+  Laboratoire d'Informatique de Paris 6 - Équipe PEQUAN
+  Sorbonne Universités
+  UPMC Univ Paris 06
+  UMR 7606, LIP6
+  Boîte Courrier 169
+  4, place Jussieu
+  F-75252 Paris Cedex 05
+  France,
+
+  Laboratoire de l'Informatique du Parallelisme,
   UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668
 
   and by
 
-  Centre de recherche INRIA Sophia-Antipolis Mediterranee, equipe APICS,
+  Centre de recherche INRIA Sophia Antipolis Mediterranee, equipe APICS,
   Sophia Antipolis, France.
 
   Contributors Ch. Lauter, M. Joldes, S. Chevillard
 
   christoph.lauter@ens-lyon.org
-  mioara.joldes@ens-lyon.fr
+  joldes@laas.fr
   sylvain.chevillard@ens-lyon.org
 
   This software is a computer program whose purpose is to provide an
   environment for safe floating-point code development. It is
-  particularily targeted to the automatized implementation of
+  particularly targeted to the automated implementation of
   mathematical floating-point libraries (libm). Amongst other features,
   it offers a certified infinity norm, an automatic polynomial
   implementer and a fast Remez algorithm.
 
   This software is governed by the CeCILL-C license under French law and
-  abiding by the rules of distribution of free software.  You can  use, 
+  abiding by the rules of distribution of free software.  You can  use,
   modify and/ or redistribute the software under the terms of the CeCILL-C
   license as circulated by CEA, CNRS and INRIA at the following URL
-  "http://www.cecill.info". 
+  "http://www.cecill.info".
 
   As a counterpart to the access to the source code and  rights to copy,
   modify and redistribute granted by the license, users are provided only
   with a limited warranty  and the software's author,  the holder of the
   economic rights,  and the successive licensors  have only  limited
-  liability. 
+  liability.
 
   In this respect, the user's attention is drawn to the risks associated
   with loading,  using,  modifying and/or developing or reproducing the
@@ -45,9 +54,9 @@
   therefore means  that it is reserved for developers  and  experienced
   professionals having in-depth computer knowledge. Users are therefore
   encouraged to load and test the software's suitability as regards their
-  requirements in conditions enabling the security of their systems and/or 
-  data to be ensured and,  more generally, to use and operate it in the 
-  same conditions as regards security. 
+  requirements in conditions enabling the security of their systems and/or
+  data to be ensured and,  more generally, to use and operate it in the
+  same conditions as regards security.
 
   The fact that you are presently reading this means that you have had
   knowledge of the CeCILL-C license and that you accept its terms.
@@ -61,7 +70,7 @@
 #include <mpfr.h>
 #include "mpfi-compat.h"
 #include "execute.h"
-#include <stdio.h> 
+#include <stdio.h>
 #include <stdlib.h>
 #include "expression.h"
 #include "infnorm.h"
@@ -74,7 +83,7 @@
 #include "remez.h"
 #include "external.h"
 
-/* Add error codes here as needed. 
+/* Add error codes here as needed.
 
    When adding error codes, add warning messages below (in
    supremumNormBisect()).
@@ -88,7 +97,7 @@
 #define SUPNORM_NO_TAYLOR                        1  /* Couldn't compute a Taylor */
 #define SUPNORM_NOT_ENOUGH_WORKING_PRECISION     2  /* Got the impression the precision was not enough */
 #define SUPNORM_SINGULARITY_NOT_REMOVED          3  /* Couldn't divide poly by (x-x0)^k */
-#define SUPNORM_COULD_NOT_SHOW_POSITIVITY        4  /* Could not validate everything by showing positivity */ 
+#define SUPNORM_COULD_NOT_SHOW_POSITIVITY        4  /* Could not validate everything by showing positivity */
 #define SUPNORM_SINGULARITY_NOT_DETECTED         5  /* Failed to compute an approximate value to a singularity */
 #define SUPNORM_ANOTHER_SINGULARITY_IN_DOM       6  /* There's at least two singularities, more bisection needed */
 #define SUPNORM_CANNOT_COMPUTE_LOWER_BOUND       7  /* For some reason, we cannot compute a valid lower bound */
@@ -174,7 +183,7 @@ node *subPolynomialsExactly(node *p1, node *p2) {
 
 /* Exactly scale a polynomial
 
-   Return sum (s * c_i) * x^i for s and p(x) = sum c_i * x^i 
+   Return sum (s * c_i) * x^i for s and p(x) = sum c_i * x^i
 
    Wherever possible (even when more precision is needed), simplify
    the expressions s * c_i in the monomials.
@@ -206,8 +215,8 @@ node *scalePolynomialExactly(node *poly, mpfr_t scale) {
 
    The function tries to divide the polynomial poly by (x - x0)^k
    through long division. If the division rest is zero, i.e.
-   if poly/(x - x0)^k is a polynomial, the function returns a 
-   non-zero value and sets pTilde to poly/(x - x0)^k. 
+   if poly/(x - x0)^k is a polynomial, the function returns a
+   non-zero value and sets pTilde to poly/(x - x0)^k.
    Otherwise, if poly is not a polynomial or if poly/(x - x0)^k
    is not a polynomial because the division leaves a rest,
    the function returns zero and does not touch pTilde.
@@ -220,11 +229,13 @@ int dividePolyByXMinusX0ToTheK(node **pTilde, node *poly, mpfr_t x0, int k, mp_p
   node *quotientSimplified, *quotientShifted, *quotientShiftedHorner;
   mpfr_t kAsMpfr;
 
-  /* Determine the degree of poly and, at the same time, if 
-     it really is a polynomial 
+  UNUSED_PARAM(prec);
+
+  /* Determine the degree of poly and, at the same time, if
+     it really is a polynomial
   */
   degPoly = getDegree(poly);
-  
+
   /* We can't do anything if poly isn't a polynomial */
   if (degPoly < 0) return 0;
 
@@ -233,7 +244,7 @@ int dividePolyByXMinusX0ToTheK(node **pTilde, node *poly, mpfr_t x0, int k, mp_p
 
   /* Cannot divide if (x-x0)^k is not a polynomial */
   if (k < 0) return 0;
-  
+
   /* Division by (x-x0)^0 = 1 is trivial */
   if (k == 0) {
     *pTilde = copyTree(poly);
@@ -248,7 +259,7 @@ int dividePolyByXMinusX0ToTheK(node **pTilde, node *poly, mpfr_t x0, int k, mp_p
   shifterForth = makeAdd(makeVariable(),makeConstant(x0));
   pShifted = substitute(poly,shifterForth);
   pShiftedHorner = horner(pShifted);
-  
+
   /* Now build x^k */
   mpfr_init2(kAsMpfr,5 + 8 * sizeof(k));
   mpfr_set_si(kAsMpfr,k,GMP_RNDN); /* exact as per what precedes */
@@ -264,13 +275,13 @@ int dividePolyByXMinusX0ToTheK(node **pTilde, node *poly, mpfr_t x0, int k, mp_p
   shifterBack = makeSub(makeVariable(),makeConstant(x0));
   quotientShifted = substitute(quotientSimplified,shifterBack);
   quotientShiftedHorner = horner(quotientShifted);
-  
+
   /* Try to get the degree of quotientShiftedHorner
      If it is non-negative, quotientShiftedHorner is a polynomial
      If it is equal to degPoly - k, the division worked
   */
   degQuotient = getDegree(quotientShiftedHorner);
-  
+
   if ((degQuotient >= 0) && (degQuotient == (degPoly - k))) {
     okay = 1;
     myPTilde = copyTree(quotientShiftedHorner);
@@ -295,7 +306,7 @@ int dividePolyByXMinusX0ToTheK(node **pTilde, node *poly, mpfr_t x0, int k, mp_p
   return okay;
 }
 
-/* Show positivity of a polynomial using the Sturm algorithm 
+/* Show positivity of a polynomial using the Sturm algorithm
 
    For a polynomial poly and a domain dom,
 
@@ -320,7 +331,7 @@ int showPositivity(node * poly, sollya_mpfi_t dom, mp_prec_t prec) {
   if (!sollya_mpfi_bounded_p(dom)) return 0;
 
   mpfr_init2(nbRootsMpfr,8 * sizeof(int));
-  res = getNrRoots(nbRootsMpfr, poly, dom, prec);
+  res = getNrRoots(nbRootsMpfr, poly, dom, prec, 0);
   if (!mpfr_number_p(nbRootsMpfr)) {
     nbRoots = 1;
   } else {
@@ -399,7 +410,7 @@ int computeAbsoluteMinimum(mpfr_t result, node *func, sollya_mpfi_t dom, mp_prec
       evaluateInterval(y, func, deriv, dom);
       sollya_mpfi_get_left(yl,y);
       sollya_mpfi_get_right(yr,y);
-      if ((mpfr_number_p(yl) && mpfr_number_p(yr)) &&  
+      if ((mpfr_number_p(yl) && mpfr_number_p(yr)) &&
 	  (mpfr_sgn(yl) * mpfr_sgn(yr) > 0)) {
 	/* Here, we have a result that does not cross the y-axis */
 	sollya_mpfi_abs(y,y);
@@ -408,7 +419,7 @@ int computeAbsoluteMinimum(mpfr_t result, node *func, sollya_mpfi_t dom, mp_prec
       }
       free_memory(deriv);
     }
-  } 
+  }
 
   sollya_mpfi_clear(y);
   mpfr_clear(yr);
@@ -421,28 +432,28 @@ int computeAbsoluteMinimum(mpfr_t result, node *func, sollya_mpfi_t dom, mp_prec
 
 /* Determine the sign of func at x
 
-   Set sign to 1 if it can be shown that func(x) > 0, 
+   Set sign to 1 if it can be shown that func(x) > 0,
    set sign to -1 if it can be shown that func(x) < 0.
    Return a non-zero value in both cases.
 
    Otherwise, if the sign cannot be safely determined,
    return zero and set sign to zero.
-   
+
 */
 int determineSignAtPoint(int *sign, node *func, mpfr_t x, mp_prec_t prec) {
   int okay, mySign;
   sollya_mpfi_t yAsInterv, xAsInterv;
   mpfr_t yLeft, yRight;
-  
+
   okay = 1;
   mySign = 0;
-  
+
   sollya_mpfi_init2(xAsInterv,mpfr_get_prec(x));
   sollya_mpfi_init2(yAsInterv,prec);
   sollya_mpfi_set_fr(xAsInterv,x);
   mpfr_init2(yLeft,prec);
   mpfr_init2(yRight,prec);
-  
+
   evaluateInterval(yAsInterv, func, NULL, xAsInterv);
 
   sollya_mpfi_get_left(yLeft,yAsInterv);
@@ -468,14 +479,14 @@ int determineSignAtPoint(int *sign, node *func, mpfr_t x, mp_prec_t prec) {
 }
 
 
-/* Compute a certified lower bound ell to the supremum norm of 
+/* Compute a certified lower bound ell to the supremum norm of
    eps = poly - func resp. eps = poly / func - 1
 
    If mode is zero, let eps = poly - func else let eps = poly / func - 1.
 
    Compute a value ell such that for all x in dom, abs(eps(x)) >= ell.
 
-   Additionally, if things are pretty, make sure that 
+   Additionally, if things are pretty, make sure that
 
    || eps || <= ell * (1 + abs(gamma)).
 
@@ -518,7 +529,7 @@ int computeSupnormLowerBound(mpfr_t ell, node *poly, node *func, sollya_mpfi_t d
   mpfr_init2(a,pr);
   mpfr_init2(b,pr);
   sollya_mpfi_get_left(a,dom);
-  sollya_mpfi_get_right(b,dom);  
+  sollya_mpfi_get_right(b,dom);
 
   if (!(mpfr_number_p(a) && mpfr_number_p(b))) {
     mpfr_clear(a);
@@ -548,7 +559,7 @@ int computeSupnormLowerBound(mpfr_t ell, node *poly, node *func, sollya_mpfi_t d
     pp = prec;
     if (pp < 12) pp = 12;
   }
-  
+
   deg = getDegree(poly);
   if (deg >= 0) {
     samplePoints = 4 * deg + 1;
@@ -559,7 +570,9 @@ int computeSupnormLowerBound(mpfr_t ell, node *poly, node *func, sollya_mpfi_t d
   possibleExtrema = uncertifiedFindZeros(epsPrime, a, b, samplePoints, 6 + (pp / 2));
 
   /* We now really define epsPrime as the derivative of eps (for further use with evaluateFaithful) */
-  epsPrime = makeDiv(epsPrime, makePow(copyTree(func), makeConstantDouble(2.0)));
+  if (mode != ABSOLUTE) {
+    epsPrime = makeDiv(epsPrime, makePow(copyTree(func), makeConstantDouble(2.0)));
+  }
 
   aBound = (mpfr_t *) safeMalloc(sizeof(mpfr_t));
   bBound = (mpfr_t *) safeMalloc(sizeof(mpfr_t));
@@ -626,18 +639,18 @@ int computeSupnormLowerBound(mpfr_t ell, node *poly, node *func, sollya_mpfi_t d
    taylorform, developing func at x0 = mid(dom), otherwise use the
    relative technique at x0 = singu.
 
-   In any case, return delta in absolute terms. Account for 
+   In any case, return delta in absolute terms. Account for
    all errors in the coefficients (as returned by taylorform).
-   
+
    Check if the final interval delta is bounded, i.e. has finite
    real bounds (no NaNs, no Infs).
-   
+
    No check is performed to know if the coefficients of the returned
    polynomial are finite real numbers. In the case when this happens
    whilst the bound delta is finite, the function returns success.
 
-   Return a non-zero value on success, and a zero value otherwise. 
-  
+   Return a non-zero value on success, and a zero value otherwise.
+
    If a zero value is returned, the pointer assigned to *poly is
    invalid and delta is left untouched. This means, on failure, the
    function frees all memory allocated.
@@ -648,8 +661,8 @@ int computeSupnormLowerBound(mpfr_t ell, node *poly, node *func, sollya_mpfi_t d
    This means we have to modify the global precision of the tool.  We
    reset it correctly in the usual case but if a Ctrl-C pops in in the
    middle, it will not be reset. This should be changed in the future.
-   
-   IMPORTANT REMARK: as does the taylorform command, the computed 
+
+   IMPORTANT REMARK: as does the taylorform command, the computed
    polynomial here must be translated in order to get the right
    polynomial (i.e. T = poly(x-x0) is the true Taylor polynomial).
 */
@@ -670,7 +683,7 @@ int computeTaylorModel(node **poly, sollya_mpfi_t delta,
 
   oldToolPrec = getToolPrecision();
   setToolPrecision(prec);
-  
+
   if (singu == NULL) {
     mpfr_init2(x0,sollya_mpfi_get_prec(dom) + 1);
     sollya_mpfi_mid(x0,dom);
@@ -689,7 +702,7 @@ int computeTaylorModel(node **poly, sollya_mpfi_t delta,
   myDelta = NULL;
   errors = NULL;
   taylorform(&myPoly, &errors, &myDelta, func, n, &x0AsInterval, &myDom, mode);
-  
+
   res = 1;
   if ( (myDelta == NULL) || (errors == NULL) || (!sollya_mpfi_bounded_p(*myDelta)) ) res = 0;
   else {
@@ -714,24 +727,24 @@ int computeTaylorModel(node **poly, sollya_mpfi_t delta,
       sollya_mpfi_clear(nAsInterval);
     }
     if (res) {
-      /* Here, we have lagrangeDelta such that 
+      /* Here, we have lagrangeDelta such that
          (func - (poly(x-x0) + sum errors[i] * (x-x0)^i)) in lagrangeDelta
          We now add (sum errors[i] * x^i)(dom-x0) to lagrangeDelta.
          We use a simple Horner to perform that evalutation/ bounding.
-         The error list starts with c0, so we have to revert it 
-         before the Horner. 
-         
+         The error list starts with c0, so we have to revert it
+         before the Horner.
+
          HACK ALERT: We will allocate only the containers to the
          reverted list but we just copy over the pointers to the
-         MPFIs. So when free'ing the reverted list, we must not 
-         free the MPFIs, as they will be free'd when free'ing the 
+         MPFIs. So when free'ing the reverted list, we must not
+         free the MPFIs, as they will be free'd when free'ing the
          orginal list.
       */
       sollya_mpfi_init2(temp,sollya_mpfi_get_prec(delta));
       sollya_mpfi_init2(shiftedDom,sollya_mpfi_get_prec(dom));
       sollya_mpfi_sub(shiftedDom,dom,x0AsInterval);
       revertedErrors = NULL;
-      for (curr=errors;curr!=NULL;curr=curr->next) 
+      for (curr=errors;curr!=NULL;curr=curr->next)
         revertedErrors = addElement(revertedErrors,curr->value);
       /* Horner */
       curr = revertedErrors;
@@ -749,7 +762,7 @@ int computeTaylorModel(node **poly, sollya_mpfi_t delta,
     }
     sollya_mpfi_clear(lagrangeDelta);
     sollya_mpfi_clear(*myDelta);
-    free(myDelta);
+    safeFree(myDelta);
   }
 
   if (!res) free_memory(myPoly);
@@ -764,7 +777,7 @@ int computeTaylorModel(node **poly, sollya_mpfi_t delta,
 }
 
 
-/* Tries to compute a Taylor expansion poly of func with degree n such that 
+/* Tries to compute a Taylor expansion poly of func with degree n such that
 
    || poly(x-x0) - func || <= delta.
 
@@ -772,15 +785,15 @@ int computeTaylorModel(node **poly, sollya_mpfi_t delta,
    assign that expansion to *poly and return a non-zero value.
 
    Otherwise, do not touch the pointer *poly and return zero.
-   
-   This means, when the computation fails, all memory allocated 
+
+   This means, when the computation fails, all memory allocated
    for the computation has been freed.
-   
+
    Be aware that poly is not checked to have finite, real
    coefficients.  It is just ensured that the Lagrange and coefficient
    approximation error of the Taylor form is finite and contained in
    [-delta, delta].
-   
+
    The parameters singu and prec are passed directly to
    computeTaylorForm.
    IMPORTANT REMARK: this is an untranslated polynomial (see computeTaylorModel).
@@ -796,28 +809,28 @@ int checkDegreeTaylorModel(node **poly, node *func, sollya_mpfi_t dom, mpfr_t de
 
   sollya_mpfi_init2(computedDelta,prec);
   resCompute = computeTaylorModel(&myPoly, computedDelta, func, dom, n, singu, prec);
- 
+
   if (resCompute) {
-    
+
     /* Here, we have to check if sup(abs(computedDelta)) <= delta */
     sollya_mpfi_abs(computedDelta,computedDelta);
     mpfr_init2(supAbsComputedDelta,prec);
     sollya_mpfi_get_right(supAbsComputedDelta,computedDelta);
-    if (mpfr_number_p(supAbsComputedDelta) && 
+    if (mpfr_number_p(supAbsComputedDelta) &&
 	mpfr_number_p(delta) &&
 	(mpfr_cmp(supAbsComputedDelta,delta) <= 0)) {
       /* Here, we have a polynomial that satisfies the bound */
       *poly = myPoly;
       res = 1;
     } else {
-      /* Here, we got a polynomial and a computedDelta, but the 
+      /* Here, we got a polynomial and a computedDelta, but the
   	 error is too large. So we have to free the polynomial */
       free_memory(myPoly);
       res = 0;
     }
     mpfr_clear(supAbsComputedDelta);
   } else {
-    /* Here, we could not compute a Taylor Model 
+    /* Here, we could not compute a Taylor Model
 
        We simply return zero, without touching at poly.
 
@@ -836,11 +849,15 @@ int checkDegreeTaylorModel(node **poly, node *func, sollya_mpfi_t dom, mpfr_t de
 
 /* Checks if poly is a polynomial with coefficients that are all fully
    evaluated MPFR constants each of which is finite and real (not NaN,
-   not Inf).  
+   not Inf).
 
    Returns a non-zero value if poly fullfills the constraints and zero
    otherwise.
 
+   I believe that this code is useless. It is here to cover the case where
+   checkDegreeTaylorModel would successfully return, but the returned
+   polynomial would contain non-dyadic coefficients. I think that this
+   cannot happen.
 */
 int isPolynomialWithConstantDyadicFiniteRealCoefficients(node *poly) {
   node **coefficients;
@@ -855,8 +872,8 @@ int isPolynomialWithConstantDyadicFiniteRealCoefficients(node *poly) {
   res = 1;
   for (i=0;i<=degree;i++) {
     if (coefficients[i] != NULL) {
-      if ((!(coefficients[i]->nodeType == CONSTANT)) ||
-	  (!mpfr_number_p(*(coefficients[i]->value)))) {
+      if ((!(accessThruMemRef(coefficients[i])->nodeType == CONSTANT)) ||
+	  (!mpfr_number_p(*(accessThruMemRef(coefficients[i])->value)))) {
 	res = 0;
 	break;
       }
@@ -864,16 +881,16 @@ int isPolynomialWithConstantDyadicFiniteRealCoefficients(node *poly) {
   }
 
   for (i=0;i<=degree;i++) {
-    if (coefficients[i] != NULL) 
+    if (coefficients[i] != NULL)
       free_memory(coefficients[i]);
   }
-  free(coefficients);
+  safeFree(coefficients);
 
   return res;
 }
 
 
-/* Compute a Taylor Model poly for func such that 
+/* Compute a Taylor Model poly for func such that
 
    - for all x in dom, abs(func(x) - poly(x)) <= delta,
    - the degree of poly is the least possible of the polynomials
@@ -898,7 +915,7 @@ int computeTaylorModelOfLeastDegree(node **poly, node *func, sollya_mpfi_t dom, 
   node *shifterBack;
   node *pShifted;
   mpfr_t x0;
-  int n, okay, resCompute, res, nMin, nMax;
+  int n, okay, resCompute, nMin, nMax;
   nMax = 1; nMin = 0; okay = 0;
 
   bestPoly = NULL;
@@ -950,22 +967,8 @@ int computeTaylorModelOfLeastDegree(node **poly, node *func, sollya_mpfi_t dom, 
   free_memory(pShifted);
   mpfr_clear(x0);
 
-  /* Though unlikely, it could be possible that some coefficient of the polynomial be a NaN or Inf */
-  /*   (despite a successful return of checkDegreeTaylorModel...). So we check it. */
-  if (isPolynomialWithConstantDyadicFiniteRealCoefficients(bestPoly)) {
-	*poly = bestPoly;
-	res = 1;
-  }
-  else {
-    /* Here, we are in the strange case that should almost never
-       happen.  We indicate failure and hope the problem will go
-       away by bisecting dom.
-    */
-    res = 0;
-    if (bestPoly != NULL) free_memory(bestPoly);
-  }
-
-  return res;
+  *poly = bestPoly;
+  return 1;
 }
 
 /* Determines if func has a zero in dom.
@@ -980,30 +983,30 @@ int computeTaylorModelOfLeastDegree(node **poly, node *func, sollya_mpfi_t dom, 
    bisect. Otherwise, the function assigns the midpoint of the least
    and one-but-least zero of func in dom to bisect and returns 2.
 
-   In the case when the function is not able to establish the 
+   In the case when the function is not able to establish the
    fact that func does not vanish on dom but is not able to
    find an approximation to a zero of func in dom, it does not
    touch zero and bisect and returns -1.
 
-   This means: if the return value is 
+   This means: if the return value is
 
    - 0: the calling function can safely assume that func does not have
    a zero in dom,
 
    - 1: the calling function can assume that zero is a good
    approximation to the least zero of func in dom and that it is
-   probably the only zero of func in dom. Hence by overcoming the 
-   problems due to this zero of func, the supnorm is likely to 
+   probably the only zero of func in dom. Hence by overcoming the
+   problems due to this zero of func, the supnorm is likely to
    be computable in one step,
 
    - 2: the calling function can assume that, for supnorm computation,
    it is a good idea to bisect in the indicated bisection point if
    the computation tackling only the first zero fails,
 
-   - -1: the calling function is not provided with a zero that 
+   - -1: the calling function is not provided with a zero that
    might need to be overcome in supnorm computation but is likely
    to see the supnorm computation on the whole domain dom fail.
-   
+
    The argument expectedZeros is an indication how many zeros of func
    are maximally expected in the given range.
 
@@ -1029,11 +1032,11 @@ int determinePossibleZeroAndBisectPoint(mpfr_t zero, mpfr_t bisect,
   evaluateInterval(y, func, NULL, dom);
   sollya_mpfi_get_left(yl,y);
   sollya_mpfi_get_right(yr,y);
-  
+
   if (mpfr_number_p(yl) &&
       mpfr_number_p(yr) &&
       (mpfr_sgn(yl) * mpfr_sgn(yr) > 0)) {
-    /* Here, we know by interval evaluation of func over dom 
+    /* Here, we know by interval evaluation of func over dom
        that there is no zero of func in the interval.
 
        We can return zero.
@@ -1041,7 +1044,7 @@ int determinePossibleZeroAndBisectPoint(mpfr_t zero, mpfr_t bisect,
     */
     res = 0;
   } else {
-    /* Here, we have to compute a list of approximations to 
+    /* Here, we have to compute a list of approximations to
        the zeros of func in dom.
     */
     points = 4 * expectedZeros + 1;
@@ -1070,7 +1073,7 @@ int determinePossibleZeroAndBisectPoint(mpfr_t zero, mpfr_t bisect,
 	  mpfr_set(zero,*((mpfr_t *) (possibleZeros->value)),GMP_RNDN); /* It's an approx. anyway */
 	}
         else {
-	  /* Here, we have at least two zeros 
+	  /* Here, we have at least two zeros
 	     Start by exhibiting the least zero.
 	  */
 	  least = (mpfr_t *) (possibleZeros->value);
@@ -1091,21 +1094,21 @@ int determinePossibleZeroAndBisectPoint(mpfr_t zero, mpfr_t bisect,
 	     In the next stanza we will go down on second
 	     with all zeros in the list greater than the least zero.
 	     Anyway, we first check if the greatest zero is greater
-	     then the least zero. If it is not, we cannot find a 
+	     then the least zero. If it is not, we cannot find a
 	     second least zero.
 	  */
 
 	  if (mpfr_cmp(*least,*second) == 0) {
-	    /* Here, we couldn't find any zero larger than the least 
+	    /* Here, we couldn't find any zero larger than the least
 	       This case should not happen but anyway, we found one zero.
 	    */
 	    res = 1;
 	    mpfr_set(zero,*least,GMP_RNDN); /* It's an approx. anyway */
 	  } else {
-	    /* Here, we really found that there at least two different zeros 
-	       We now go down on second with all zeros in the list greater 
+	    /* Here, we really found that there at least two different zeros
+	       We now go down on second with all zeros in the list greater
 	       than the least zero.
-	     */
+            */
 	    for (curr=possibleZeros;curr!=NULL;curr=curr->next) {
 	      if ((mpfr_cmp(*((mpfr_t *) (curr->value)),*least) > 0) &&
 		  (mpfr_cmp(*((mpfr_t *) (curr->value)),*second) < 0)) {
@@ -1121,26 +1124,26 @@ int determinePossibleZeroAndBisectPoint(mpfr_t zero, mpfr_t bisect,
 	    ppp = mpfr_get_prec(*second);
 	    if (ppp > pp) pp = ppp;
 	    mpfr_init2(myBisect,pp + 1);
-	    mpfr_add(myBisect, *least, *second, GMP_RNDN); 
+	    mpfr_add(myBisect, *least, *second, GMP_RNDN);
 	    mpfr_div_2ui(myBisect,myBisect,1,GMP_RNDN);
-	    
+
 	    /* Set bisection point to midpoint of the two least zeros */
 	    mpfr_set(bisect,myBisect,GMP_RNDN); /* It's all an approx. anyway */
-	    
+
 	    mpfr_clear(myBisect);
 	  }
 	}
-	
+
 	freeChain(possibleZeros,freeMpfrPtr);
       } else {
 	/* We did not find any zero, return -1. */
 	res = -1;
       }
-    } 
+    }
     mpfr_clear(a);
     mpfr_clear(b);
   }
-  
+
   mpfr_clear(yr);
   mpfr_clear(yl);
   sollya_mpfi_clear(y);
@@ -1160,8 +1163,8 @@ int determinePossibleZeroAndBisectPoint(mpfr_t zero, mpfr_t bisect,
    Otherwise, if n is too low to correctly determine an upper bound,
    the function does not touch k and returns zero.
 
-   In the context of supremum norm computation, initialize n 
-   to the degree of the polynomial p in p/f - 1, as f might not 
+   In the context of supremum norm computation, initialize n
+   to the degree of the polynomial p in p/f - 1, as f might not
    reasonably have a zero of a higher degree than that of p.
 
    HACK ALERT: currently, taylorform does not take any prec argument.
@@ -1202,28 +1205,28 @@ int determineOrderOfZero(int *k, node *func, mpfr_t x0, int n, mp_prec_t prec) {
 
     /*   HACK ALERT: We will allocate only the containers to the
          array of errors but we just copy over the pointers to the
-         MPFIs. So when free'ing the array, we must not 
-         free the MPFIs, as they will be free'd when free'ing the 
+         MPFIs. So when free'ing the array, we must not
+         free the MPFIs, as they will be free'd when free'ing the
          orginal list.
     */
     errorsAsArray = (sollya_mpfi_t **) safeCalloc(len,sizeof(sollya_mpfi_t *));
-    i = 0; 
+    i = 0;
     for (curr=errors;curr!=NULL;curr=curr->next) {
       errorsAsArray[i] = (sollya_mpfi_t *) (curr->value);
       i++;
     }
     coefficients = NULL;
     getCoefficients(&degree,&coefficients,poly);
-    if ( (degree >= 0) && (coefficients != NULL) ) { 
+    if ( (degree >= 0) && (coefficients != NULL) ) {
       if (len == degree + 1) { /* Should always be true */
-        myK = 0; 
+        myK = 0;
 	while ((myK <= degree) && (myK <= n-1) && (!res)) { /* Normally n==degree */
 	  if (   (    (coefficients[myK] == NULL)
-                      || 
-                      ( (coefficients[myK]->nodeType == CONSTANT) && 
-                        (mpfr_zero_p(*(coefficients[myK]->value)))
-                      )
-                 ) && 
+                      ||
+                      ( (accessThruMemRef(coefficients[myK])->nodeType == CONSTANT) &&
+                        (mpfr_zero_p(*(accessThruMemRef(coefficients[myK])->value)))
+                        )
+                      ) &&
                  (sollya_mpfi_is_zero(*(errorsAsArray[myK])))
                  ) {
 	    myK++;
@@ -1231,13 +1234,13 @@ int determineOrderOfZero(int *k, node *func, mpfr_t x0, int n, mp_prec_t prec) {
 	    res = 1;
 	  }
 	}
-      } 
+      }
       for (i=0;i<=degree;i++) {
 	if (coefficients[i] != NULL) free_memory(coefficients[i]);
       }
     }
-    if (coefficients != NULL) free(coefficients);
-    free(errorsAsArray);
+    if (coefficients != NULL) safeFree(coefficients);
+    safeFree(errorsAsArray);
     freeChain(errors,freeMpfiPtr);
     free_memory(poly);
   }
@@ -1268,7 +1271,7 @@ int determineOrderOfZero(int *k, node *func, mpfr_t x0, int n, mp_prec_t prec) {
 
    The computing precision is prec.
 
-   We are ensured that this function is called only if 
+   We are ensured that this function is called only if
 
    * poly is a polynomial
    * dom is a closed non-empty interval containing only numbers that is not reduced to a point,
@@ -1293,13 +1296,16 @@ int supnormAbsolute(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t 
   node *T;
   int maximumAllowedN;
   node *boundAsNode, *s1, *s2, *pMinusT, *TMinusp;
+
+  UNUSED_PARAM(bisectPoint);
+
   /* Compute ell such that ell <= || p - f || with an accuracy gamma = accuracy/32 */
   mpfr_init2(ell,prec);
   mpfr_init2(gamma,mpfr_get_prec(accuracy));
   mpfr_div_ui(gamma,accuracy,32,GMP_RNDN); /* exact, but it doesn't matter anyway */
   if (!computeSupnormLowerBound(ell, poly, func, dom, gamma, ABSOLUTE, prec)) { /*we compute a lower bound with expected accuracy gamma=accuracy/32*/
-    /* Before returning, we do a quick heuristical check if we had a chance 
-       with this level of working precision 
+    /* Before returning, we do a quick heuristical check if we had a chance
+       with this level of working precision
     */
     mpfr_abs(ell,accuracy,GMP_RNDD); /* heuristic anyway */
     mpfr_log2(ell,ell,GMP_RNDD); /* heuristic anyway */
@@ -1324,11 +1330,11 @@ int supnormAbsolute(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t 
 
   /* Compute T such that the absolute error is <= errMax */
   maximumAllowedN = 16 * getDegree(poly);
-  if (maximumAllowedN < 32) maximumAllowedN = 32;  
+  if (maximumAllowedN < 32) maximumAllowedN = 32;
   T = NULL;
   if (!computeTaylorModelOfLeastDegree(&T, func, dom, errMax, maximumAllowedN, NULL, prec)) {
     mpfr_clear(ell);
-    mpfr_clear(gamma); 
+    mpfr_clear(gamma);
     mpfr_clear(errMax);
     return SUPNORM_NO_TAYLOR;
   }
@@ -1339,7 +1345,7 @@ int supnormAbsolute(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t 
   mpfr_add_ui(bound,bound,1,GMP_RNDD); /* round-down to get lesser value */
   mpfr_mul(bound,ell,bound,GMP_RNDD); /* round-down to get lesser value */
 
-  /* Represent bound as a node * (a polynomial) that we can give to 
+  /* Represent bound as a node * (a polynomial) that we can give to
      subPolynomialsExactly(node *p1, node *p2)
   */
   boundAsNode = makeConstant(bound);
@@ -1348,18 +1354,37 @@ int supnormAbsolute(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t 
   TMinusp = subPolynomialsExactly(T, poly);
   s1 = subPolynomialsExactly(boundAsNode, pMinusT);
   s2 = subPolynomialsExactly(boundAsNode, TMinusp);
-  
-  /* Check now that s1 and s2 are both positive on the domain dom 
+
+  /* Check now that s1 and s2 are both positive on the domain dom
 
      The case when s1 or s2 have a point where they are not
-     positive should never happen. The check just ensures the 
+     positive should never happen. The check just ensures the
      safety of the algorithm, i.e. validates it.
 
   */
+  if ( (!isPolynomialWithConstantDyadicFiniteRealCoefficients(s1)) ||
+       (!isPolynomialWithConstantDyadicFiniteRealCoefficients(s2))) {
+    /* I believe that this is dead code. It is here to cover the case where
+       checkDegreeTaylorModel would successfully return, but the returned
+       polynomial would contain non-dyadic coefficients. I think that this
+       cannot happen.
+    */
+    mpfr_clear(ell);
+    mpfr_clear(gamma);
+    mpfr_clear(errMax);
+    mpfr_clear(bound);
+    free_memory(T);
+    free_memory(boundAsNode);
+    free_memory(s1);
+    free_memory(s2);
+    free_memory(pMinusT);
+    free_memory(TMinusp);
+    return SUPNORM_NO_TAYLOR;
+  }
   if ((!showPositivity(s1, dom, prec)) ||
       (!showPositivity(s2, dom, prec))) {
-    /* At least one of s1 or s2 has a point in dom where it is non-positive 
-       
+    /* At least one of s1 or s2 has a point in dom where it is non-positive
+
        We clear the used memory and return the appropriate failure code.
 
     */
@@ -1375,9 +1400,9 @@ int supnormAbsolute(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t 
     free_memory(TMinusp);
     return SUPNORM_COULD_NOT_SHOW_POSITIVITY;
   }
-  
+
   /* If we are here, we know that s1 and s2 are positive and we can
-     easily deduce the upper bound from the lower bound ell. 
+     easily deduce the upper bound from the lower bound ell.
 
      We take u approximating ell * (1 + 31/32 * accuracy) and surely no less
      than it.
@@ -1430,7 +1455,7 @@ int supnormAbsolute(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t 
 
    The computing precision is prec.
 
-   We are ensured that this function is called only if 
+   We are ensured that this function is called only if
 
    * poly is a polynomial
    * dom is a closed non-empty interval containing only numbers that is not reduced to a point,
@@ -1452,7 +1477,7 @@ int supnormAbsolute(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t 
    expression of func. In such a case, the relative supnorm may simply
    fail for now.
 
-   The singularity parameter is just to be passed on to the 
+   The singularity parameter is just to be passed on to the
    Taylor Form code.
 
 */
@@ -1463,7 +1488,9 @@ int supnormRelativeNoSingularity(sollya_mpfi_t result, node *poly, node *func, s
   node *T;
   int maximumAllowedN, signAsInt;
   node *s1, *s2, *boundTimesT, *pMinusT, *TMinusp;
-  
+
+  UNUSED_PARAM(bisectPoint);
+
   /* Makes compiler happy */
   signAsInt = -2;
   /* End of compiler happiness */
@@ -1471,8 +1498,8 @@ int supnormRelativeNoSingularity(sollya_mpfi_t result, node *poly, node *func, s
   /* Compute F such that forall x in dom |func(x)| >= F */
   mpfr_init2(F,prec);
   if (!computeAbsoluteMinimum(F, func, dom, prec)) {
-    /* If we are here, we could not compute a valid lower bound on the absolute 
-       value of func, i.e. a bound that seems to be non-zero. 
+    /* If we are here, we could not compute a valid lower bound on the absolute
+       value of func, i.e. a bound that seems to be non-zero.
     */
     mpfr_clear(F);
     return SUPNORM_CANNOT_COMPUTE_ABSOLUTE_INF;
@@ -1489,8 +1516,8 @@ int supnormRelativeNoSingularity(sollya_mpfi_t result, node *poly, node *func, s
   mpfr_init2(gamma,mpfr_get_prec(accuracy));
   mpfr_div_ui(gamma,accuracy,32,GMP_RNDN); /* exact, but it doesn't matter anyway */
   if (!computeSupnormLowerBound(ell, poly, func, dom, gamma, RELATIVE, prec)) {
-    /* Before returning, we do a quick heuristical check if we had a chance 
-       with this level of working precision 
+    /* Before returning, we do a quick heuristical check if we had a chance
+       with this level of working precision
     */
     mpfr_abs(ell,accuracy,GMP_RNDD); /* heuristic anyway */
     mpfr_log2(ell,ell,GMP_RNDD); /* heuristic anyway */
@@ -1510,7 +1537,7 @@ int supnormRelativeNoSingularity(sollya_mpfi_t result, node *poly, node *func, s
      validate.
 
      Take u approximating ell * (1 + 31/32 * accuracy) but surely no less than it.
-     
+
   */
   mpfr_init2(u,prec);
   mpfr_init2(thirtyoneThirtySecond,12); /* 31/32 holds on 12 bits */
@@ -1520,9 +1547,9 @@ int supnormRelativeNoSingularity(sollya_mpfi_t result, node *poly, node *func, s
   mpfr_add_ui(u,u,1,GMP_RNDU); /* round-up as all quantities are positive and we want an upper bound */
   mpfr_mul(u,ell,u,GMP_RNDU); /* round-up as all quantities are positive and we want an upper bound */
 
-  /* Compute a maxium absolute error for the Taylor polynomial 
+  /* Compute a maxium absolute error for the Taylor polynomial
 
-     Take a value errMax approximating ell * accuracy * (15/32) * 1/(1+u) * F/(1+15*accuracy/32) but being 
+     Take a value errMax approximating ell * accuracy * (15/32) * 1/(1+u) * F/(1+15*accuracy/32) but being
      surely no greater than it (with u approximating ell*(1+31*accuracy/32) but surely no
      lesser than it).
 
@@ -1540,15 +1567,15 @@ int supnormRelativeNoSingularity(sollya_mpfi_t result, node *poly, node *func, s
   sollya_mpfi_init2(errMaxInterval, prec);
   sollya_mpfi_init2(uInterval,mpfr_get_prec(u));
   sollya_mpfi_init2(onePlusUInterval, prec);
-  
+
   /* Initialize */
-  sollya_mpfi_set_fr(accuracyInterval,accuracy); 
+  sollya_mpfi_set_fr(accuracyInterval,accuracy);
   sollya_mpfi_set_ui(fifthteenThirtySecondInterval,15);
   sollya_mpfi_div_ui(fifthteenThirtySecondInterval,fifthteenThirtySecondInterval,32);
   sollya_mpfi_set_fr(FInterval,F);
   sollya_mpfi_set_fr(uInterval,u);
   sollya_mpfi_set_fr(ellInterval,ell);
-  
+
   /* Compute in IA */
   sollya_mpfi_mul(errMaxInterval,fifthteenThirtySecondInterval,accuracyInterval); /* errMaxInterval <- 15/32 * accuracy */
   sollya_mpfi_add_ui(errMaxInterval,errMaxInterval,1); /* errMaxInterval <- 1 + errMaxInterval = 1 + 15/32 * accuracy */
@@ -1571,7 +1598,7 @@ int supnormRelativeNoSingularity(sollya_mpfi_t result, node *poly, node *func, s
   sollya_mpfi_clear(ellInterval);
   sollya_mpfi_clear(onePlusUInterval);
   sollya_mpfi_clear(uInterval);
-  
+
   /* Compute T such that the absolute error is <= errMax */
   maximumAllowedN = 16 * getDegree(poly);
   if (maximumAllowedN < 32) maximumAllowedN = 32;
@@ -1585,10 +1612,10 @@ int supnormRelativeNoSingularity(sollya_mpfi_t result, node *poly, node *func, s
     mpfr_clear(errMax);
     return SUPNORM_NO_TAYLOR;
   }
-  
+
   /* Determine the sign of T in the middle of dom
 
-     We really need to be sure of the sign, so 
+     We really need to be sure of the sign, so
      if we can't determine it, we fail.
 
   */
@@ -1606,7 +1633,7 @@ int supnormRelativeNoSingularity(sollya_mpfi_t result, node *poly, node *func, s
     return SUPNORM_CANNOT_DETERMINE_SIGN_OF_T;
   }
 
-  /* Here, we know the sign of T at mid(dom), 
+  /* Here, we know the sign of T at mid(dom),
      we just have to translate it to an mpfr value */
   mpfr_init2(signT,12);
   if (signAsInt < 0) mpfr_set_si(signT,-1,GMP_RNDN); /* exact */
@@ -1620,27 +1647,51 @@ int supnormRelativeNoSingularity(sollya_mpfi_t result, node *poly, node *func, s
 
   /* Integrate the sign of T at mid(dom) into bound */
   mpfr_mul(bound,bound,signT,GMP_RNDN); /* exact as signT one of -1 or 1 */
-  
+
   /* Scale T by bound */
   boundTimesT = scalePolynomialExactly(T, bound); /* boundTimesT = |T|*ell*(1+accuracy/2) */
-  
+
   /* Compute (build) s1 = boundTimesT - (p - T) and s2 = boundTimesT - (T - p) */
   pMinusT = subPolynomialsExactly(poly, T);
   TMinusp = subPolynomialsExactly(T, poly);
   s1 = subPolynomialsExactly(boundTimesT, pMinusT);
   s2 = subPolynomialsExactly(boundTimesT, TMinusp);
-  
-  /* Check now that s1 and s2 are both positive on the domain dom 
+
+  /* Check now that s1 and s2 are both positive on the domain dom
 
      The case when s1 or s2 have a point where they are not
-     positive should never happen. The check just ensures the 
+     positive should never happen. The check just ensures the
      safety of the algorithm, i.e. validates it.
 
   */
+  if ( (!isPolynomialWithConstantDyadicFiniteRealCoefficients(s1)) ||
+       (!isPolynomialWithConstantDyadicFiniteRealCoefficients(s2))) {
+    /* I believe that this is dead code. It is here to cover the case where
+       checkDegreeTaylorModel would successfully return, but the returned
+       polynomial would contain non-dyadic coefficients. I think that this
+       cannot happen.
+    */
+    mpfr_clear(F);
+    mpfr_clear(ell);
+    mpfr_clear(gamma);
+    mpfr_clear(u);
+    mpfr_clear(thirtyoneThirtySecond);
+    mpfr_clear(errMax);
+    mpfr_clear(midDom);
+    mpfr_clear(bound);
+    mpfr_clear(signT);
+    free_memory(T);
+    free_memory(boundTimesT);
+    free_memory(s1);
+    free_memory(s2);
+    free_memory(pMinusT);
+    free_memory(TMinusp);
+    return SUPNORM_NO_TAYLOR;
+  }
   if ((!showPositivity(s1, dom, prec)) ||
       (!showPositivity(s2, dom, prec))) {
-    /* At least one of s1 or s2 has a point in dom where it is non-positive 
-       
+    /* At least one of s1 or s2 has a point in dom where it is non-positive
+
        We clear the used memory and return the appropriate failure code.
 
     */
@@ -1663,7 +1714,7 @@ int supnormRelativeNoSingularity(sollya_mpfi_t result, node *poly, node *func, s
   }
 
   /* Here, we know the supnorm as [ell,u] and we have validated it. */
-  
+
   /* Set the result */
   sollya_mpfi_interv_fr(result,ell,u);
 
@@ -1707,7 +1758,7 @@ int supnormRelativeNoSingularity(sollya_mpfi_t result, node *poly, node *func, s
 
    The computing precision is prec.
 
-   We are ensured that this function is called only if 
+   We are ensured that this function is called only if
 
    * poly is a polynomial
    * dom is a closed non-empty interval containing only numbers that is not reduced to a point,
@@ -1747,9 +1798,9 @@ int supnormRelativeSingularity(sollya_mpfi_t result, node *poly, node *func, sol
     /* Strange things are happening, we return an error */
     return SUPNORM_SOME_ERROR;
   }
-  
+
   /* Determine a maximum order */
-  n = deg; 
+  n = deg;
   if (n < 2) n = 2;
 
   if (!determineOrderOfZero(&k, func, singularity, n, prec)) {
@@ -1759,18 +1810,18 @@ int supnormRelativeSingularity(sollya_mpfi_t result, node *poly, node *func, sol
     return SUPNORM_CANNOT_DETERMINE_ORDER_OF_SINGU;
   }
 
-  /* Now we know that func has a singularity at singularity of order k 
+  /* Now we know that func has a singularity at singularity of order k
      We have to check now if we can divide poly by (x-singularity)^k
   */
   pTilde = NULL;
   if (!dividePolyByXMinusX0ToTheK(&pTilde,poly,singularity,k,prec)) {
-    /* Here, we couldn't divide poly by (x-singularity)^k 
+    /* Here, we couldn't divide poly by (x-singularity)^k
        We return the appropriate error code.
     */
     return SUPNORM_SINGULARITY_NOT_REMOVED;
   }
 
-  /* If we are here, we know that pTilde = poly/((x-singularity)^k) 
+  /* If we are here, we know that pTilde = poly/((x-singularity)^k)
 
      We now build fTilde = func/(x-singularity)^k
 
@@ -1789,7 +1840,7 @@ int supnormRelativeSingularity(sollya_mpfi_t result, node *poly, node *func, sol
   mpfr_init2(mySingularity,mpfr_get_prec(singularity));
   mpfr_set(mySingularity,singularity,GMP_RNDN); /* exact, the precision is the same */
 
-  /* Now call the relative supremum norm with pTilde and fTilde, passing on 
+  /* Now call the relative supremum norm with pTilde and fTilde, passing on
      the singularity as the development point for fTilde.
   */
   res = supnormRelativeNoSingularity(result, pTilde, fTilde, dom, accuracy, prec, &mySingularity, bisectPoint);
@@ -1824,7 +1875,7 @@ int supnormRelativeSingularity(sollya_mpfi_t result, node *poly, node *func, sol
 
    The computing precision is prec.
 
-   We are ensured that this function is called only if 
+   We are ensured that this function is called only if
 
    * poly is a polynomial
    * dom is a closed non-empty interval containing only numbers that is not reduced to a point,
@@ -1855,7 +1906,7 @@ int supnormRelativeSingularity(sollya_mpfi_t result, node *poly, node *func, sol
    work for cases when there is one singularity in dom, though. If
    there are several singularities, bisection will eventually split
    the interval. If appropriate set bisectPoint to something
-   reasonable. 
+   reasonable.
 
 */
 int supnormRelative(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t dom, mpfr_t accuracy, mp_prec_t prec, mpfr_t bisectPoint) {
@@ -1866,7 +1917,7 @@ int supnormRelative(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t 
   /* Initialize the result to "Error" */
   res = SUPNORM_SOME_ERROR;
 
-  /* We use the degree of the polynomial as an indication of how many 
+  /* We use the degree of the polynomial as an indication of how many
      removable singularities poly/func might maximally have.
   */
   degree = getDegree(poly);
@@ -1876,7 +1927,7 @@ int supnormRelative(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t 
   mpfr_set(myBisect,bisectPoint,GMP_RNDN); /* exact */
 
   mpfr_init2(singularity, prec);
-  
+
   /* Quickly determine if there is a possible singularity and if yes, where it is and if it is the only one */
   numberOfSingularities = determinePossibleZeroAndBisectPoint(singularity, myBisect, func, dom, degree, prec);
 
@@ -1903,14 +1954,14 @@ int supnormRelative(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t 
 	mpfr_set(bisectPoint, myBisect, GMP_RNDN); /* That's all approximations */
 	if (res == SUPNORM_SOME_ERROR) res = SUPNORM_ANOTHER_SINGULARITY_IN_DOM;
       } else {
-	/* The supnorm failed but we do not know of another possible bisection point 
-	   
-	   We hence set bisectPoint to the value that value suggested to us by the 
+	/* The supnorm failed but we do not know of another possible bisection point
+
+	   We hence set bisectPoint to the value that value suggested to us by the
 	   supnormRelativeSingularity function.
 
 	*/
-	mpfr_set(bisectPoint, oldBisect, GMP_RNDN); /* bisectPoint does not change 
-						       if supnormRelativeSingularity didn't 
+	mpfr_set(bisectPoint, oldBisect, GMP_RNDN); /* bisectPoint does not change
+						       if supnormRelativeSingularity didn't
 						       touch oldBisect */
       }
     }
@@ -1944,7 +1995,7 @@ int supnormRelative(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t 
 
    The computing precision is prec.
 
-   We are ensured that this function is called only if 
+   We are ensured that this function is called only if
 
    * poly is a polynomial
    * dom is a closed non-empty interval containing only numbers that is not reduced to a point,
@@ -1988,7 +2039,7 @@ int supremumNormInner(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_
    Otherwise, if an error occurs, the return value reflects the last
    error message of the recursive calls.
 
-   We are ensured that this function is called only if 
+   We are ensured that this function is called only if
 
    * poly is a polynomial
    * a and b, a < b, form an interval [a,b] that is not reduced to a point
@@ -2027,7 +2078,7 @@ int supremumNormBisectInner(sollya_mpfi_t result, node *poly, node *func, mpfr_t
     return SUPNORM_NO_ERROR;
   }
 
-  /* Some error occured, check if we still need to bisect or if we have reached diameter */
+  /* Some error occurred, check if we still need to bisect or if we have reached diameter */
   mpfr_init2(width,p1);
   mpfr_sub(width,b,a,GMP_RNDU);
   if (mpfr_cmp(width,diameter) < 0) {
@@ -2059,7 +2110,7 @@ int supremumNormBisectInner(sollya_mpfi_t result, node *poly, node *func, mpfr_t
   resLeft = supremumNormBisectInner(resultLeft, poly, func, a, c, mode, accuracy, diameter, prec);
 
   if (resLeft != SUPNORM_NO_ERROR) {
-    /* The bisection recursively failed on the left sub-interval [a,c] 
+    /* The bisection recursively failed on the left sub-interval [a,c]
        Return the error code returned by that recursive call.
     */
     mpfr_clear(c);
@@ -2073,7 +2124,7 @@ int supremumNormBisectInner(sollya_mpfi_t result, node *poly, node *func, mpfr_t
   resRight = supremumNormBisectInner(resultRight, poly, func, c, b, mode, accuracy, diameter, prec);
 
   if (resRight != SUPNORM_NO_ERROR) {
-    /* The bisection recursively failed on the right sub-interval [c,b] 
+    /* The bisection recursively failed on the right sub-interval [c,b]
        Return the error code returned by that recursive call.
     */
     mpfr_clear(c);
@@ -2081,20 +2132,20 @@ int supremumNormBisectInner(sollya_mpfi_t result, node *poly, node *func, mpfr_t
     sollya_mpfi_clear(resultRight);
     return resRight;
   }
-  
+
   /* Here, resLeft == SUPNORM_NO_ERROR and resRight == SUPNORM_NO_ERROR
 
-     This means both recursive calls worked without error. 
-     
+     This means both recursive calls worked without error.
+
      We combine the results by taking the max of the lower resp. the
      upper bounds.
-     
+
   */
   mpfr_init2(ll,p2);
   mpfr_init2(lr,p2);
   mpfr_init2(ul,p2);
   mpfr_init2(ur,p2);
-  
+
   sollya_mpfi_get_left(ll,resultLeft);
   sollya_mpfi_get_right(ul,resultLeft);
   sollya_mpfi_get_left(lr,resultRight);
@@ -2115,6 +2166,15 @@ int supremumNormBisectInner(sollya_mpfi_t result, node *poly, node *func, mpfr_t
   return SUPNORM_NO_ERROR;
 }
 
+mp_prec_t mp_prec_abs(mp_prec_t p) {
+  int64_t t;
+  mp_prec_t pp;
+  t = (int64_t) p;
+  if (t < ((int64_t) 0)) t = -t;
+  pp = (mp_prec_t) t;
+  return pp;
+}
+
 /* Compute the supremum norm on eps = p - f resp. eps = p/f - 1 over [a,b]
 
    eps is defined according to the mode parameter:
@@ -2125,12 +2185,12 @@ int supremumNormBisectInner(sollya_mpfi_t result, node *poly, node *func, mpfr_t
 
    abs(u-l/l) <= accuracy
 
-   If everything works fine, result is affected with an interval 
+   If everything works fine, result is affected with an interval
    safely enclosing the supremum norm. The return value is then non-zero.
 
    Otherwise, if an error occurs, the return value is 0.
 
-   We are ensured that this function is called only if 
+   We are ensured that this function is called only if
 
    * poly is a polynomial
    * a and b, a < b, form an interval [a,b] that is not reduced to a point
@@ -2146,8 +2206,8 @@ int supremumNormBisect(sollya_mpfi_t result, node *poly, node *func, mpfr_t a, m
   mp_prec_t prec, p;
   mpfr_t temp;
   prec = getToolPrecision() + 25;
-  //p = sollya_mpfi_get_prec(result);
- 
+  /*p = sollya_mpfi_get_prec(result);*/
+
   /* Compute p = -floor(log2(accuracy)) to get the number of bits we need
      in the end
   */
@@ -2157,50 +2217,54 @@ int supremumNormBisect(sollya_mpfi_t result, node *poly, node *func, mpfr_t a, m
   mpfr_neg(temp,temp,GMP_RNDU);
   p = mpfr_get_ui(temp,GMP_RNDD);
   mpfr_clear(temp);
-  
+
   /*if the requested accuracy (p) is close to prec, increase prec*/
-  if (abs(p-prec)<(p/2)) {
+  if ((mp_prec_t) mp_prec_abs(p-prec) < (mp_prec_t) (p/2)) {
     if (p>prec)  prec = p + (p/2);
     if (p<=prec)  prec = prec + (p/2);
   }
+  if (prec < (p + p/2) / 4) {
+    prec = p + p/2;
+  }
+
   res = supremumNormBisectInner(result, poly, func, a, b, mode, accuracy, diameter, prec);
 
   if (res == 0) return 1; /* everything's fine */
- 
+
   /* In the following, perform error handling (messaging and return 0) */
   switch (res) {
   case SUPNORM_NO_TAYLOR:
-    printMessage(1,"Warning: during supnorm computation, no suitable Taylor form could be found.\n");
+    printMessage(1,SOLLYA_MSG_SUPNORM_NO_TAYLOR,"Warning: during supnorm computation, no suitable Taylor form could be found.\n");
     break;
   case SUPNORM_NOT_ENOUGH_WORKING_PRECISION:
-    printMessage(1,"Warning: during supnorm computation, no result could be found as the working precision seems to be too low.\n");
+    printMessage(1,SOLLYA_MSG_SUPNORM_NOT_ENOUGH_WORKING_PRECISION,"Warning: during supnorm computation, no result could be found as the working precision seems to be too low.\n");
     break;
   case SUPNORM_SINGULARITY_NOT_REMOVED:
-    printMessage(1,"Warning: during supnorm computation, a singularity in the expression tree could not be removed.\n");
+    printMessage(1,SOLLYA_MSG_SUPNORM_SINGULARITY_NOT_REMOVED,"Warning: during supnorm computation, a singularity in the expression tree could not be removed.\n");
     break;
   case SUPNORM_COULD_NOT_SHOW_POSITIVITY:
-    printMessage(1,"Warning: during supnorm computation, the positivity of a polynomial could not be established.\n");
+    printMessage(1,SOLLYA_MSG_SUPNORM_COULD_NOT_SHOW_POSITIVITY,"Warning: during supnorm computation, the positivity of a polynomial could not be established.\n");
     break;
   case SUPNORM_SINGULARITY_NOT_DETECTED:
-    printMessage(1,"Warning: during supnorm computation, a false singularity could not be detected.\n");
+    printMessage(1,SOLLYA_MSG_SUPNORM_SINGULARITY_NOT_DETECTED,"Warning: during supnorm computation, a false singularity could not be detected.\n");
     break;
   case SUPNORM_ANOTHER_SINGULARITY_IN_DOM:
-    printMessage(1,"Warning: during supnorm computation, there appeared to be at least two singularities in the domain. More bisection is needed.\n");
+    printMessage(1,SOLLYA_MSG_SUPNORM_ANOTHER_SINGULARITY_IN_DOM,"Warning: during supnorm computation, there appeared to be at least two singularities in the domain. More bisection is needed.\n");
     break;
   case SUPNORM_CANNOT_COMPUTE_LOWER_BOUND:
-    printMessage(1,"Warning: during supnorm computation, it was not possible to determine a valid lower bound for the error function.\n");
+    printMessage(1,SOLLYA_MSG_SUPNORM_CANNOT_COMPUTE_LOWER_BOUND,"Warning: during supnorm computation, it was not possible to determine a valid lower bound for the error function.\n");
     break;
   case SUPNORM_CANNOT_COMPUTE_ABSOLUTE_INF:
-    printMessage(1,"Warning: during supnorm computation, it was not possible to determine a valid lower bound for the absolute value of the function.\n");
+    printMessage(1,SOLLYA_MSG_SUPNORM_CANNOT_COMPUTE_ABSOLUTE_INF,"Warning: during supnorm computation, it was not possible to determine a valid lower bound for the absolute value of the function.\n");
     break;
   case SUPNORM_CANNOT_DETERMINE_SIGN_OF_T:
-    printMessage(1,"Warning: during supnorm computation, it was not possible to safely determine the sign of the Taylor polynomial.\n");
+    printMessage(1,SOLLYA_MSG_SUPNORM_CANNOT_DETERMINE_SIGN_OF_T,"Warning: during supnorm computation, it was not possible to safely determine the sign of the Taylor polynomial.\n");
     break;
   case SUPNORM_CANNOT_DETERMINE_ORDER_OF_SINGU:
-    printMessage(1,"Warning: during supnorm computation, it was not possible to safely determine the order of a presume zero of the given function.\n");
-    break;    
+    printMessage(1,SOLLYA_MSG_SUPNORM_CANNOT_DETERMINE_ORDER_OF_SINGU,"Warning: during supnorm computation, it was not possible to safely determine the order of a presume zero of the given function.\n");
+    break;
   default:
-    printMessage(1,"Warning: during supnorm computation, some generic error occured. No further description is available.\n");
+    printMessage(1,SOLLYA_MSG_SUPNORM_GENERIC_ERROR,"Warning: during supnorm computation, some generic error occurred. No further description is available.\n");
   }
 
   return 0;
@@ -2217,12 +2281,12 @@ int supremumNormBisect(sollya_mpfi_t result, node *poly, node *func, mpfr_t a, m
 
    abs(u-l/l) <= accuracy
 
-   If everything works fine, result is affected with an interval 
+   If everything works fine, result is affected with an interval
    safely enclosing the supremum norm. The return value is then non-zero.
 
    Otherwise, if an error occurs, the return value is 0.
 
-   We are ensured that this function is called only if 
+   We are ensured that this function is called only if
 
    * poly is a polynomial
    * a is a number,
@@ -2250,7 +2314,7 @@ int supremumNormDegenerate(sollya_mpfi_t result, node *poly, node *func, mpfr_t 
   /* Compute pr = -floor(log2(accuracy)) to get the number of bits we need
      in the end
   */
-  
+
   mpfr_init2(temp, 8 * sizeof(mp_prec_t) + 10);
   mpfr_init2(absAccuracy,mpfr_get_prec(accuracy));
   mpfr_abs(absAccuracy,accuracy,GMP_RNDN); /* exact */
@@ -2262,17 +2326,17 @@ int supremumNormDegenerate(sollya_mpfi_t result, node *poly, node *func, mpfr_t 
   mpfr_clear(temp);
 
   prec = getToolPrecision();
-  if (pr > 2048 * prec) {
-    printMessage(1,"Warning: the given accuracy depasses the current maximum precision of %d bits.\n",2048 * prec);
-    printMessage(1,"Try to increase the precision of the tool.\n");
+  if ((mp_prec_t) pr > (mp_prec_t) 2048 * prec) {
+    printMessage(1,SOLLYA_MSG_SUPNORM_ACCURACY_TOO_HIGH,"Warning: the given accuracy depasses the current maximum precision of %d bits.\n",2048 * prec);
+    printMessage(1,SOLLYA_MSG_CONTINUATION,"Try to increase the precision of the tool.\n");
     sollya_mpfi_set_nan(result);
     free_memory(absEps);
     return 0;
   }
 
-  if (pr < prec) pp = prec; else pp = prec;
+  if ((mp_prec_t) pr < prec) pp = prec; else pp = prec;
   pp += 10;
- 
+
   mpfr_init2(y,pp);
 
   tempRes = evaluateFaithful(y, absEps, a, pp);
@@ -2282,7 +2346,7 @@ int supremumNormDegenerate(sollya_mpfi_t result, node *poly, node *func, mpfr_t 
     res = 1;
     pp = mpfr_get_prec(y) - 5;
     mpfr_init2(ya,pp);
-    mpfr_init2(yb,pp); 
+    mpfr_init2(yb,pp);
     mpfr_set(ya,y,GMP_RNDD);
     mpfr_set(yb,y,GMP_RNDU);
     mpfr_nextbelow(ya);
@@ -2298,7 +2362,7 @@ int supremumNormDegenerate(sollya_mpfi_t result, node *poly, node *func, mpfr_t 
     mpfr_clear(ya);
     mpfr_clear(yb);
   } else {
-    printMessage(1,"Warning: could not perform a faithful evaluation of the error function between the given polynomial and the given function at the given point.\n");
+    printMessage(1,SOLLYA_MSG_SUPNORM_COULD_NOT_FAITHFULLY_EVAL_ERROR_FUNC,"Warning: could not perform a faithful evaluation of the error function between the given polynomial and the given function at the given point.\n");
     sollya_mpfi_set_nan(result);
   }
 
@@ -2310,7 +2374,7 @@ int supremumNormDegenerate(sollya_mpfi_t result, node *poly, node *func, mpfr_t 
 
 
 /* Checks if all coefficients of poly can be written as ratios of
-   floating-point numbers 
+   floating-point numbers
 
    Returns 0 if poly is not a polynomial or is a polynomial that does
    contain irrational coefficients.
@@ -2333,14 +2397,14 @@ int hasOnlyMpqCoefficients(node *poly) {
     if (coefficients[i] != NULL) {
       simplified = simplifyRationalErrorfree(coefficients[i]);
       okay = 0;
-      if ((simplified->nodeType == CONSTANT) &&
-	  (mpfr_number_p(*(simplified->value)))) okay = 1;
+      if ((accessThruMemRef(simplified)->nodeType == CONSTANT) &&
+	  (mpfr_number_p(*(accessThruMemRef(simplified)->value)))) okay = 1;
       else {
-	if ((simplified->nodeType == DIV) &&
-	    (((simplified->child1->nodeType == CONSTANT) && 
-	      (mpfr_number_p(*(simplified->child1->value)))) && 
-	     ((simplified->child2->nodeType == CONSTANT) && 
-	      (mpfr_number_p(*(simplified->child2->value)))))) okay = 1;
+	if ((accessThruMemRef(simplified)->nodeType == DIV) &&
+	    (((accessThruMemRef(accessThruMemRef(simplified)->child1)->nodeType == CONSTANT) &&
+	      (mpfr_number_p(*(accessThruMemRef(accessThruMemRef(simplified)->child1)->value)))) &&
+	     ((accessThruMemRef(accessThruMemRef(simplified)->child2)->nodeType == CONSTANT) &&
+	      (mpfr_number_p(*(accessThruMemRef(accessThruMemRef(simplified)->child2)->value)))))) okay = 1;
       }
       free_memory(simplified);
       if (!okay) {
@@ -2353,7 +2417,7 @@ int hasOnlyMpqCoefficients(node *poly) {
   for (i=0;i<=degree;i++) {
     if (coefficients[i] != NULL) free_memory(coefficients[i]);
   }
-  free(coefficients);
+  safeFree(coefficients);
 
   return res;
 }
@@ -2370,7 +2434,7 @@ int hasOnlyMpqCoefficients(node *poly) {
 
    abs(u-l/l) <= abs(accuracy)
 
-   If everything works fine, result is affected with an interval 
+   If everything works fine, result is affected with an interval
    safely enclosing the supremum norm. The return value is then non-zero.
 
    Otherwise, if an error occurs, the return value is 0 and result is
@@ -2382,7 +2446,7 @@ int supremumnorm(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t dom
   int res;
 
   if (!isPolynomial(poly)) {
-    printMessage(1,"Warning: the given expression is not a polynomial.\n");
+    printMessage(1,SOLLYA_MSG_GIVEN_FUNCTION_IS_NO_POLYNOMIAL,"Warning: the given expression is not a polynomial.\n");
     sollya_mpfi_set_nan(result);
     return 0;
   }
@@ -2394,7 +2458,7 @@ int supremumnorm(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t dom
   sollya_mpfi_get_right(b,dom);
 
   if (!(mpfr_number_p(a) && mpfr_number_p(b))) {
-    printMessage(1,"Warning: the given domain is not a closed interval on the reals.\n");
+    printMessage(1,SOLLYA_MSG_DOMAIN_IS_NO_CLOSED_INTERVAL_ON_THE_REALS,"Warning: the given domain is not a closed interval on the reals.\n");
     sollya_mpfi_set_nan(result);
     mpfr_clear(a);
     mpfr_clear(b);
@@ -2402,7 +2466,7 @@ int supremumnorm(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t dom
   }
 
   if (mpfr_cmp(a,b) > 0) {
-    printMessage(1,"Warning: the given domain is empty.\n");
+    printMessage(1,SOLLYA_MSG_DOMAIN_IS_EMPTY,"Warning: the given domain is empty.\n");
     sollya_mpfi_set_nan(result);
     mpfr_clear(a);
     mpfr_clear(b);
@@ -2410,19 +2474,19 @@ int supremumnorm(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t dom
   }
 
   if (mpfr_cmp(a,b) == 0) {
-    printMessage(1,"Warning: the given domain is reduced to a point. Replacing the supremum norm with an evaluation.\n");
+    printMessage(1,SOLLYA_MSG_DOMAIN_IS_REDUCED_TO_A_POINT_WILL_SIMPLY_EVAL,"Warning: the given domain is reduced to a point. Replacing the supremum norm with an evaluation.\n");
     res = supremumNormDegenerate(result,poly,func,a,mode,accuracy);
     if (!res) {
-      printMessage(1,"Warning: could not evaluate the error function between the given polynomial and the given function at this point.\n");
+      printMessage(1,SOLLYA_MSG_SUPNORM_COULD_NOT_EVALUATE_ERROR_FUNC,"Warning: could not evaluate the error function between the given polynomial and the given function at this point.\n");
       sollya_mpfi_set_nan(result);
-    } 
+    }
     mpfr_clear(a);
     mpfr_clear(b);
     return 1;
   }
 
   if (!mpfr_number_p(accuracy)) {
-    printMessage(1,"Warning: the given accuracy is not a real number.\n");
+    printMessage(1,SOLLYA_MSG_ACCUARCY_INDICATION_IS_NOT_A_REAL_NUMBER,"Warning: the given accuracy is not a real number.\n");
     sollya_mpfi_set_nan(result);
     mpfr_clear(a);
     mpfr_clear(b);
@@ -2430,7 +2494,7 @@ int supremumnorm(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t dom
   }
 
   if (mpfr_zero_p(accuracy)) {
-    printMessage(1,"Warning: the given accuracy is zero. In order to ensure the termination of the supremum norm algorithm, the accuracy parameter must be non-zero.\n");
+    printMessage(1,SOLLYA_MSG_ACCUARCY_INDICATION_IS_ZERO,"Warning: the given accuracy is zero. In order to ensure the termination of the supremum norm algorithm, the accuracy parameter must be non-zero.\n");
     sollya_mpfi_set_nan(result);
     mpfr_clear(a);
     mpfr_clear(b);
@@ -2438,7 +2502,7 @@ int supremumnorm(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t dom
   }
 
   if (!hasOnlyMpqCoefficients(poly)) {
-    printMessage(1,"Warning: the coefficients of the given polynomial cannot all be written as ratios of floating-point numbers.\nSupremum norm computation is only possible on such polynomials. Try to use roundcoefficients().\n");
+    printMessage(1,SOLLYA_MSG_POLYNOMIAL_HAS_NON_DYADIC_COEFFICIENTS,"Warning: the coefficients of the given polynomial cannot all be written as ratios of floating-point numbers.\nSupremum norm computation is only possible on such polynomials. Try to use roundcoefficients().\n");
     sollya_mpfi_set_nan(result);
     mpfr_clear(a);
     mpfr_clear(b);
@@ -2447,7 +2511,7 @@ int supremumnorm(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t dom
 
   /* Here, we know that the interval is proper (no NaNs, no Infs) and
      that it is not reduced to a point. We know that accuracy is a
-     non-zero number and that poly is a polynomial whose coefficients 
+     non-zero number and that poly is a polynomial whose coefficients
      can be written in floating-point numbers or ratios of floating-point
      numbers.
 
@@ -2467,9 +2531,9 @@ int supremumnorm(sollya_mpfi_t result, node *poly, node *func, sollya_mpfi_t dom
 
   res = supremumNormBisect(result,poly,func,a,b,mode,absAccuracy,diameter);
   if (!res) {
-    printMessage(1,"Warning: an error occured during supremum norm computation. A safe enclosure of the supremum norm could not be computed.\n");
+    printMessage(1,SOLLYA_MSG_SUPNORM_SAFE_ENCLOSURE_COULD_NOT_BE_COMPUTED,"Warning: an error occurred during supremum norm computation. A safe enclosure of the supremum norm could not be computed.\n");
     sollya_mpfi_set_nan(result);
-  } 
+  }
 
   mpfr_clear(a);
   mpfr_clear(b);

@@ -1,0 +1,43 @@
+#NAME $VERBOSITY
+#QUICK_DESCRIPTION global variable controlling the amount of information displayed by commands.
+#CALLING $COMMAND = <n>
+#TYPE $INTEGER_TYPE -> $VOID_TYPE
+#CALLING $COMMAND = <n> !
+#TYPE $INTEGER_TYPE -> $VOID_TYPE
+#CALLING $COMMAND
+#TYPE $INTEGER_TYPE
+
+#LIBRARYNAME void sollya_lib_set_verbosity_and_print(sollya_obj_t)
+#LIBRARYNAME void sollya_lib_set_verbosity(sollya_obj_t)
+#LIBRARYNAME sollya_obj_t sollya_lib_get_verbosity()
+
+#PARAMETERS <n> controls the amount of information to be displayed
+
+
+#DESCRIPTION 
+$COMMAND accepts any integer value. At level 0, commands do not display anything
+on standard output. Note that very critical information may however be displayed on
+standard error.
+
+#DESCRIPTION
+Default level is 1. It displays important information such as warnings when 
+roundings happen.
+
+#DESCRIPTION
+For higher levels more information is displayed depending on the command.
+
+#EXAMPLE
+verbosity=0!;
+1.2+"toto";
+verbosity=1!;
+1.2+"toto";
+verbosity=2!;
+1.2+"toto";
+
+#SEEALSO $ROUNDINGWARNINGS
+#SEEALSO $SUPPRESSMESSAGE
+#SEEALSO $UNSUPPRESSMESSAGE
+#SEEALSO $SHOWMESSAGENUMBERS
+#SEEALSO $GETSUPPRESSEDMESSAGES
+
+

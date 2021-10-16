@@ -1,0 +1,35 @@
+#NAME $DIAM
+#QUICK_DESCRIPTION parameter used in safe algorithms of $SOLLYA and controlling the maximal length of the involved intervals.
+
+#CALLING $COMMAND = <width>
+#TYPE $CONSTANT_TYPE -> $VOID_TYPE
+#CALLING $COMMAND = <width> !
+#TYPE $CONSTANT_TYPE -> $VOID_TYPE
+#CALLING $COMMAND
+#TYPE $CONSTANT_TYPE
+
+#LIBRARYNAME void sollya_lib_set_diam_and_print(sollya_obj_t)
+#LIBRARYNAME void sollya_lib_set_diam(sollya_obj_t)
+#LIBRARYNAME sollya_obj_t sollya_lib_get_diam()
+
+#PARAMETERS <width> represents the maximal relative width of the intervals used
+
+
+#DESCRIPTION 
+$COMMAND is a global variable. Its value represents the maximal width allowed
+for intervals involved in safe algorithms of $SOLLYA (namely $INFNORM,
+$CHECKINFNORM, $ACCURATEINFNORM, $INTEGRAL, $FINDZEROS, $SUPNORM).
+
+#DESCRIPTION
+More precisely, $COMMAND is relative to the width of the input interval of
+the command. For instance, suppose that $COMMAND=1e-5: if $INFNORM is called
+on interval §§[0;1]§$[0,\,1]$§§, the maximal width of an interval will be 1e-5. But if it
+is called on interval §§[0;1e-3]§$[0,\,1\mathrm{e}{-3}]$§§, the maximal width will be 1e-8.
+
+#SEEALSO $INFNORM
+#SEEALSO $CHECKINFNORM
+#SEEALSO $ACCURATEINFNORM
+#SEEALSO $INTEGRAL
+#SEEALSO $FINDZEROS
+#SEEALSO $SUPNORM
+

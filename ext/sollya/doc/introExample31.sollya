@@ -1,0 +1,4 @@
+succ = proc(n) { return n + 1; };
+succ(5);
+3 + succ(0);
+succ;

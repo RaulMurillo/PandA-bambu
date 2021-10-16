@@ -1,7 +1,7 @@
 \subsection{accurateinfnorm}
 \label{labaccurateinfnorm}
 \noindent Name: \textbf{accurateinfnorm}\\
-computes a faithful rounding of the infinity norm of a function \\
+\phantom{aaa}computes a faithful rounding of the infinity norm of a function \\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{accurateinfnorm}(\emph{function},\emph{range},\emph{constant}) : (\textsf{function}, \textsf{range}, \textsf{constant}) $\rightarrow$ \textsf{constant}\\
@@ -28,7 +28,8 @@ Parameters:
    \emph{exclusion range 1} through \emph{exclusion range n} the infinity norm of
    the function \emph{function} is not to be considered on.
 
-\item Users should be aware about the fact that the algorithm behind
+\item The command \textbf{accurateinfnorm} is now considered DEPRECATED in \sollya.
+   Users should be aware about the fact that the algorithm behind
    \textbf{accurateinfnorm} is highly inefficient and that other, better suited
    algorithms, such as \textbf{supnorm}, are available inside \sollya. As a
    matter of fact, while \textbf{accurateinfnorm} is maintained for compatibility reasons
@@ -42,9 +43,9 @@ Parameters:
 > accurateinfnorm(p - exp(x), [-1;1], 20);
 4.52055246569216251373291015625e-5
 > accurateinfnorm(p - exp(x), [-1;1], 30);
-4.520552107578623690642416477203369140625e-5
+4.5205513970358879305422306060791015625e-5
 > accurateinfnorm(p - exp(x), [-1;1], 40);
-4.5205521043867324948450914234854280948638916015625e-5
+4.520551396713923253400935209356248378753662109375e-5
 \end{Verbatim}
 \end{minipage}\end{center}
 \noindent Example 2: 
@@ -54,7 +55,7 @@ Parameters:
 > infnorm(p - exp(x), [-1;1]);
 0.45205~5/7~e-4
 > accurateinfnorm(p - exp(x), [-1;1], 40);
-4.5205521043867324948450914234854280948638916015625e-5
+4.520551396713923253400935209356248378753662109375e-5
 \end{Verbatim}
 \end{minipage}\end{center}
 See also: \textbf{infnorm} (\ref{labinfnorm}), \textbf{dirtyinfnorm} (\ref{labdirtyinfnorm}), \textbf{supnorm} (\ref{labsupnorm}), \textbf{checkinfnorm} (\ref{labcheckinfnorm}), \textbf{remez} (\ref{labremez}), \textbf{diam} (\ref{labdiam})

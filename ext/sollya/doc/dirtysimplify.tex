@@ -1,0 +1,43 @@
+\subsection{dirtysimplify}
+\label{labdirtysimplify}
+\noindent Name: \textbf{dirtysimplify}\\
+\phantom{aaa}simplifies an expression representing a function\\[0.2cm]
+\noindent Library name:\\
+\verb|   sollya_obj_t sollya_lib_dirtysimplify(sollya_obj_t)|\\[0.2cm]
+\noindent Usage: 
+\begin{center}
+\textbf{dirtysimplify}(\emph{function}) : \textsf{function} $\rightarrow$ \textsf{function}\\
+\end{center}
+Parameters: 
+\begin{itemize}
+\item \emph{function} represents the expression to be simplified
+\end{itemize}
+\noindent Description: \begin{itemize}
+
+\item The command \textbf{dirtysimplify} simplifies constant subexpressions of the
+   expression given in argument representing the function
+   \emph{function}. Those constant subexpressions are evaluated using
+   floating-point arithmetic with the global precision \textbf{prec}.
+\end{itemize}
+\noindent Example 1: 
+\begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
+> print(dirtysimplify(sin(pi * x)));
+sin(3.1415926535897932384626433832795028841971693993751 * x)
+> print(dirtysimplify(erf(exp(3) + x * log(4))));
+erf(20.0855369231876677409285296545817178969879078385544 + x * 1.386294361119890
+6188344642429163531361510002687205)
+\end{Verbatim}
+\end{minipage}\end{center}
+\noindent Example 2: 
+\begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
+> prec = 20!;
+> t = erf(0.5);
+> s = dirtysimplify(erf(0.5));
+> prec = 200!;
+> t;
+0.520499877813046537682746653891964528736451575757963700058806
+> s;
+0.52050018310546875
+\end{Verbatim}
+\end{minipage}\end{center}
+See also: \textbf{simplify} (\ref{labsimplify}), \textbf{autosimplify} (\ref{labautosimplify}), \textbf{prec} (\ref{labprec}), \textbf{evaluate} (\ref{labevaluate}), \textbf{horner} (\ref{labhorner}), \textbf{rationalmode} (\ref{labrationalmode})

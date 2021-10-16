@@ -1,7 +1,10 @@
 \subsection{floating}
 \label{labfloating}
 \noindent Name: \textbf{floating}\\
-indicates that floating-point formats should be used for \textbf{fpminimax}\\
+\phantom{aaa}indicates that floating-point formats should be used for \textbf{fpminimax}\\[0.2cm]
+\noindent Library names:\\
+\verb|   sollya_obj_t sollya_lib_floating()|\\
+\verb|   int sollya_lib_is_floating(sollya_obj_t)|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{floating} : \textsf{fixed$|$floating}\\
@@ -16,12 +19,12 @@ indicates that floating-point formats should be used for \textbf{fpminimax}\\
 \noindent Example 1: 
 \begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
 > fpminimax(cos(x),6,[|D...|],[-1;1],floating);
-0.99999974816012948686250183527590706944465637207031 + x * (5.521004406122249513
-1782035802443168321913900126185e-14 + x * (-0.4999928698019768802396356477402150
-630950927734375 + x * (-3.95371609372064761555136192612768146546591008227978e-13
- + x * (4.16335155285858099505347240665287245064973831176758e-2 + x * (5.2492670
-395835122748014980938834327670386437070249e-13 + x * (-1.33822408807599468535953
-768366653093835338950157166e-3))))))
+0.99999974816012215939053930924274027347564697265625 + x * (-2.79593179695850233
+4440230695107655659202089892465e-15 + x * (-0.4999928698020140171998093592264922
+3357439041137695 + x * (4.0484539189054105169841244454207387920433372507922e-14 
++ x * (4.1633515528919168291466235132247675210237503051758e-2 + x * (-4.01585881
+8743733758578949218474363725507386355118e-14 + x * (-1.3382240885483781024645200
+119493892998434603214264e-3))))))
 \end{Verbatim}
 \end{minipage}\end{center}
 See also: \textbf{fpminimax} (\ref{labfpminimax}), \textbf{fixed} (\ref{labfixed})
