@@ -508,7 +508,7 @@ libflopoco_la_SOURCES = \
 		Posit/Fun/PositFunctionByTable.cpp \
 		Posit/Posit2Posit.cpp
 
-libflopoco_la_CPPFLAGS = -I$(top_srcdir)/src # -I$(top_srcdir)/src/FPExpressions
+libflopoco_la_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/src/FPExpressions
 
 VHDLLexer.cpp:$(top_srcdir)/src/VHDLLexerRule.l
 	${LEX} -o VHDLLexer.cpp $(top_srcdir)/src/VHDLLexerRule.l
