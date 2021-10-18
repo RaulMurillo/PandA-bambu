@@ -2,12 +2,11 @@
 SUBDIRS = 
 DIST_SUBDIRS =
 
-EXTRA_DIST = VHDLLexerRule.l Factories/MakeFactory.sh
-# FPExpressions/ExpressionScanner.l FPExpressions/ExpressionParser.y $(top_srcdir)/src/FPExpressions/ExpressionParser.h $(top_srcdir)/src/FPExpressions/FlopocoScanner.h
+EXTRA_DIST = VHDLLexerRule.l Factories/MakeFactory.sh FPExpressions/ExpressionScanner.l FPExpressions/ExpressionParser.y \
+		$(top_srcdir)/src/FPExpressions/ExpressionParser.h $(top_srcdir)/src/FPExpressions/FlopocoScanner.h
 ACLOCAL_AMFLAGS = -I ../m4
 
-BUILT_SOURCES = VHDLLexer.cpp Factories.cpp 
-#                ExpressionParser.cpp ExpressionScanner.cpp
+BUILT_SOURCES = VHDLLexer.cpp Factories.cpp ExpressionParser.cpp ExpressionScanner.cpp
                 
 CLEANFILES = $(BUILT_SOURCES) lex.yy.c *.output
 
@@ -515,18 +514,17 @@ VHDLLexer.cpp:$(top_srcdir)/src/VHDLLexerRule.l
 
 VHDLLexer.hpp:VHDLLexer.cpp
 
-
 Factories.cpp:$(top_srcdir)/src/Factories/MakeFactory.sh
 	$(top_srcdir)/src/Factories/MakeFactory.sh $(top_srcdir)/src/Factories $(abs_builddir)/Factories.cpp
 
-# ExpressionParser.cpp: $(top_srcdir)/src/FPExpressions/ExpressionParser.y ExpressionScanner.cpp
-# 	${YACC} -y -d --defines=$(top_srcdir)/src/FPExpressions/ExpressionParser.h --output=ExpressionParser.cpp --name-prefix=FlopocoExpression $(top_srcdir)/src/FPExpressions/ExpressionParser.y
-# 
-# ExpressionScanner.cpp:$(top_srcdir)/src/FPExpressions/ExpressionScanner.l
-# 	${LEX} --prefix=FlopocoExpression --header-file=$(top_srcdir)/src/FPExpressions/FlopocoScanner.h -o ExpressionScanner.cpp  $(top_srcdir)/src/FPExpressions/ExpressionScanner.l
-# 
-# $(top_srcdir)/src/FPExpressions/FlopocoScanner.h:ExpressionScanner.cpp ExpressionParser.cpp
-# 
-# $(top_srcdir)/src/FPExpressions/ExpressionParser.h:ExpressionParser.cpp
+ExpressionParser.cpp: $(top_srcdir)/src/FPExpressions/ExpressionParser.y ExpressionScanner.cpp
+	${YACC} -y -d --defines=$(top_srcdir)/src/FPExpressions/ExpressionParser.h --output=ExpressionParser.cpp --name-prefix=FlopocoExpression $(top_srcdir)/src/FPExpressions/ExpressionParser.y
 
-###$(top_srcdir)/src/Factories/MakeFactory.sh $(top_srcdir)/src/Factories $(abs_builddir)/Factories.cpp
+ExpressionScanner.cpp:$(top_srcdir)/src/FPExpressions/ExpressionScanner.l
+	${LEX} --prefix=FlopocoExpression --header-file=$(top_srcdir)/src/FPExpressions/FlopocoScanner.h -o ExpressionScanner.cpp  $(top_srcdir)/src/FPExpressions/ExpressionScanner.l
+
+$(top_srcdir)/src/FPExpressions/FlopocoScanner.h:ExpressionScanner.cpp ExpressionParser.cpp
+
+$(top_srcdir)/src/FPExpressions/ExpressionParser.h:ExpressionParser.cpp
+
+$(top_srcdir)/src/Factories/MakeFactory.sh $(top_srcdir)/src/Factories $(abs_builddir)/Factories.cpp
