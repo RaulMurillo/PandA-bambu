@@ -526,5 +526,3 @@ ExpressionScanner.cpp:$(top_srcdir)/src/FPExpressions/ExpressionScanner.l
 $(top_srcdir)/src/FPExpressions/FlopocoScanner.h:ExpressionScanner.cpp ExpressionParser.cpp
 
 $(top_srcdir)/src/FPExpressions/ExpressionParser.h:ExpressionParser.cpp
-
-$(top_srcdir)/src/Factories/MakeFactory.sh $(top_srcdir)/src/Factories $(abs_builddir)/Factories.cpp
