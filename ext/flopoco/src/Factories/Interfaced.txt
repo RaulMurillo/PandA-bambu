@@ -78,7 +78,7 @@ FixFFTFullyPA
 IntConstMultShiftAdd
 IntConstMultShiftAddOpt
 IntConstMultShiftAddRPAG
-IntConstMultShiftAddOptTernary
+#IntConstMultShiftAddOptTernary        #requires PAGSuite
 
 PIF2Posit
 Posit2PIF
