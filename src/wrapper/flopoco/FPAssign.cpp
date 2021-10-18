@@ -79,7 +79,7 @@ using namespace std;
 
 namespace flopoco
 {
-   extern vector<Operator*> oplist;
+   // extern vector<Operator*> oplist;
 
 #define DEBUGVHDL 0
 

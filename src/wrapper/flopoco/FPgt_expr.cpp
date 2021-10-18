@@ -84,7 +84,6 @@ using namespace std;
 
 namespace flopoco
 {
-   extern vector<Operator*> oplist;
 
 #define DEBUGVHDL 0
 
@@ -106,14 +105,16 @@ namespace flopoco
       /*	VHDL code description	*/
       ////manageCriticalPath(parentOp, _target->localWireDelay() + _target->lutDelay());
       vhdl << tab << declare("nY", wE + wF + 3) << "  <= Y" << range(wE + wF + 2, wE + wF + 1) << " & not(Y" << of(wE + wF) << ") & Y" << range(wE + wF - 1, 0) << ";" << endl;
-      ////FPAddSinglePath* value_difference = new FPAddSinglePath(parentOp, _target, wE, wF, wE, wF, wE, wF);
-      FPAddSinglePath* value_difference = new FPAddSinglePath(nullptr, _target, wE, wF);
-      value_difference->changeName(getName() + "value_difference");
-      oplist.push_back(value_difference);
-      inPortMap(value_difference, "X", "X");
-      inPortMap(value_difference, "Y", "nY");
-      outPortMap(value_difference, "R", "valueDiff");
-      vhdl << instance(value_difference, "value_difference");
+
+      ostringstream paramR, inmapR, outmapR;
+      paramR << "wE=" << wE;
+      paramR << " wF=" << wF;
+
+      inmapR << "X=>X, Y=>nY";
+      outmapR << "R=>valueDiff";
+
+      newInstance("FPAddSinglePath", "value_difference", paramR.str(), inmapR.str(), outmapR.str());
+
       ////syncCycleFromSignal("valueDiff");
       ////setCriticalPath(value_difference->getOutputDelay("R"));
 
