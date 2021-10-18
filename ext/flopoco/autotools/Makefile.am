@@ -22,7 +22,7 @@ flopoco_LDADD = $(LIBS) src/libflopoco.la
 bin2fp_SOURCES = \
                  src/Tools/bin2fp.cpp \
                  src/utils.cpp
-bin2fp_CPPFLAGS = $(CPPFLAGS)
+bin2fp_CPPFLAGS = $(CPPFLAGS) -I$(top_srcdir)/src/
 bin2fp_CXXFLAGS = $(CXXFLAGS)
 bin2fp_LDADD = $(LIBS) src/libflopoco.la
 
