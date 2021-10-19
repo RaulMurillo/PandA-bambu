@@ -1289,7 +1289,7 @@ if test "x$panda_USE_FLOPOCO" = xyes; then
       AC_MSG_ERROR("Error in sollya compilation")
    fi
    cd ../..
-   $TOPSRCDIR/etc/macros/panda_config_subdir.sh ext/flopoco $ac_configure_args "'CXXFLAGS=${CXXFLAGS_EXT}'" "'CFLAGS=${CFLAGS_EXT}'" "'LDFLAGS=${LDFLAGS} -L$BUILDDIR/ext/sollya/.libs'"
+   $TOPSRCDIR/etc/macros/panda_config_subdir.sh ext/flopoco $ac_configure_args "'CXXFLAGS=${CXXFLAGS_EXT} -I${prefix}/include'" "'CFLAGS=${CFLAGS_EXT}'" "'LDFLAGS=${LDFLAGS} -L$BUILDDIR/ext/sollya/.libs'"
    if test $? != 0; then
       AC_MSG_ERROR("Error in flopoco configuration")
    fi
