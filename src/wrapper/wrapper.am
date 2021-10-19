@@ -504,6 +504,7 @@ lib_flopocowrapper_la_CPPFLAGS = \
     -I$(top_srcdir)/src/technology/target_device \
     -I$(FLOPOCO_OBJDIR) \
     -I$(FLOPOCO_DIR)/src \
+    -I$(top_srcdir)/ext/sollya \
     $(AM_CPPFLAGS)
   lib_wrapper_la_LIBADD += lib_flopocowrapper.la
 endif
