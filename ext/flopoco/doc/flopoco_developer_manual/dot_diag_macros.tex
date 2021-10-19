@@ -1,0 +1,151 @@
+\newcounter{colend}
+\newcounter{maxcol}
+\newcounter{mincol}
+
+\newcounter{facnt}
+\newcounter{hacnt}
+\newcounter{dotcnt}
+
+% usage: \begin{dotdiag}{colwidth}
+\newenvironment{dotdiag}[1]{%
+  \setcounter{maxcol}{#1}
+  \setcounter{facnt}{0}
+  \setcounter{hacnt}{0}
+  \setcounter{dotcnt}{0}
+  \setcounter{mincol}{0}
+  \begin{tikzpicture}[scale=0.5]
+}{\end{tikzpicture}}
+
+% usage: \drawdotcol[row]{col}{height}
+\newcommand*\drawdotcol[3][0]{
+  \setcounter{colend}{#3}
+  \ifnum \value{colend} > 0 {   
+    \addtocounter{colend}{-1}%
+    \addtocounter{colend}{#1}%
+    \foreach \t in {#1,...,\value{colend}}{
+      \draw[fill=black] (\value{maxcol}-#2,\t) circle (0.2);
+      \addtocounter{dotcnt}{1}
+    }
+  }
+  \else {% still draw a transparent circle for figure alignment 
+    \draw[opacity=0,fill=black] (\value{maxcol}-#2,0) circle (0.2);
+  }
+  \fi
+}
+
+% usage: \drawtrunccol{col}{height} (to draw truncated bit heaps)
+\newcommand*\drawtrunccol[3][0]{ 
+  \setcounter{colend}{#3}
+  \addtocounter{colend}{-1}%
+  \addtocounter{colend}{#1}%
+
+  \ifnum #3 > 0   
+    \foreach \t in {#1,...,\value{colend}}{
+      \draw[black!50, fill=white] (\value{maxcol}-#2,\t) circle (0.2);
+  	  \addtocounter{dotcnt}{1}
+    }
+  \fi
+}
+
+% usage: \drawdotrow[row]{col}{width}
+\newcommand*\drawdotrow[3][0]{
+  \setcounter{colend}{#3}
+  \addtocounter{colend}{-1}%
+  \addtocounter{colend}{#1}%
+
+  \foreach \t in {#1,...,\value{colend}}{
+    \draw[fill=black] (\value{maxcol}-\t,#2) circle (0.2);
+  	\addtocounter{dotcnt}{1}
+  }
+}
+
+% usage: \drawtruncrow[row]{col}{width}
+\newcommand*\drawtruncrow[3][0]{
+  \setcounter{colend}{#3}
+  \addtocounter{colend}{-1}%
+  \addtocounter{colend}{#1}%
+
+  \foreach \t in {#1,...,\value{colend}}{
+    \draw[black!50,fill=white] (\value{maxcol}-\t,#2) circle (0.2);
+  	\addtocounter{dotcnt}{1}
+  }
+}
+
+% usage: \drawdotone{col}{row}
+\newcommand*\drawdotone[2]{
+  \node at (\value{maxcol}-#1,#2) {\footnotesize \textcircled{\scalebox{0.7}{1}}};
+
+%  \addtocounter{dotcnt}{1}
+}
+
+% usage: \drawdottext{col}{row}
+\newcommand*\drawdottext[3]{
+  \node at (\value{maxcol}-#1,#2) {\textbf{#3}};
+%  \addtocounter{dotcnt}{1}
+}
+
+% usage: \drawdot[color]{col}{row}
+\newcommand*\drawdot[3][black]{
+	\draw[fill=#1] (\value{maxcol}-#2,#3) circle (0.2);
+	\addtocounter{dotcnt}{1}
+}
+
+% usage: \drawhalf[color]{col}{row}
+\newcommand*\drawhalf[3][magenta]{
+  \pgfsetcornersarced{\pgfpoint{2.5mm}{2.5mm}}
+  \draw[fill=#1!50,opacity=0.75] (\value{maxcol}-#2-0.5,#3-0.5) rectangle +(1,2);
+  \addtocounter{hacnt}{1}
+  \pgfsetcornersarced{\pgfpointorigin}
+}
+
+% usage: \drawfull[color]{col}{row}
+\newcommand*\drawfull[3][cyan]{
+  \pgfsetcornersarced{\pgfpoint{2.5mm}{2.5mm}}
+  \draw[fill=#1!50,opacity=0.75] (\value{maxcol}-#2-0.5,#3-0.5) rectangle +(1,3);
+  \addtocounter{facnt}{1}
+  \pgfsetcornersarced{\pgfpointorigin}
+}
+
+% usage: \drawhalfres[color]{col}{row}
+\newcommand*\drawhalfres[2]{
+%no line markers:
+%  \draw (\value{maxcol}-#1-1,#2) -- +(1,0);
+%vertical line markers:
+%  \draw (\value{maxcol}-#1-1,#2) -- +(0.5,0) -- +(0.5,0.125) -- +(0.5,-0.125) -- +(0.5,0) -- +(1,0);
+%diagonal line markers:
+  \draw (\value{maxcol}-#1-1,#2) -- +(0.5,0) -- +(0.5-0.125,-0.125) -- +(0.5+0.125,0.125) -- +(0.5,0) -- +(1,0);
+}
+
+% usage: \drawfullres[color]{col}{row}
+\newcommand*\drawfullres[2]{
+  \draw (\value{maxcol}-#1-1,#2) -- +(1,0);
+}
+
+% usage: \drawcpa[col]{width}
+\newcommand*\drawcpa[2][0]{
+  \pgfsetcornersarced{\pgfpoint{2.5mm}{2.5mm}}
+  \draw[fill=blue!50,opacity=0.75] (\value{maxcol}-#2-#1+0.5,-0.5) rectangle +(#2,2);
+%  \draw[fill=blue!50,opacity=0.75] (\value{maxcol}-#2-#1+0.5,-0.5) -- ++(#2,0) -- ++(0,3) -- ++(-1,0) --  ++(0,-1) -- ++(-#2+1,0) -- cycle;
+  \pgfsetcornersarced{\pgfpointorigin}
+}
+
+% usage: \drawcpawithcarry[col]{width}
+\newcommand*\drawcpawithcarry[2][0]{
+  \pgfsetcornersarced{\pgfpoint{2.5mm}{2.5mm}}
+%  \draw[fill=blue!50,opacity=0.75] (\value{maxcol}-#2-#1+0.5,-0.5) rectangle +(#2,2);
+  \draw[fill=blue!50,opacity=0.75] (\value{maxcol}-#2-#1+0.5,-0.5) -- ++(#2,0) -- ++(0,3) -- ++(-1,0) --  ++(0,-1) -- ++(-#2+1,0) -- cycle;
+  \pgfsetcornersarced{\pgfpointorigin}
+}
+
+% usage: \drawlegend[row]
+\newcommand*\drawlegend[1][0]{
+  \draw (\value{maxcol}-1.5,#1+1) node {$\leftarrow$ column};
+  \foreach \t in {\themincol,...,\themaxcol}{
+	\draw (\value{maxcol}-\t,#1) node {\t};
+  }
+}
+
+% usage: \drawline[row]
+\newcommand*\drawline[1][0]{
+  \draw[thick] (0,-#1-1) -- ++(\value{maxcol}+1,0);
+}

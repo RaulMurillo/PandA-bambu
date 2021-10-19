@@ -19,21 +19,87 @@
 
 
 namespace flopoco{
+	StratixV::StratixV(): Target() {
+			id_							= "StratixV";
+			vendor_						= "Altera";
+			possibleDSPConfig_.push_back(make_pair(9,9));
+			whichDSPCongfigCanBeUnsigned_.push_back(true);
+			possibleDSPConfig_.push_back(make_pair(18,18));
+			whichDSPCongfigCanBeUnsigned_.push_back(true);
+			possibleDSPConfig_.push_back(make_pair(36,18));
+			whichDSPCongfigCanBeUnsigned_.push_back(true);
+			possibleDSPConfig_.push_back(make_pair(27,27));
+			whichDSPCongfigCanBeUnsigned_.push_back(true);
+
+			hasFastLogicTernaryAdders_	= true;
+			lutInputs_					= 6;
+			almsPerLab_					= 10;			// there are 10 ALMs per LAB
+
+			maxFrequencyMHz_			= 717;
+			sizeOfBlock_				= 20480; 		// the size of a primitive block is 2^11 * 10			
+			fastcarryDelay_				= 0.022e-9; 	// Read from .sta.rpt files -- this is the delay of two bits of carries
+
+			///  Validated up to here
+			elemWireDelay_				= 0.110e-9;		// 
+			lut2lutDelay_ 				= 0.410e-9;		// 
+			lutDelay_					= 0.433e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
+			ffDelay_					= 0.156e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
+			
+			// all these values are set precisely to match the Stratix 5
+			lut2_						= 0.298e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
+			lut3_						= 0.298e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
+			lut4_						= 0.298e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
+			
+			innerLABcarryDelay_			= 0.109e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
+			interLABcarryDelay_			= 0.231e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
+			shareOutToCarryOut_			= 0.287e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
+			muxStoO_					= 0.193e-9; 	// *obtained from Quartus 2 Chip Planner 11.1
+			fdCtoQ_						= 0.110e-9; 	// TODO : check validity
+			carryInToSumOut_			= 0.116e-9;		// *obtained from Quartus 2 Chip Planner 11.1
+			
+			// DSP parameters
+			totalDSPs_					= 256;		
+			nrConfigs_					= 5;			// StratixV has 9, 16, 18, 27, 36 bit multipliers by default
+			
+
+			// contains the delay of the DSP register = 0.745ns (for 36x36 bits )
+			multiplierDelay_[0]			= 1.875e-9; 	// *obtained experimentaly from Quartus 2 11.1
+			multiplierDelay_[1]			= 1.875e-9; 	// *obtained experimentaly from Quartus 2 11.1
+			multiplierDelay_[2]			= 1.875e-9; 	// *obtained experimentaly from Quartus 2 11.1
+			multiplierDelay_[3]			= 2.500e-9; 	// *obtained experimentaly from Quartus 2 11.1
+			multiplierDelay_[4]			= 2.905e-9; 	// *obtained experimentaly from Quartus 2 11.1
+			
+			DSPMultiplierDelay_			= 1.875e-9;
+			DSPAdderDelay_				= 1.030e-9;
+			DSPCascadingWireDelay_		= 0.266e-9;		// TODO: update
+			DSPToLogicWireDelay_		= 0.266e-9;		// TODO: update
+			
+			RAMDelay_					= 1.197e-9; 	// *obtained experimentaly from Quartus 2 11.1
+			RAMToLogicWireDelay_		= 0.090e-9; 	// *obtained experimentaly from Quartus 2 11.1 - TODO: - check validity
+		}
 	
-	double StratixV::adderDelay(int size) 
+	//TODO
+	double StratixV::logicDelay(int inputs){
+		double unitDelay = lutDelay();
+		if(inputs <= lutInputs())
+			return unitDelay;
+		else
+			return unitDelay * (inputs -lutInputs() + 1);
+	}
+
+	double StratixV::adderDelay(int size, bool addRoutingDelay_) 
 	{
-		int subAdd = 0;
+		// Just consider the case of an unpipelined adder
+		// One LAB is built of almsPerLab=10 ALMs, and each ALM can implement 2-bit carry propagation.
 		
-		suggestSubaddSize(subAdd, size);
-		
+		int neededLABs = ceil((size/almsPerLab_)/2.0);
+		int intraLABCarries = size/2-(neededLABs-1);
 		return (
 			lutDelay_ + 
-			((size/2-ceil((size/almsPerLab_)/2.0)-(size/(2*almsPerLab_))) * fastcarryDelay_) + 
-			(ceil((size/almsPerLab_)/2.0) * innerLABcarryDelay_) + 
-			((size/(2*almsPerLab_)) * interLABcarryDelay_) + 
-			carryInToSumOut_ + 
-			(size/subAdd)  * (ffDelay_ + fdCtoQ_ + elemWireDelay_)
-		);
+			intraLABCarries * fastcarryDelay_ + 
+			(neededLABs-1) * interLABcarryDelay_ + 
+			carryInToSumOut_
+						);
 	};
 	
 	double StratixV::adder3Delay(int size) 
@@ -79,7 +145,7 @@ namespace flopoco{
 		return  fastcarryDelay_; 
 	};
 	
-	double StratixV::localWireDelay(int fanout){
+	double StratixV::fanoutDelay(int fanout){
 		return lut2lutDelay_;
 	};
 	
@@ -103,7 +169,7 @@ namespace flopoco{
 	DSP* StratixV::createDSP() 
 	{
 		int multW, multH;
-		getDSPWidths(multW, multH);
+		getMaxDSPWidths(multW, multH);
 		
 		// create a DSP block having a shifting amount of 0
 		DSP* dsp_ = new DSP(0, multW, multH);
@@ -373,9 +439,9 @@ namespace flopoco{
 		return cost/2;
 	}
 	
-	//TODO: give the meaning for sign
-	//		check validity
-	void StratixV::getDSPWidths(int &x, int &y, bool sign)
+
+#if 0 // Should we do this? Or only useful for impractical large frequencies? 
+	void StratixV::getMaxDSPWidths(int &x, int &y, bool sign)
 	{ 
 	
 		if (sign == false)
@@ -392,11 +458,13 @@ namespace flopoco{
 				
 			}
 	}
+#endif
+	
 	
 	int StratixV::getEquivalenceSliceDSP(){
 		int lutCost = 0;
 		int x, y;
-		getDSPWidths(x,y);
+		getMaxDSPWidths(x,y);
 		// add multiplier cost
 		lutCost += getIntMultiplierCost(x, y);
 		// add accumulator cost
@@ -406,32 +474,8 @@ namespace flopoco{
 		return lutCost;
 	}
 	
-	int StratixV::getNumberOfDSPs() 
-	{
-		int x, y;
-		getDSPWidths(x, y);
-		
-		switch (x)
-		{
-			case 9: 
-					y = totalDSPs_*8;
-					break;
-			case 16: 
-					y = totalDSPs_*4;
-					break;
-			case 18: 
-					y = totalDSPs_*4;
-					break;
-			case 27: 
-					y = totalDSPs_*3;
-					break;
-			case 36: 
-					y = totalDSPs_*2;
-					break;
-		}
-		return y;		
-	};
-	
+
+
 	int StratixV::getIntNAdderCost(int wIn, int n)
 	{
 		int chunkSize, lastChunkSize, nr, a, b, cost;
@@ -463,5 +507,16 @@ namespace flopoco{
 		cpDelay = totalPeriod-targetPeriod*cycleDelay;
 	}
 	
+	double StratixV::lutConsumption(int lutInputSize){
+		if (lutInputSize <= 5) {
+			return .5;
+		}
+		if (lutInputSize <= 6) {
+			// Not exactly true as it's possible to pack some 6bits -> 2bits
+			// functions in one lut, but keep a conservative behavior
+			return 1.;
+		}
+		return -1;
+	}
 	
 }

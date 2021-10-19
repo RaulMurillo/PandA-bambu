@@ -67,7 +67,7 @@ namespace flopoco{
 		setCombinatorial();
 
 		//limitSingleMemory = intpow2(11)*9;
-		limitSingleMemory = target->sizeOfMemoryBlock();
+		limitSingleMemory = getTarget()->sizeOfMemoryBlock();
 		
 		// Set up the IO signals
 		addInput ("X1"  , wIn);
@@ -115,7 +115,7 @@ namespace flopoco{
 		// 	}
 	}
 	
-
+	DualTable::~DualTable(){};
 
 	DualTable::DualTable(Target* target) : 
 		Operator(target)
@@ -247,7 +247,7 @@ namespace flopoco{
 
 
 	int DualTable::size_in_LUTs() {
-		return wOut*(1<<(wIn-target_->lutInputs()));
+		return wOut*(1<<(wIn-getTarget()->lutInputs()));
 	}
 
 
@@ -304,6 +304,8 @@ namespace flopoco{
 		vhdl<<tab<<tab<<tab<<" Y1 <= memVar(conv_integer(X1)); "<<endl;
 		vhdl<<tab<<tab<<tab<<" Y2 <= memVar(conv_integer(X2)); "<<endl;
 	}
+
+	DualTable::primitiveDualMemory::~primitiveDualMemory(){};
 
 }
 

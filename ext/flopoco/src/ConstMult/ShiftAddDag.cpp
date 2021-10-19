@@ -1,9 +1,9 @@
 /*
   Shift-and-add DAG for integer constant multiplication
- 
-  This file is part of the FloPoCo project 
+
+  This file is part of the FloPoCo project
   developed by the Arenaire team at Ecole Normale Superieure de Lyon
-  
+
   Author: Florent de Dinechin
 
   Initial software.
@@ -36,23 +36,23 @@ namespace flopoco{
 			return mpz_class(1);
 			break;
 
-		case Add: 
+		case Add:
 			if(i==NULL || j==NULL) {
-				throw string("ERROR in ShiftAddDag::computeConstant: Unexpected non-null pointer in Add\n");
+				throw string("ERROR in ShiftAddDag::computeConstant: Unexpected null pointer in Add\n");
 			}
 			return (i->n << s) +  j->n;
 			break;
 
-		case Sub: 
+		case Sub:
 			if(i==NULL || j==NULL) {
-				throw string("ERROR in ShiftAddDag::computeConstant: Unexpected non-null pointer in Sub\n");
+				throw string("ERROR in ShiftAddDag::computeConstant: Unexpected null pointer in Sub\n");
 			}
 			return (i->n << s) -  j->n;
 			break;
 
-		case RSub: 
+		case RSub:
 			if(i==NULL || j==NULL) {
-				throw string("ERROR in ShiftAddDag::computeConstant: Unexpected non-null pointer in RSub\n");
+				throw string("ERROR in ShiftAddDag::computeConstant: Unexpected null pointer in RSub\n");
 			}
 			return  j->n - (i->n << s) ;
 			break;
@@ -75,24 +75,39 @@ namespace flopoco{
 		return 0; 	// should never be reached, added to suppress a warning
 	}
 
+	ShiftAddDag::ShiftAddDag(IntConstMult* icm) : icm(icm) {
+		//initialize with  the  ShiftAddOp that computes X
+		PX = new ShiftAddOp(this, X);
+	};
+
+	ShiftAddDag::~ShiftAddDag() {
+			delete PX;
+			/* TODO with an iterator for (int i=0; i<sao.size; i++) delete sao[i];*/
+	}
 
 
-	// This method looks up in the current Dag if the requireed op
+	// This method looks up in the current Dag if the required op
 	// exists, and either returns a pointer to it, or creates the
 	// corresponding node.
 	ShiftAddOp* ShiftAddDag::provideShiftAddOp(ShiftAddOpType op, ShiftAddOp* i, int s, ShiftAddOp* j){
-		mpz_class n=this->computeConstant(op, i, s, j);
+		mpz_class n = this->computeConstant(op, i, s, j);
 		if(n==1)
 			return PX;
 		else {
 			for(unsigned int ii=0; ii<this->saolist.size(); ii++) {
-				if (n==saolist[ii]->n) 
+				if (n==saolist[ii]->n)
 					return saolist[ii];
 			}
 			return new ShiftAddOp(this, op, i, s, j);
 		}
 	}
 
+	ShiftAddOp* ShiftAddDag::sadAppend(ShiftAddDag* patch){
+		for (unsigned int i=0; i<patch->saolist.size(); i++){
+			this->saolist.push_back(patch->saolist[i]);
+		}
+		return patch->result;
 
+	}
 
 }

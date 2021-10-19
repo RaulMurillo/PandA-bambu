@@ -62,7 +62,7 @@
 #include "utils.hpp"
 #include <gmpxx.h>
 
-#include "FPAdderSinglePath.hpp"
+#include "FPAddSub/FPAddSinglePath.hpp"
 #include "FPle_expr.hpp"
 
 #include "custom_map.hpp"
@@ -84,11 +84,10 @@ using namespace std;
 
 namespace flopoco
 {
-   extern vector<Operator*> oplist;
 
 #define DEBUGVHDL 0
 
-   FPle_expr::FPle_expr(Target* _target, int wE, int wF) : Operator(_target)
+   FPle_expr::FPle_expr(Operator* parentOp, Target* _target, int wE, int wF) : Operator(parentOp, _target)
    {
       ostringstream name;
 
@@ -104,20 +103,23 @@ namespace flopoco
       addOutput("R", 1);
 
       /*	VHDL code description	*/
-      manageCriticalPath(_target->localWireDelay() + _target->lutDelay());
+      ////manageCriticalPath(parentOp, _target->localWireDelay() + _target->lutDelay());
       vhdl << tab << declare("nX", wE + wF + 3) << "  <= X" << range(wE + wF + 2, wE + wF + 1) << " & not(X" << of(wE + wF) << ") & X" << range(wE + wF - 1, 0) << ";" << endl;
-      FPAdderSinglePath* value_difference = new FPAdderSinglePath(_target, wE, wF, wE, wF, wE, wF);
-      value_difference->changeName(getName() + "value_difference");
-      oplist.push_back(value_difference);
-      inPortMap(value_difference, "X", "Y");
-      inPortMap(value_difference, "Y", "nX");
-      outPortMap(value_difference, "R", "valueDiff");
-      vhdl << instance(value_difference, "value_difference");
-      syncCycleFromSignal("valueDiff");
-      setCriticalPath(value_difference->getOutputDelay("R"));
 
-      manageCriticalPath(_target->localWireDelay() + _target->lutDelay());
-      vhdl << tab << "R(0) <=  '1' when (valueDiff" << of(wE + wF) << "='0' or (valueDiff" << range(wE + wF + 2, wE + wF + 1) << " = \"00\")) else '0';" << endl;
+      ostringstream paramR, inmapR, outmapR;
+      paramR << "wE=" << wE;
+      paramR << " wF=" << wF;
+
+      inmapR << "X=>Y, Y=>nX";
+      outmapR << "R=>valueDiff";
+
+      newInstance("FPAddSinglePath", "value_difference", paramR.str(), inmapR.str(), outmapR.str());
+
+      ////syncCycleFromSignal("valueDiff");
+      ////setCriticalPath(value_difference->getOutputDelay("R"));
+
+      ////manageCriticalPath(parentOp, _target->localWireDelay() + _target->lutDelay());
+      vhdl << tab << "R(0) <= '1' when (valueDiff" << of(wE + wF) << "='0' or (valueDiff" << range(wE + wF + 2, wE + wF + 1) << " = \"00\")) else '0';" << endl;
    }
 
    FPle_expr::~FPle_expr() = default;

@@ -17,27 +17,31 @@ namespace flopoco{
 	class ShiftAddDag {
 	public:
 		IntConstMult* icm;
-		vector<ShiftAddOp*> saolist;  // the shift-and-add operators
+		vector<ShiftAddOp*> saolist;  // the shift-and-add operators computed so far
 		ShiftAddOp* PX;
-	
-		ShiftAddDag(IntConstMult* icm) : icm(icm) {
-			//initialize with  the  ShiftAddOp that computes X
-			PX = new ShiftAddOp(this, X);  
-		};
-	
-		~ShiftAddDag() {
-			delete PX;
-			/* TODO with an iterator for (int i=0; i<sao.size; i++) delete sao[i];*/};
-	
-		// This method looks up in the current Dag if the required op
-		// exists, and either returns a pointer to it, or creates the
-		// corresponding node.
+		ShiftAddOp* result;
+
+		//support for DAGs with multiple heads
+		vector<ShiftAddOp*> saoHeadlist;  // the shift-and-add operators computed so far which are heads of the DAG
+		vector<int> saoHeadShift;		  // the shift of the heads of the DAG, relative to the weight of the lsb
+
+		ShiftAddDag(IntConstMult* icm);
+
+		ShiftAddDag(ShiftAddDag* reference); //copy constructor. This perform a deep copy of saolist and PX and copies only the pointer icm (not the instance)
+
+		virtual ~ShiftAddDag();
+
+		/**
+		 * @brief This method looks up in the current Dag if the required op
+		 * exists, and either returns a pointer to it, or creates the
+		 * corresponding node.
+		 */
 		ShiftAddOp* provideShiftAddOp(ShiftAddOpType op, ShiftAddOp* i, int s, ShiftAddOp* j=NULL);
 
 		mpz_class computeConstant(ShiftAddOpType op, ShiftAddOp* i, int s, ShiftAddOp* j);
 
-
-		ShiftAddOp* result; 
+		/** @brief This method appends saolist with patch.saolist and returns patch.result. */
+		ShiftAddOp* sadAppend(ShiftAddDag* patch);
 
 	};
 }
