@@ -1,7 +1,11 @@
 \subsection{display}
 \label{labdisplay}
 \noindent Name: \textbf{display}\\
-sets or inspects the global variable specifying number notation\\
+\phantom{aaa}sets or inspects the global variable specifying number notation\\[0.2cm]
+\noindent Library names:\\
+\verb|   void sollya_lib_set_display_and_print(sollya_obj_t)|\\
+\verb|   void sollya_lib_set_display(sollya_obj_t)|\\
+\verb|   sollya_obj_t sollya_lib_get_display()|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{display} = \emph{notation value} : \textsf{decimal$|$binary$|$dyadic$|$powers$|$hexadecimal} $\rightarrow$ \textsf{void}\\
@@ -52,7 +56,7 @@ Display mode is binary numbers.
 > display = hexadecimal;
 Display mode is hexadecimal numbers.
 > a;
-0xb.504f333f9de6484597d89b3754abe9f1d6f60ba88p-4
+0x1.6a09e667f3bcc908b2fb1366ea957d3e3adec1751p-1
 > display = dyadic;
 Display mode is dyadic numbers.
 > a;

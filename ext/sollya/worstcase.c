@@ -1,50 +1,55 @@
 /*
 
-Copyright 2006-2009 by 
+  Copyright 2006-2012 by
 
-Laboratoire de l'Informatique du Parallelisme, 
-UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668
+  Laboratoire de l'Informatique du Parallelisme,
+  UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668,
 
-Contributors Ch. Lauter, S. Chevillard
+  and by
 
-christoph.lauter@ens-lyon.org
-sylvain.chevillard@ens-lyon.org
+  Laboratoire d'Informatique de Paris 6, equipe PEQUAN,
+  UPMC Universite Paris 06 - CNRS - UMR 7606 - LIP6, Paris, France,
 
-This software is a computer program whose purpose is to provide an
-environment for safe floating-point code development. It is
-particularily targeted to the automatized implementation of
-mathematical floating-point libraries (libm). Amongst other features,
-it offers a certified infinity norm, an automatic polynomial
-implementer and a fast Remez algorithm.
+  Contributors Ch. Lauter, S. Chevillard
 
-This software is governed by the CeCILL-C license under French law and
-abiding by the rules of distribution of free software.  You can  use, 
-modify and/ or redistribute the software under the terms of the CeCILL-C
-license as circulated by CEA, CNRS and INRIA at the following URL
-"http://www.cecill.info". 
+  christoph.lauter@ens-lyon.org
+  sylvain.chevillard@ens-lyon.org
 
-As a counterpart to the access to the source code and  rights to copy,
-modify and redistribute granted by the license, users are provided only
-with a limited warranty  and the software's author,  the holder of the
-economic rights,  and the successive licensors  have only  limited
-liability. 
+  This software is a computer program whose purpose is to provide an
+  environment for safe floating-point code development. It is
+  particularly targeted to the automated implementation of
+  mathematical floating-point libraries (libm). Amongst other features,
+  it offers a certified infinity norm, an automatic polynomial
+  implementer and a fast Remez algorithm.
 
-In this respect, the user's attention is drawn to the risks associated
-with loading,  using,  modifying and/or developing or reproducing the
-software by the user in light of its specific status of free software,
-that may mean  that it is complicated to manipulate,  and  that  also
-therefore means  that it is reserved for developers  and  experienced
-professionals having in-depth computer knowledge. Users are therefore
-encouraged to load and test the software's suitability as regards their
-requirements in conditions enabling the security of their systems and/or 
-data to be ensured and,  more generally, to use and operate it in the 
-same conditions as regards security. 
+  This software is governed by the CeCILL-C license under French law and
+  abiding by the rules of distribution of free software.  You can  use,
+  modify and/ or redistribute the software under the terms of the CeCILL-C
+  license as circulated by CEA, CNRS and INRIA at the following URL
+  "http://www.cecill.info".
 
-The fact that you are presently reading this means that you have had
-knowledge of the CeCILL-C license and that you accept its terms.
+  As a counterpart to the access to the source code and  rights to copy,
+  modify and redistribute granted by the license, users are provided only
+  with a limited warranty  and the software's author,  the holder of the
+  economic rights,  and the successive licensors  have only  limited
+  liability.
 
-This program is distributed WITHOUT ANY WARRANTY; without even the
-implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  In this respect, the user's attention is drawn to the risks associated
+  with loading,  using,  modifying and/or developing or reproducing the
+  software by the user in light of its specific status of free software,
+  that may mean  that it is complicated to manipulate,  and  that  also
+  therefore means  that it is reserved for developers  and  experienced
+  professionals having in-depth computer knowledge. Users are therefore
+  encouraged to load and test the software's suitability as regards their
+  requirements in conditions enabling the security of their systems and/or
+  data to be ensured and,  more generally, to use and operate it in the
+  same conditions as regards security.
+
+  The fact that you are presently reading this means that you have had
+  knowledge of the CeCILL-C license and that you accept its terms.
+
+  This program is distributed WITHOUT ANY WARRANTY; without even the
+  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 */
 
@@ -64,24 +69,24 @@ int mpfrToInt(int *res, mpfr_t val) {
 
 
   if (!mpfr_integer_p(val)) {
-    printMessage(1,"Warning: an expression given in this context does not evaluate to integer.\n");
+    printMessage(1,SOLLYA_MSG_EXPR_DOES_NOT_EVALUATE_TO_INTEGER,"Warning: an expression given in this context does not evaluate to integer.\n");
     *res = 0;
     return 0;
   }
 
   *res = mpfr_get_si(val,GMP_RNDN);
-  
+
   mpfr_init2(verg,mpfr_get_prec(val));
 
   if (mpfr_set_si(verg,*res,GMP_RNDN) != 0) {
-    printMessage(1,"Warning: rounding occurred on reconverting back an integer variable.\n");
+    printMessage(1,SOLLYA_MSG_ROUNDING_ON_CONVERTING_A_MACHINE_INTEGER,"Warning: rounding occurred on reconverting back an integer variable.\n");
     *res = 0;
     mpfr_clear(verg);
     return 0;
   }
 
   if (mpfr_cmp(verg,val) != 0) {
-    printMessage(1,"Warning: an expression given in this context does not evaluate to a machine integer.\n");
+    printMessage(1,SOLLYA_MSG_EXPR_DOES_NOT_EVALUATE_TO_MACHINE_INTEGER,"Warning: an expression given in this context does not evaluate to a machine integer.\n");
     *res = 0;
     mpfr_clear(verg);
     return 0;
@@ -92,8 +97,8 @@ int mpfrToInt(int *res, mpfr_t val) {
 }
 
 
-void printWorstCases(node *func, 
-		     mpfr_t inputprec, rangetype inputExponRange, 
+void printWorstCases(node *func,
+		     mpfr_t inputprec, rangetype inputExponRange,
 		     mpfr_t outputprec, mpfr_t epsilon, mp_prec_t prec, FILE *fd) {
   int inputprecision, outputprecision, firstexponent, lastexponent;
   mpfr_t temp, temp2, x, y, yR, xL;
@@ -106,20 +111,20 @@ void printWorstCases(node *func,
 	mpfrToInt(&outputprecision, outputprec) &&
 	mpfrToInt(&firstexponent, *(inputExponRange.a)) &&
 	mpfrToInt(&lastexponent, *(inputExponRange.b)))) {
-    printMessage(1,"Warning: an error occurred. The last command will not succeed. This is harmless.\n");
+    printMessage(1,SOLLYA_MSG_HARMLESS_ERROR_OCCURRED_COMMAND_NOT_EXECUTED,"Warning: an error occurred. The last command will not succeed. This is harmless.\n");
     return;
   }
 
   if ((inputprecision < 10) || (outputprecision < 10)) {
-    printMessage(1,"Warning: input and outputprecision must be greater or equal to 10.\n");
-    printMessage(1,"Warning: an error occurred. The last command will not succeed. This is harmless.\n");
+    printMessage(1,SOLLYA_MSG_INPUT_AND_OUTPUT_PRECISION_MUST_BE_GREATER_TEN,"Warning: input and outputprecision must be greater or equal to 10.\n");
+    printMessage(1,SOLLYA_MSG_CONTINUATION,"Warning: an error occurred. The last command will not succeed. This is harmless.\n");
     return;
   }
 
   if ((prec < (mp_prec_t) inputprecision) || (prec < (mp_prec_t) outputprecision)) {
-    printMessage(1,"Warning: the internal precision is less than the input or output precision.\n");
-    printMessage(1,"Try to increase the tool's precision.\n");
-    printMessage(1,"Warning: an error occurred. The last command will not succeed. This is harmless.\n");
+    printMessage(1,SOLLYA_MSG_INTERNAL_PREC_LESS_THAN_IN_AND_OUT_PREC,"Warning: the internal precision is less than the input or output precision.\n");
+    printMessage(1,SOLLYA_MSG_CONTINUATION,"Try to increase the tool's precision.\n");
+    printMessage(1,SOLLYA_MSG_CONTINUATION,"Warning: an error occurred. The last command will not succeed. This is harmless.\n");
     return;
   }
 
@@ -130,16 +135,16 @@ void printWorstCases(node *func,
   mpfr_set_d(temp2,1.0,GMP_RNDN);
 
   if (mpfr_cmp(temp,temp2) >= 0) {
-    printMessage(1,"Warning: the epsilon asked is greater than half an ulp of a %d bit format.\n",
+    printMessage(1,SOLLYA_MSG_EPS_SPECIFIED_GREATER_THAN_HALFULP_OF_OUT_PREC,"Warning: the epsilon asked is greater than half an ulp of a %d bit format.\n",
 		 outputprecision);
-    printMessage(1,"Warning: an error occurred. The last command will not succeed. This is harmless.\n");
+    printMessage(1,SOLLYA_MSG_CONTINUATION,"Warning: an error occurred. The last command will not succeed. This is harmless.\n");
     mpfr_clear(temp);
     mpfr_clear(temp2);
     return;
   }
 
   if (mpfr_sgn(epsilon) < 0) {
-    printMessage(1,"Warning: the epsilon given is negative. Will take its abolute value.\n");
+    printMessage(1,SOLLYA_MSG_GIVEN_EPS_MUST_BE_POSITIVE_TAKING_ABS,"Warning: the epsilon given is negative. Will take its absolute value.\n");
     mpfr_abs(epsilon,epsilon,GMP_RNDN);
   }
 
@@ -163,7 +168,7 @@ void printWorstCases(node *func,
   i = 0;
   while (mpfr_cmp(x,xL) <= 0) {
     if (verbosity >= 2) {
-      if ((i % 1000) == 0) printMessage(2,"Information: %d cases handled.\n",i);
+      if ((i % 1000) == 0) printMessage(2,SOLLYA_MSG_CERTAIN_AMOUNT_OF_CASES_HANDLED,"Information: %d cases handled.\n",i);
       i++;
     }
 
@@ -175,40 +180,38 @@ void printWorstCases(node *func,
     mpfr_sub(temp2,y,yR,GMP_RNDN);
     mpfr_abs(temp2,temp2,GMP_RNDN);
     if (mpfr_zero_p(y)) {
-      printMessage(1,"Warning: the given function evaluates to 0 on ");
-      if (verbosity >= 1) { 	changeToWarningMode(); printValue(&x); restoreMode(); }
-      printMessage(1,"\nThe rounding error will be considered as an absolute one.\n");
+      printMessage(1,SOLLYA_MSG_FUNC_EVALUATED_TO_ZERO_TAKING_ABSOLUTE_ERROR,"Warning: the given function evaluates to 0 on %v\nThe rounding error will be considered as an absolute one.\n",x);
     } else {
       mpfr_div(temp2,temp2,y,GMP_RNDN);
     }
-    
+
     if (mpfr_cmp(temp2,epsilon) <= 0) {
-      sollyaPrintf("%s = ",variablename);
+      sollyaPrintf("%s = ",((variablename == NULL) ? "_x_" : variablename));
       printValue(&x);
-      sollyaPrintf("\t\tf(%s) = ",variablename);
+      sollyaPrintf("\t\tf(%s) = ",((variablename == NULL) ? "_x_" : variablename));
       printValue(&yR);
       sollyaPrintf("\t\teps = ");
       printValue(&temp2);
       mpfr_log2(temp,temp2,GMP_RNDN);
-      eps = mpfr_get_d(temp,GMP_RNDN);
+      eps = sollya_mpfr_get_d(temp,GMP_RNDN);
       sollyaPrintf(" = 2^(%f) \n",eps);
       if (fd != NULL) {
-	sollyaFprintf(fd,"%s = ",variablename);
+	sollyaFprintf(fd,"%s = ",((variablename == NULL) ? "_x_" : variablename));
 	fprintValue(fd,x);
-	sollyaFprintf(fd,"\tf(%s) = ",variablename);
+	sollyaFprintf(fd,"\tf(%s) = ",((variablename == NULL) ? "_x_" : variablename));
 	fprintValue(fd,yR);
 	sollyaFprintf(fd,"\teps = ");
 	fprintValue(fd,temp2);
 	sollyaFprintf(fd," = 2^(%f) ",eps);
 	if (mpfr_zero_p(y)) {
 	  sollyaFprintf(fd,"ABSOLUTE");
-	} 
+	}
 	sollyaFprintf(fd,"\n");
       }
     }
 
     mpfr_nextabove(x);
-  }  
+  }
 
   mpfr_clear(temp);
   mpfr_clear(temp2);
@@ -219,8 +222,8 @@ void printWorstCases(node *func,
 }
 
 
-int searchGalValue(chain *funcs, mpfr_t foundValue, mpfr_t startValue, mp_prec_t searchPrec, int steps, 
-		    chain *imageFormats, chain *epsilons, mp_prec_t prec) {
+int searchGalValue(chain *funcs, mpfr_t foundValue, mpfr_t startValue, mp_prec_t searchPrec, int steps,
+                   chain *imageFormats, chain *epsilons, mp_prec_t prec) {
   mpfr_t currLeft, currRight;
   mpfr_t yCurrLeft, yCurrRight;
   mpfr_t yCurrLeftRound, yCurrRightRound;
@@ -233,7 +236,7 @@ int searchGalValue(chain *funcs, mpfr_t foundValue, mpfr_t startValue, mp_prec_t
   chain *currFunc, *currFormat, *currEpsilon;
 
   if (steps > 63) {
-    printMessage(1,"Warning: cannot perform more than 63 steps. Will decrease step number to 63.\n");
+    printMessage(1,SOLLYA_MSG_CANNOT_PERFORM_MORE_THAN_63_STEPS,"Warning: cannot perform more than 63 steps. Will decrease step number to 63.\n");
     steps = 63;
   }
 
@@ -242,7 +245,7 @@ int searchGalValue(chain *funcs, mpfr_t foundValue, mpfr_t startValue, mp_prec_t
   if (p < 165) p = 165;
 
   if (mpfr_get_prec(foundValue) < searchPrec) {
-    printMessage(1,"Warning: the search precision is higher than the current precision of the tool.\nNo search is possible.\n");
+    printMessage(1,SOLLYA_MSG_SEARCH_PREC_HIGHER_THAN_TOOL_PREC,"Warning: the search precision is higher than the current precision of the tool.\nNo search is possible.\n");
     return 0;
   }
 
@@ -252,12 +255,12 @@ int searchGalValue(chain *funcs, mpfr_t foundValue, mpfr_t startValue, mp_prec_t
 
   if ((numberFuncs != numberFormats) ||
       (numberFuncs != numberEpsilons)) {
-    printMessage(1,"Warning: the numbers of the given functions, formats and accuracies differ.\nNo search is possible.\n");
+    printMessage(1,SOLLYA_MSG_NUMBERS_OF_FUNCS_AND_FORMATS_DIFFER,"Warning: the numbers of the given functions, formats and accuracies differ.\nNo search is possible.\n");
     return 0;
   }
 
   myFuncs = copyChain(funcs, copyTreeOnVoid);
- 
+
   mpfr_init2(currLeft, searchPrec);
   mpfr_init2(currRight, searchPrec);
   mpfr_init2(yCurrLeft, p);
@@ -270,13 +273,7 @@ int searchGalValue(chain *funcs, mpfr_t foundValue, mpfr_t startValue, mp_prec_t
 
   if ((mpfr_set(currLeft,startValue,GMP_RNDN) != 0) ||
       (mpfr_set(currRight,startValue,GMP_RNDN) != 0)) {
-    printMessage(1,"Warning: the given start point is too precise for the given search precision.\n");
-    printMessage(1,"It has been rounded to: ");
-    if (verbosity >= 1) {
-      changeToWarningMode();
-      printMpfr(currLeft);
-      restoreMode();
-    }
+    printMessage(1,SOLLYA_MSG_START_POINT_TOO_PRECISE_FOR_GIVEN_INPUT_PREC,"Warning: the given start point is too precise for the given search precision.\nIt has been rounded to: %v",currLeft);
   }
 
   mpfr_init2(t,128);
@@ -292,7 +289,7 @@ int searchGalValue(chain *funcs, mpfr_t foundValue, mpfr_t startValue, mp_prec_t
     currEpsilon = epsilons;
     while ((currFunc != NULL) && (currFormat != NULL) && (currEpsilon != NULL)) {
       evaluateFaithful(yCurrLeft, (node *) (currFunc->value), currLeft, p);
-      mpfr_round_to_format(yCurrLeftRound, yCurrLeft, *((int *) (currFormat->value)));
+      sollya_mpfr_round_to_format(yCurrLeftRound, yCurrLeft, *((int *) (currFormat->value)));
       mpfr_sub(errorLeft,yCurrLeftRound,yCurrLeft,GMP_RNDN);
       mpfr_div(errorLeft,errorLeft,yCurrLeft,GMP_RNDN);
       if (!(mpfr_number_p(errorLeft) && (mpfr_cmpabs(errorLeft,*((mpfr_t *) (currEpsilon->value))) <= 0))) {
@@ -313,7 +310,7 @@ int searchGalValue(chain *funcs, mpfr_t foundValue, mpfr_t startValue, mp_prec_t
     currEpsilon = epsilons;
     while ((currFunc != NULL) && (currFormat != NULL) && (currEpsilon != NULL)) {
       evaluateFaithful(yCurrRight, (node *) (currFunc->value), currRight, p);
-      mpfr_round_to_format(yCurrRightRound, yCurrRight, *((int *) (currFormat->value)));
+      sollya_mpfr_round_to_format(yCurrRightRound, yCurrRight, *((int *) (currFormat->value)));
       mpfr_sub(errorRight,yCurrRightRound,yCurrRight,GMP_RNDN);
       mpfr_div(errorRight,errorRight,yCurrRight,GMP_RNDN);
       if (!(mpfr_number_p(errorRight) && (mpfr_cmpabs(errorRight,*((mpfr_t *) (currEpsilon->value))) <= 0))) {
@@ -330,9 +327,9 @@ int searchGalValue(chain *funcs, mpfr_t foundValue, mpfr_t startValue, mp_prec_t
     }
     mpfr_nextbelow(currLeft);
     mpfr_nextabove(currRight);
-    mpfr_sub(t,t,one,GMP_RNDN); // exact
+    mpfr_sub(t,t,one,GMP_RNDN); /* exact*/
   }
-  
+
   mpfr_clear(currLeft);
   mpfr_clear(currRight);
   mpfr_clear(yCurrLeft);

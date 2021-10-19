@@ -1,7 +1,9 @@
 \subsection{dirtyinfnorm}
 \label{labdirtyinfnorm}
 \noindent Name: \textbf{dirtyinfnorm}\\
-computes a numerical approximation of the infinity norm of a function on an interval.\\
+\phantom{aaa}computes a numerical approximation of the infinity norm of a function on an interval.\\[0.2cm]
+\noindent Library name:\\
+\verb|   sollya_obj_t sollya_lib_dirtyinfnorm(sollya_obj_t, sollya_obj_t)|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{dirtyinfnorm}(\emph{f},\emph{I}) : (\textsf{function}, \textsf{range}) $\rightarrow$ \textsf{constant}\\
@@ -50,10 +52,10 @@ Parameters:
 1.45856
 > prec=40!;
 > dirtyinfnorm(exp(cos(x))*sin(x),[0;5]);
-1.458528537135
+1.458528537136
 > prec=100!;
 > dirtyinfnorm(exp(cos(x))*sin(x),[0;5]);
-1.458528537136237644438147455024
+1.458528537136237644438147455025
 > prec=200!;
 > dirtyinfnorm(exp(cos(x))*sin(x),[0;5]);
 1.458528537136237644438147455023841718299214087993682374094153
@@ -62,7 +64,7 @@ Parameters:
 \noindent Example 3: 
 \begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
 > dirtyinfnorm(x^2, [log(0);log(1)]);
-@NaN@
+NaN
 \end{Verbatim}
 \end{minipage}\end{center}
 See also: \textbf{prec} (\ref{labprec}), \textbf{points} (\ref{labpoints}), \textbf{infnorm} (\ref{labinfnorm}), \textbf{checkinfnorm} (\ref{labcheckinfnorm}), \textbf{supnorm} (\ref{labsupnorm})

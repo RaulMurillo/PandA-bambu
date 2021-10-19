@@ -1,0 +1,35 @@
+#NAME $SIMPLIFY
+#QUICK_DESCRIPTION simplifies an expression representing a function
+#CALLING $COMMAND(<function>)
+#TYPE $FUNCTION_TYPE -> $FUNCTION_TYPE
+#LIBRARYNAME sollya_obj_t sollya_lib_simplify(sollya_obj_t)
+
+#PARAMETERS <function> represents the expression to be simplified
+
+#DESCRIPTION 
+The command $COMMAND simplifies the expression given in argument
+representing the function <function>.  The command $COMMAND does not
+endanger the safety of computations even in $SOLLYA's floating-point
+environment: the function returned is mathematically equal to the
+function <function>. 
+§§ § §§
+Remark that the simplification provided by $COMMAND is not perfect:
+they may exist simpler equivalent expressions for expressions returned
+by $COMMAND.
+
+#EXAMPLE
+print(simplify((6 + 2) + (5 + exp(0)) * x));
+
+#EXAMPLE
+print(simplify((log(x - x + 1) + asin(1))));
+
+#EXAMPLE
+print(simplify((log(x - x + 1) + asin(1)) - (atan(1) * 2)));
+
+#SEEALSO $DIRTYSIMPLIFY
+#SEEALSO $AUTOSIMPLIFY
+#SEEALSO $RATIONALMODE
+#SEEALSO $HORNER
+
+
+

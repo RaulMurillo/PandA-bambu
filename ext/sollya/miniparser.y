@@ -1,14 +1,23 @@
 /*
 
-Copyright 2007-2011 by
+Copyright 2007-2017 by
 
 Laboratoire de l'Informatique du Parallelisme,
-UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668
-
-and
+UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668,
 
 Laboratoire d'Informatique de Paris 6, equipe PEQUAN,
-UPMC Universite Paris 06 - CNRS - UMR 7606 - LIP6, Paris, France.
+UPMC Universite Paris 06 - CNRS - UMR 7606 - LIP6, Paris, France
+
+and by
+
+Laboratoire d'Informatique de Paris 6 - Équipe PEQUAN
+Sorbonne Universités
+UPMC Univ Paris 06
+UMR 7606, LIP6
+Boîte Courrier 169
+4, place Jussieu
+F-75252 Paris Cedex 05
+France.
 
 Contributors Ch. Lauter, S. Chevillard
 
@@ -17,7 +26,7 @@ sylvain.chevillard@ens-lyon.org
 
 This software is a computer program whose purpose is to provide an
 environment for safe floating-point code development. It is
-particularily targeted to the automatized implementation of
+particularly targeted to the automated implementation of
 mathematical floating-point libraries (libm). Amongst other features,
 it offers a certified infinity norm, an automatic polynomial
 implementer and a fast Remez algorithm.
@@ -57,6 +66,7 @@ implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include "base-functions.h"
 #include "expression.h"
 #include "assignment.h"
 #include "chain.h"
@@ -64,12 +74,29 @@ implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #include "execute.h"
 #include "miniparser.h"
 
+/* Mess with the mallocs used by the parser */
+extern void *parserCalloc(size_t, size_t);
+extern void *parserMalloc(size_t);
+extern void *parserRealloc(void *, size_t);
+extern void parserFree(void *);
+#undef malloc
+#undef realloc
+#undef calloc
+#undef free
+#define malloc parserMalloc
+#define realloc parserRealloc
+#define calloc parserCalloc
+#define free safeFree
+/* End of the malloc mess */
+
 #define YYERROR_VERBOSE 1
+#define YYFPRINTF sollyaFprintf
 
 extern int miniyylex(YYSTYPE *lvalp, void *scanner);
 
-void miniyyerror(void *myScanner, char *message) {
-    printMessage(1,"Warning: %s. Will try to continue parsing (expecting \";\"). May leak memory.\n",message);
+void miniyyerror(void *myScanner, const char *message) {
+  UNUSED_PARAM(myScanner);
+  printMessage(1,SOLLYA_MSG_SYNTAX_ERROR_ENCOUNTERED_WHILE_PARSING,"Warning: %s. Will try to continue parsing (expecting \";\"). May leak memory.\n",message);
 }
 
 %}
@@ -79,11 +106,11 @@ void miniyyerror(void *myScanner, char *message) {
 
 %defines
 
-%name-prefix="miniyy"
+%name-prefix "miniyy"
 
 %expect 2
 
-%pure_parser
+%pure-parser
 
 %union {
   doubleNode *dblnode;
@@ -96,249 +123,265 @@ void miniyyerror(void *myScanner, char *message) {
   void *other;
 };
 
+%token  <value> CONSTANTTOKEN "decimal constant"
+%token  <value> MIDPOINTCONSTANTTOKEN "interval"
+%token  <value> DYADICCONSTANTTOKEN "dyadic constant"
+%token  <value> HEXCONSTANTTOKEN "constant in memory notation"
+%token  <value> HEXADECIMALCONSTANTTOKEN "hexadecimal constant"
+%token  <value> BINARYCONSTANTTOKEN "binary constant"
 
-%token  <value> CONSTANTTOKEN;
-%token  <value> MIDPOINTCONSTANTTOKEN;
-%token  <value> DYADICCONSTANTTOKEN;
-%token  <value> HEXCONSTANTTOKEN;
-%token  <value> HEXADECIMALCONSTANTTOKEN;
-%token  <value> BINARYCONSTANTTOKEN;
+%token  PITOKEN "pi"
 
-%token  PITOKEN;
+%token  <value> IDENTIFIERTOKEN "identifier"
 
-%token  <value> IDENTIFIERTOKEN;
+%token  <value> STRINGTOKEN "character string"
 
-%token  <value> STRINGTOKEN;
+%token  LPARTOKEN "("
+%token  RPARTOKEN ")"
+%token  LBRACKETTOKEN "["
+%token  RBRACKETTOKEN "]"
+%token  EQUALTOKEN "="
+%token  ASSIGNEQUALTOKEN ":="
+%token  COMPAREEQUALTOKEN "=="
+%token  COMMATOKEN ","
+%token  EXCLAMATIONTOKEN "!"
+%token  SEMICOLONTOKEN ";"
+%token  STARLEFTANGLETOKEN "*<"
+%token  LEFTANGLETOKEN "<"
+%token  RIGHTANGLEUNDERSCORETOKEN ">_"
+%token  RIGHTANGLEDOTTOKEN ">."
+%token  RIGHTANGLESTARTOKEN ">*"
+%token  RIGHTANGLETOKEN ">"
+%token  DOTSTOKEN "..."
+%token  DOTTOKEN "."
+%token  QUESTIONMARKTOKEN "?"
+%token  VERTBARTOKEN "|"
+%token  ATTOKEN "@"
+%token  DOUBLECOLONTOKEN "::"
+%token  COLONTOKEN ":"
+%token  DOTCOLONTOKEN ".:"
+%token  COLONDOTTOKEN ":."
+%token  EXCLAMATIONEQUALTOKEN "!="
+%token  APPROXTOKEN "~"
+%token  ANDTOKEN "&&"
+%token  ORTOKEN "||"
 
-%token  LPARTOKEN;
-%token  RPARTOKEN;
-%token  LBRACKETTOKEN;
-%token  RBRACKETTOKEN;
-%token  EQUALTOKEN;
-%token  ASSIGNEQUALTOKEN;
-%token  COMPAREEQUALTOKEN;
-%token  COMMATOKEN;
-%token  EXCLAMATIONTOKEN;
-%token  SEMICOLONTOKEN;
-%token  STARLEFTANGLETOKEN;
-%token  LEFTANGLETOKEN;
-%token  RIGHTANGLEUNDERSCORETOKEN;
-%token  RIGHTANGLEDOTTOKEN;
-%token  RIGHTANGLESTARTOKEN;
-%token  RIGHTANGLETOKEN;
-%token  DOTSTOKEN;
-%token  DOTTOKEN;
-%token  QUESTIONMARKTOKEN;
-%token  VERTBARTOKEN;
-%token  ATTOKEN;
-%token  DOUBLECOLONTOKEN;
-%token  COLONTOKEN;
-%token  DOTCOLONTOKEN;
-%token  COLONDOTTOKEN;
-%token  EXCLAMATIONEQUALTOKEN;
-%token  APPROXTOKEN;
-%token  ANDTOKEN;
-%token  ORTOKEN;
+%token  PLUSTOKEN "+"
+%token  MINUSTOKEN "-"
+%token  MULTOKEN "*"
+%token  DIVTOKEN "/"
+%token  POWTOKEN "^"
 
-%token  PLUSTOKEN;
-%token  MINUSTOKEN;
-%token  MULTOKEN;
-%token  DIVTOKEN;
-%token  POWTOKEN;
+%token  SQRTTOKEN "sqrt"
+%token  EXPTOKEN "exp"
+%token  FREEVARTOKEN "_x_"
+%token  LOGTOKEN "log"
+%token  LOG2TOKEN "log2"
+%token  LOG10TOKEN "log10"
+%token  SINTOKEN "sin"
+%token  COSTOKEN "cos"
+%token  TANTOKEN "tan"
+%token  ASINTOKEN "asin"
+%token  ACOSTOKEN "acos"
+%token  ATANTOKEN "atan"
+%token  SINHTOKEN "sinh"
+%token  COSHTOKEN "cosh"
+%token  TANHTOKEN "tanh"
+%token  ASINHTOKEN "asinh"
+%token  ACOSHTOKEN "acosh"
+%token  ATANHTOKEN "atanh"
+%token  ABSTOKEN "abs"
+%token  ERFTOKEN "erf"
+%token  ERFCTOKEN "erfc"
+%token  LOG1PTOKEN "log1p"
+%token  EXPM1TOKEN "expm1"
+%token  DOUBLETOKEN "D"
+%token  SINGLETOKEN "SG"
+%token  HALFPRECISIONTOKEN "HP"
+%token  QUADTOKEN "QD"
+%token  DOUBLEDOUBLETOKEN "DD"
+%token  TRIPLEDOUBLETOKEN "TD"
+%token  DOUBLEEXTENDEDTOKEN "DE"
+%token  CEILTOKEN "ceil"
+%token  FLOORTOKEN "floor"
+%token  NEARESTINTTOKEN "nearestint"
 
-%token  SQRTTOKEN;
-%token  EXPTOKEN;
-%token  LOGTOKEN;
-%token  LOG2TOKEN;
-%token  LOG10TOKEN;
-%token  SINTOKEN;
-%token  COSTOKEN;
-%token  TANTOKEN;
-%token  ASINTOKEN;
-%token  ACOSTOKEN;
-%token  ATANTOKEN;
-%token  SINHTOKEN;
-%token  COSHTOKEN;
-%token  TANHTOKEN;
-%token  ASINHTOKEN;
-%token  ACOSHTOKEN;
-%token  ATANHTOKEN;
-%token  ABSTOKEN;
-%token  ERFTOKEN;
-%token  ERFCTOKEN;
-%token  LOG1PTOKEN;
-%token  EXPM1TOKEN;
-%token  DOUBLETOKEN;
-%token  SINGLETOKEN;
-%token  QUADTOKEN;
-%token  HALFPRECISIONTOKEN;
-%token  DOUBLEDOUBLETOKEN;
-%token  TRIPLEDOUBLETOKEN;
-%token  DOUBLEEXTENDEDTOKEN;
-%token  CEILTOKEN;
-%token  FLOORTOKEN;
-%token  NEARESTINTTOKEN;
+%token  HEADTOKEN "head"
+%token  REVERTTOKEN "revert"
+%token  SORTTOKEN "sort"
+%token  TAILTOKEN "tail"
+%token  MANTISSATOKEN "mantissa"
+%token  EXPONENTTOKEN "exponent"
+%token  PRECISIONTOKEN "precision"
+%token  ROUNDCORRECTLYTOKEN "roundcorrectly"
 
-%token  HEADTOKEN;
-%token  REVERTTOKEN;
-%token  SORTTOKEN;
-%token  TAILTOKEN;
-%token  MANTISSATOKEN;
-%token  EXPONENTTOKEN;
-%token  PRECISIONTOKEN;
-%token  ROUNDCORRECTLYTOKEN;
+%token  PRECTOKEN "prec"
+%token  POINTSTOKEN "points"
+%token  DIAMTOKEN "diam"
+%token  DISPLAYTOKEN "display"
+%token  VERBOSITYTOKEN "verbosity"
+%token  SHOWMESSAGENUMBERSTOKEN "showmessagenumbers"
+%token  CANONICALTOKEN "canonical"
+%token  AUTOSIMPLIFYTOKEN "autosimplify"
+%token  TAYLORRECURSIONSTOKEN "taylorrecursions"
+%token  TIMINGTOKEN "timing"
+%token  TIMETOKEN "time"
+%token  FULLPARENTHESESTOKEN "fullparentheses"
+%token  MIDPOINTMODETOKEN "midpointmode"
+%token  DIEONERRORMODETOKEN "dieonerrormode"
+%token  SUPPRESSWARNINGSTOKEN "roundingwarnings"
+%token  RATIONALMODETOKEN "rationalmode"
+%token  HOPITALRECURSIONSTOKEN "hopitalrecursions"
 
-%token  PRECTOKEN;
-%token  POINTSTOKEN;
-%token  DIAMTOKEN;
-%token  DISPLAYTOKEN;
-%token  VERBOSITYTOKEN;
-%token  CANONICALTOKEN;
-%token  AUTOSIMPLIFYTOKEN;
-%token  TAYLORRECURSIONSTOKEN;
-%token  TIMINGTOKEN;
-%token  FULLPARENTHESESTOKEN;
-%token  MIDPOINTMODETOKEN;
-%token  DIEONERRORMODETOKEN;
-%token  SUPPRESSWARNINGSTOKEN;
-%token  HOPITALRECURSIONSTOKEN;
-%token  RATIONALMODETOKEN;
+%token  ONTOKEN "on"
+%token  OFFTOKEN "off"
+%token  DYADICTOKEN "dyadic"
+%token  POWERSTOKEN "powers"
+%token  BINARYTOKEN "binary"
+%token  HEXADECIMALTOKEN "hexadecimal"
+%token  FILETOKEN "file"
+%token  POSTSCRIPTTOKEN "postscript"
+%token  POSTSCRIPTFILETOKEN "postscriptfile"
+%token  PERTURBTOKEN "perturb"
+%token  MINUSWORDTOKEN "RD"
+%token  PLUSWORDTOKEN "RU"
+%token  ZEROWORDTOKEN "RZ"
+%token  NEARESTTOKEN "RN"
+%token  HONORCOEFFPRECTOKEN "honorcoeffprec"
+%token  TRUETOKEN "true"
+%token  FALSETOKEN "false"
+%token  DEFAULTTOKEN "default"
+%token  MATCHTOKEN "match"
+%token  WITHTOKEN "with"
+%token  ABSOLUTETOKEN "absolute"
+%token  DECIMALTOKEN "decimal"
+%token  RELATIVETOKEN "relative"
+%token  FIXEDTOKEN "fixed"
+%token  FLOATINGTOKEN "floating"
 
-%token  ONTOKEN;
-%token  OFFTOKEN;
-%token  DYADICTOKEN;
-%token  POWERSTOKEN;
-%token  BINARYTOKEN;
-%token  HEXADECIMALTOKEN;
-%token  FILETOKEN;
-%token  POSTSCRIPTTOKEN;
-%token  POSTSCRIPTFILETOKEN;
-%token  PERTURBTOKEN;
-%token  MINUSWORDTOKEN;
-%token  PLUSWORDTOKEN;
-%token  ZEROWORDTOKEN;
-%token  NEARESTTOKEN;
-%token  HONORCOEFFPRECTOKEN;
-%token  TRUETOKEN;
-%token  FALSETOKEN;
-%token  DEFAULTTOKEN;
-%token  MATCHTOKEN;
-%token  WITHTOKEN;
-%token  ABSOLUTETOKEN;
-%token  DECIMALTOKEN;
-%token  RELATIVETOKEN;
-%token  FIXEDTOKEN;
-%token  FLOATINGTOKEN;
+%token  ERRORTOKEN "error"
 
-%token  ERRORTOKEN;
+%token  QUITTOKEN "quit"
+%token  FALSEQUITTOKEN "quit in an included file"
+%token  FALSERESTARTTOKEN "restart"
 
-%token  LIBRARYTOKEN;
+%token  LIBRARYTOKEN "library"
+%token  LIBRARYCONSTANTTOKEN "libraryconstant"
 
-%token  DIFFTOKEN;
-%token  BASHEVALUATETOKEN;
-%token  SIMPLIFYTOKEN;
-%token  REMEZTOKEN;
-%token  FPMINIMAXTOKEN;
-%token  HORNERTOKEN;
-%token  EXPANDTOKEN;
-%token  SIMPLIFYSAFETOKEN;
-%token  TAYLORTOKEN;
-%token  TAYLORFORMTOKEN;
-%token  AUTODIFFTOKEN;
-%token  DEGREETOKEN;
-%token  NUMERATORTOKEN;
-%token  DENOMINATORTOKEN;
-%token  SUBSTITUTETOKEN;
-%token  COEFFTOKEN;
-%token  SUBPOLYTOKEN;
-%token  ROUNDCOEFFICIENTSTOKEN;
-%token  RATIONALAPPROXTOKEN;
-%token  ACCURATEINFNORMTOKEN;
-%token  ROUNDTOFORMATTOKEN;
-%token  EVALUATETOKEN;
-%token  LENGTHTOKEN;
-%token  INFTOKEN;
-%token  MIDTOKEN;
-%token  SUPTOKEN;
-%token  MINTOKEN;
-%token  MAXTOKEN;
+%token  DIFFTOKEN "diff"
+%token  DIRTYSIMPLIFYTOKEN "dirtysimplify"
+%token  REMEZTOKEN "remez"
+%token  ANNOTATEFUNCTIONTOKEN "annotatefunction"
+%token  BASHEVALUATETOKEN "bashevaluate"
+%token  GETSUPPRESSEDMESSAGESTOKEN "getsuppressedmessages"
+%token  GETBACKTRACETOKEN "getbacktrace"
+%token  FPMINIMAXTOKEN "fpminimax"
+%token  HORNERTOKEN "horner"
+%token  EXPANDTOKEN "expand"
+%token  SIMPLIFYSAFETOKEN "simplify"
 
-%token  READXMLTOKEN;
-%token  PARSETOKEN;
+%token  TAYLORTOKEN "taylor"
+%token  TAYLORFORMTOKEN "taylorform"
+%token  CHEBYSHEVFORMTOKEN "chebyshevform"
+%token  AUTODIFFTOKEN "autodiff"
+%token  DEGREETOKEN "degree"
+%token  NUMERATORTOKEN "numerator"
+%token  DENOMINATORTOKEN "denominator"
+%token  SUBSTITUTETOKEN "substitute"
+%token  COMPOSEPOLYNOMIALSTOKEN "composepolynomials"
+%token  COEFFTOKEN "coeff"
+%token  SUBPOLYTOKEN "subpoly"
+%token  ROUNDCOEFFICIENTSTOKEN "roundcoefficients"
+%token  RATIONALAPPROXTOKEN "rationalapprox"
+%token  ACCURATEINFNORMTOKEN "accurateinfnorm"
+%token  ROUNDTOFORMATTOKEN "round"
+%token  EVALUATETOKEN "evaluate"
+%token  LENGTHTOKEN "length"
+%token  OBJECTNAMETOKEN "objectname"
+%token  INFTOKEN "inf"
+%token  MIDTOKEN "mid"
+%token  SUPTOKEN "sup"
+%token  MINTOKEN "min"
+%token  MAXTOKEN "max"
 
-%token  PRINTTOKEN;
-%token  PRINTXMLTOKEN;
-%token  PLOTTOKEN;
-%token  PRINTHEXATOKEN;
-%token  PRINTFLOATTOKEN;
-%token  PRINTBINARYTOKEN;
-%token  PRINTEXPANSIONTOKEN;
-%token  BASHEXECUTETOKEN;
-%token  EXTERNALPLOTTOKEN;
-%token  WRITETOKEN;
-%token  ASCIIPLOTTOKEN;
-%token  RENAMETOKEN;
+%token  READXMLTOKEN "readxml"
+%token  PARSETOKEN "parse"
 
+%token  PRINTTOKEN "print"
+%token  PRINTXMLTOKEN "printxml"
+%token  PLOTTOKEN "plot"
+%token  PRINTHEXATOKEN "printhexa"
+%token  PRINTFLOATTOKEN "printfloat"
+%token  PRINTBINARYTOKEN "printbinary"
+%token  SUPPRESSMESSAGETOKEN "suppressmessage"
+%token  UNSUPPRESSMESSAGETOKEN "unsuppressmessage"
+%token  PRINTEXPANSIONTOKEN "printexpansion"
+%token  BASHEXECUTETOKEN "bashexecute"
+%token  EXTERNALPLOTTOKEN "externalplot"
+%token  WRITETOKEN "write"
+%token  ASCIIPLOTTOKEN "asciiplot"
+%token  RENAMETOKEN "rename"
+%token  BINDTOKEN "bind"
 
-%token  INFNORMTOKEN;
-%token  SUPNORMTOKEN;
-%token  FINDZEROSTOKEN;
-%token  FPFINDZEROSTOKEN;
-%token  DIRTYINFNORMTOKEN;
-%token  NUMBERROOTSTOKEN;
-%token  INTEGRALTOKEN;
-%token  DIRTYINTEGRALTOKEN;
-%token  WORSTCASETOKEN;
-%token  IMPLEMENTPOLYTOKEN;
-%token  IMPLEMENTCONSTTOKEN;
-%token  CHECKINFNORMTOKEN;
-%token  ZERODENOMINATORSTOKEN;
-%token  ISEVALUABLETOKEN;
-%token  SEARCHGALTOKEN;
-%token  GUESSDEGREETOKEN;
-%token  DIRTYFINDZEROSTOKEN;
+%token  INFNORMTOKEN "infnorm"
+%token  SUPNORMTOKEN "supnorm"
+%token  FINDZEROSTOKEN "findzeros"
+%token  FPFINDZEROSTOKEN "fpfindzeros"
+%token  DIRTYINFNORMTOKEN "dirtyinfnorm"
+%token  GCDTOKEN "gcd"
+%token  EUCLDIVTOKEN "div"
+%token  EUCLMODTOKEN "mod"
+%token  NUMBERROOTSTOKEN "numberroots"
+%token  INTEGRALTOKEN "integral"
+%token  DIRTYINTEGRALTOKEN "dirtyintegral"
+%token  WORSTCASETOKEN "worstcase"
+%token  IMPLEMENTPOLYTOKEN "implementpoly"
+%token  IMPLEMENTCONSTTOKEN "implementconst"
+%token  CHECKINFNORMTOKEN "checkinfnorm"
+%token  ZERODENOMINATORSTOKEN "zerodenominators"
+%token  ISEVALUABLETOKEN "isevaluable"
+%token  SEARCHGALTOKEN "searchgal"
+%token  GUESSDEGREETOKEN "guessdegree"
+%token  DIRTYFINDZEROSTOKEN "dirtyfindzeros"
 
-%token  IFTOKEN;
-%token  THENTOKEN;
-%token  ELSETOKEN;
-%token  FORTOKEN;
-%token  INTOKEN;
-%token  FROMTOKEN;
-%token  TOTOKEN;
-%token  BYTOKEN;
-%token  DOTOKEN;
-%token  BEGINTOKEN;
-%token  ENDTOKEN;
-%token  LEFTCURLYBRACETOKEN;
-%token  RIGHTCURLYBRACETOKEN;
-%token  WHILETOKEN;
+%token  IFTOKEN "if"
+%token  THENTOKEN "then"
+%token  ELSETOKEN "else"
+%token  FORTOKEN "for"
+%token  INTOKEN "in"
+%token  FROMTOKEN "from"
+%token  TOTOKEN "to"
+%token  BYTOKEN "by"
+%token  DOTOKEN "do"
+%token  BEGINTOKEN "begin"
+%token  ENDTOKEN "end"
+%token  LEFTCURLYBRACETOKEN "{"
+%token  RIGHTCURLYBRACETOKEN "}"
+%token  WHILETOKEN "while"
 
-%token  READFILETOKEN;
+%token  READFILETOKEN "readfile"
 
-%token  ISBOUNDTOKEN;
+%token  ISBOUNDTOKEN "isbound"
 
-%token  EXECUTETOKEN;
+%token  EXECUTETOKEN "execute"
 
-%token  FALSERESTARTTOKEN;
-%token  FALSEQUITTOKEN;
+%token  EXTERNALPROCTOKEN "externalproc"
+%token  VOIDTOKEN "void"
+%token  CONSTANTTYPETOKEN "constant"
+%token  FUNCTIONTOKEN "function"
+%token  OBJECTTOKEN "object"
+%token  RANGETOKEN "range"
+%token  INTEGERTOKEN "integer"
+%token  STRINGTYPETOKEN "string"
+%token  BOOLEANTOKEN "boolean"
+%token  LISTTOKEN "list"
+%token  OFTOKEN "of"
 
-%token  EXTERNALPROCTOKEN;
-%token  VOIDTOKEN;
-%token  CONSTANTTYPETOKEN;
-%token  FUNCTIONTOKEN;
-%token  RANGETOKEN;
-%token  INTEGERTOKEN;
-%token  STRINGTYPETOKEN;
-%token  BOOLEANTOKEN;
-%token  LISTTOKEN;
-%token  OFTOKEN;
-
-%token  VARTOKEN;
-%token  PROCTOKEN;
-%token  TIMETOKEN;
-%token  PROCEDURETOKEN;
-%token  RETURNTOKEN;
-%token  NOPTOKEN;
+%token  VARTOKEN "var"
+%token  PROCTOKEN "proc"
+%token  PROCEDURETOKEN "procedure"
+%token  RETURNTOKEN "return"
+%token  NOPTOKEN "nop"
 
 
 %type <other> startsymbol;
@@ -390,7 +433,7 @@ void miniyyerror(void *myScanner, char *message) {
 
 %%
 
-startsymbol:            startsymbolwitherr
+startsymbol:            startsymbolwitherr 
                           {
 			    minitree = $1;
 			    $$ = NULL;
@@ -401,6 +444,11 @@ startsymbol:            startsymbolwitherr
 
 startsymbolwitherr:     thing
                           {
+			    $$ = $1;
+			  }
+                      | thing SEMICOLONTOKEN
+                          {
+                            miniparserSemicolonAtEnd = 1;
 			    $$ = $1;
 			  }
                       | error
@@ -478,17 +526,17 @@ ifcommand:              thing THENTOKEN command
 forcommand:             IDENTIFIERTOKEN FROMTOKEN thing TOTOKEN thing DOTOKEN command
                           {
 			    $$ = makeFor($1, $3, $5, makeConstantDouble(1.0), $7);
-			    free($1);
+			    safeFree($1);
                           }
                       | IDENTIFIERTOKEN FROMTOKEN thing TOTOKEN thing BYTOKEN thing DOTOKEN command
                           {
 			    $$ = makeFor($1, $3, $5, $7, $9);
-			    free($1);
+			    safeFree($1);
                           }
                       | IDENTIFIERTOKEN INTOKEN thing DOTOKEN command
                           {
 			    $$ = makeForIn($1, $3, $5);
-			    free($1);
+			    safeFree($1);
                           }
 ;
 
@@ -678,6 +726,14 @@ simplecommand:          FALSEQUITTOKEN
                           {
 			    $$ = makePrintBinary($3);
 			  }
+                      | SUPPRESSMESSAGETOKEN LPARTOKEN thinglist RPARTOKEN
+                          {
+			    $$ = makeSuppressMessage($3);
+			  }
+                      | UNSUPPRESSMESSAGETOKEN LPARTOKEN thinglist RPARTOKEN
+                          {
+			    $$ = makeUnsuppressMessage($3);
+			  }
                       | PRINTEXPANSIONTOKEN LPARTOKEN thing RPARTOKEN
                           {
 			    $$ = makePrintExpansion($3);
@@ -729,13 +785,18 @@ simplecommand:          FALSEQUITTOKEN
                       | RENAMETOKEN LPARTOKEN IDENTIFIERTOKEN COMMATOKEN IDENTIFIERTOKEN RPARTOKEN
                           {
 			    $$ = makeRename($3, $5);
-			    free($3);
-			    free($5);
+			    safeFree($3);
+			    safeFree($5);
+			  }
+                      | RENAMETOKEN LPARTOKEN FREEVARTOKEN COMMATOKEN IDENTIFIERTOKEN RPARTOKEN
+                          {
+			    $$ = makeRename("_x_", $5);
+			    safeFree($5);
 			  }
                       | EXTERNALPROCTOKEN LPARTOKEN IDENTIFIERTOKEN COMMATOKEN thing COMMATOKEN externalproctypelist MINUSTOKEN RIGHTANGLETOKEN extendedexternalproctype RPARTOKEN
                           {
 			    $$ = makeExternalProc($3, $5, addElement($7, $10));
-			    free($3);
+			    safeFree($3);
 			  }
                       | assignment
                           {
@@ -748,7 +809,7 @@ simplecommand:          FALSEQUITTOKEN
                       | PROCEDURETOKEN IDENTIFIERTOKEN procbody
                           {
 			    $$ = makeAssignment($2, $3);
-			    free($2);
+			    safeFree($2);
 			  }
 ;
 
@@ -773,27 +834,32 @@ assignment:             stateassignment
 simpleassignment:       IDENTIFIERTOKEN EQUALTOKEN thing
                           {
 			    $$ = makeAssignment($1, $3);
-			    free($1);
+			    safeFree($1);
 			  }
                       | IDENTIFIERTOKEN ASSIGNEQUALTOKEN thing
                           {
 			    $$ = makeFloatAssignment($1, $3);
-			    free($1);
+			    safeFree($1);
 			  }
                       | IDENTIFIERTOKEN EQUALTOKEN LIBRARYTOKEN LPARTOKEN thing RPARTOKEN
                           {
 			    $$ = makeLibraryBinding($1, $5);
-			    free($1);
+			    safeFree($1);
+			  }
+                      | IDENTIFIERTOKEN EQUALTOKEN LIBRARYCONSTANTTOKEN LPARTOKEN thing RPARTOKEN
+                          {
+			    $$ = makeLibraryConstantBinding($1, $5);
+			    safeFree($1);
 			  }
                       | indexing EQUALTOKEN thing
                           {
 			    $$ = makeAssignmentInIndexing($1->a,$1->b,$3);
-			    free($1);
+			    safeFree($1);
 			  }
                       | indexing ASSIGNEQUALTOKEN thing
                           {
 			    $$ = makeFloatAssignmentInIndexing($1->a,$1->b,$3);
-			    free($1);
+			    safeFree($1);
 			  }
                       | structuring EQUALTOKEN thing
                           {
@@ -808,7 +874,7 @@ simpleassignment:       IDENTIFIERTOKEN EQUALTOKEN thing
 structuring:            basicthing DOTTOKEN IDENTIFIERTOKEN 
 		          {
 			    $$ = makeStructAccess($1,$3);
-			    free($3);
+			    safeFree($3);
 			  }
 ;
 
@@ -831,6 +897,10 @@ stateassignment:        PRECTOKEN EQUALTOKEN thing
                       | VERBOSITYTOKEN EQUALTOKEN thing
                           {
 			    $$ = makeVerbosityAssign($3);
+			  }
+                      | SHOWMESSAGENUMBERSTOKEN EQUALTOKEN thing
+                          {
+			    $$ = makeShowMessageNumbersAssign($3);
 			  }
                       | CANONICALTOKEN EQUALTOKEN thing
                           {
@@ -893,6 +963,10 @@ stillstateassignment:   PRECTOKEN EQUALTOKEN thing
                       | VERBOSITYTOKEN EQUALTOKEN thing
                           {
 			    $$ = makeVerbosityStillAssign($3);
+			  }
+                      | SHOWMESSAGENUMBERSTOKEN EQUALTOKEN thing
+                          {
+			    $$ = makeShowMessageNumbersStillAssign($3);
 			  }
                       | CANONICALTOKEN EQUALTOKEN thing
                           {
@@ -971,7 +1045,7 @@ structelement:          DOTTOKEN IDENTIFIERTOKEN EQUALTOKEN thing
 			    $$ = (entry *) safeMalloc(sizeof(entry));
 			    $$->name = (char *) safeCalloc(strlen($2) + 1, sizeof(char));
 			    strcpy($$->name,$2);
-			    free($2);
+			    safeFree($2);
 			    $$->value = (void *) ($4);
 			  }
 ;
@@ -1067,10 +1141,6 @@ hyperterm:                term
                           {
 			    $$ = makeAddToList($1, $3);
 			  }
-                      | hyperterm DOTCOLONTOKEN term
-                          {
-			    $$ = makePrepend($1, $3);
-			  }
                       | hyperterm COLONDOTTOKEN term
                           {
 			    $$ = makeAppend($1, $3);
@@ -1161,6 +1231,14 @@ subterm:                basicthing
                       | basicthing POWTOKEN APPROXTOKEN subterm
                           {
 			    $$ = makePow($1, makeEvalConst($4));
+			  }
+                      | basicthing DOTCOLONTOKEN subterm
+                          {
+			    $$ = makePrepend($1, $3);
+			  }
+                      | basicthing DOTCOLONTOKEN APPROXTOKEN subterm
+                          {
+			    $$ = makePrepend($1, makeEvalConst($4));
 			  }
 ;
 
@@ -1285,6 +1363,10 @@ basicthing:             ONTOKEN
                           {
 			    $$ = makeDoubleextendedSymbol();
 			  }
+                      | FREEVARTOKEN
+                          {
+			    $$ = makeVariable();
+			  }
                       | DOUBLEDOUBLETOKEN
                           {
 			    $$ = makeDoubleDoubleSymbol();
@@ -1297,12 +1379,12 @@ basicthing:             ONTOKEN
                           {
 			    tempString = safeCalloc(strlen($1) + 1, sizeof(char));
 			    strcpy(tempString, $1);
-			    free($1);
+			    safeFree($1);
 			    tempString2 = safeCalloc(strlen(tempString) + 1, sizeof(char));
 			    strcpy(tempString2, tempString);
-			    free(tempString);
+			    safeFree(tempString);
 			    $$ = makeString(tempString2);
-			    free(tempString2);
+			    safeFree(tempString2);
 			  }
                       | constant
                           {
@@ -1311,22 +1393,22 @@ basicthing:             ONTOKEN
                       | IDENTIFIERTOKEN
                           {
 			    $$ = makeTableAccess($1);
-			    free($1);
+			    safeFree($1);
 			  }
                       | ISBOUNDTOKEN LPARTOKEN IDENTIFIERTOKEN RPARTOKEN
                           {
 			    $$ = makeIsBound($3);
-			    free($3);
+			    safeFree($3);
 			  }
                       | IDENTIFIERTOKEN LPARTOKEN thinglist RPARTOKEN
                           {
 			    $$ = makeTableAccessWithSubstitute($1, $3);
-			    free($1);
+			    safeFree($1);
 			  }
                       | IDENTIFIERTOKEN LPARTOKEN RPARTOKEN
                           {
 			    $$ = makeTableAccessWithSubstitute($1, NULL);
-			    free($1);
+			    safeFree($1);
 			  }
                       | list
                           {
@@ -1359,21 +1441,25 @@ basicthing:             ONTOKEN
                       | indexing
                           {
 			    $$ = makeIndex($1->a, $1->b);
-			    free($1);
+			    safeFree($1);
 			  }
                       | basicthing DOTTOKEN IDENTIFIERTOKEN 
 		          {
 			    $$ = makeStructAccess($1,$3);
-			    free($3);
+			    safeFree($3);
 			  }
                       | basicthing DOTTOKEN IDENTIFIERTOKEN LPARTOKEN thinglist RPARTOKEN
 		          {
 			    $$ = makeApply(makeStructAccess($1,$3),$5);
-			    free($3);
+			    safeFree($3);
 			  }
                       | LPARTOKEN thing RPARTOKEN LPARTOKEN thinglist RPARTOKEN
                           {
 			    $$ = makeApply($2,$5);
+			  }
+                      | LPARTOKEN thing RPARTOKEN LPARTOKEN RPARTOKEN
+                          {
+			    $$ = makeApply($2,addElement(NULL,makeUnit()));
 			  }
                       | PROCTOKEN procbody
                           {
@@ -1436,28 +1522,32 @@ matchelement:          thing COLONTOKEN beginsymbol variabledeclarationlist comm
 constant:               CONSTANTTOKEN
                           {
 			    $$ = makeDecimalConstant($1);
-			    free($1);
+			    safeFree($1);
 			  }
                       | MIDPOINTCONSTANTTOKEN
                           {
 			    $$ = makeMidpointConstant($1);
-			    free($1);
+			    safeFree($1);
 			  }
                       | DYADICCONSTANTTOKEN
                           {
 			    $$ = makeDyadicConstant($1);
+			    safeFree($1);
 			  }
                       | HEXCONSTANTTOKEN
                           {
 			    $$ = makeHexConstant($1);
+			    safeFree($1);
 			  }
                       | HEXADECIMALCONSTANTTOKEN
                           {
 			    $$ = makeHexadecimalConstant($1);
+			    safeFree($1);
 			  }
                       | BINARYCONSTANTTOKEN
                           {
 			    $$ = makeBinaryConstant($1);
+			    safeFree($1);
 			  }
                       | PITOKEN
                           {
@@ -1547,17 +1637,34 @@ headfunction:           DIFFTOKEN LPARTOKEN thing RPARTOKEN
                           {
 			    $$ = makeBashevaluate(addElement(NULL,$3));
 			  }
+                      | GETSUPPRESSEDMESSAGESTOKEN LPARTOKEN RPARTOKEN
+                          {
+			    $$ = makeGetSuppressedMessages();
+			  }
+                      | GETBACKTRACETOKEN LPARTOKEN RPARTOKEN
+                          {
+			    $$ = makeGetBacktrace();
+			  }
                       | BASHEVALUATETOKEN LPARTOKEN thing COMMATOKEN thing RPARTOKEN
                           {
 			    $$ = makeBashevaluate(addElement(addElement(NULL,$5),$3));
 			  }
-                      | SIMPLIFYTOKEN LPARTOKEN thing RPARTOKEN
+                      | DIRTYSIMPLIFYTOKEN LPARTOKEN thing RPARTOKEN
                           {
-			    $$ = makeSimplify($3);
+			    $$ = makeDirtysimplify($3);
 			  }
                       | REMEZTOKEN LPARTOKEN thing COMMATOKEN thing COMMATOKEN thinglist RPARTOKEN
                           {
 			    $$ = makeRemez(addElement(addElement($7, $5), $3));
+			  }
+                      | ANNOTATEFUNCTIONTOKEN LPARTOKEN thing COMMATOKEN thing COMMATOKEN thing COMMATOKEN thinglist RPARTOKEN
+                          {
+			    $$ = makeAnnotateFunction(addElement(addElement(addElement($9, $7), $5), $3));
+			  }
+                      | BINDTOKEN LPARTOKEN thing COMMATOKEN IDENTIFIERTOKEN COMMATOKEN thing RPARTOKEN
+                          {
+			    $$ = makeBind($3, $5, $7);
+			    safeFree($5);
 			  }
                       | MINTOKEN LPARTOKEN thinglist RPARTOKEN
                           {
@@ -1595,6 +1702,10 @@ headfunction:           DIFFTOKEN LPARTOKEN thing RPARTOKEN
                           {
                             $$ = makeTaylorform(addElement(addElement($7, $5), $3));
 			  }
+                      | CHEBYSHEVFORMTOKEN LPARTOKEN thing COMMATOKEN thing COMMATOKEN thing RPARTOKEN
+                          {
+                            $$ = makeChebyshevform(addElement(addElement(addElement(NULL, $7), $5), $3));
+			  }
                       | AUTODIFFTOKEN LPARTOKEN thing COMMATOKEN thing COMMATOKEN thing RPARTOKEN
                           {
                             $$ = makeAutodiff(addElement(addElement(addElement(NULL, $7), $5), $3));
@@ -1614,6 +1725,10 @@ headfunction:           DIFFTOKEN LPARTOKEN thing RPARTOKEN
                       | SUBSTITUTETOKEN LPARTOKEN thing COMMATOKEN thing RPARTOKEN
                           {
 			    $$ = makeSubstitute($3, $5);
+			  }
+                      | COMPOSEPOLYNOMIALSTOKEN LPARTOKEN thing COMMATOKEN thing RPARTOKEN
+                          {
+			    $$ = makeComposePolynomials($3, $5);
 			  }
                       | COEFFTOKEN LPARTOKEN thing COMMATOKEN thing RPARTOKEN
                           {
@@ -1670,6 +1785,18 @@ headfunction:           DIFFTOKEN LPARTOKEN thing RPARTOKEN
                       | DIRTYINFNORMTOKEN LPARTOKEN thing COMMATOKEN thing RPARTOKEN
                           {
 			    $$ = makeDirtyInfnorm($3, $5);
+			  }
+                      | GCDTOKEN LPARTOKEN thing COMMATOKEN thing RPARTOKEN
+                          {
+			    $$ = makeGcd($3, $5);
+			  }
+                      | EUCLDIVTOKEN LPARTOKEN thing COMMATOKEN thing RPARTOKEN
+                          {
+			    $$ = makeEuclDiv($3, $5);
+			  }
+                      | EUCLMODTOKEN LPARTOKEN thing COMMATOKEN thing RPARTOKEN
+                          {
+			    $$ = makeEuclMod($3, $5);
 			  }
                       | NUMBERROOTSTOKEN LPARTOKEN thing COMMATOKEN thing RPARTOKEN
                           {
@@ -1759,6 +1886,10 @@ headfunction:           DIFFTOKEN LPARTOKEN thing RPARTOKEN
                           {
 			    $$ = makeExp($3);
 			  }
+                      | FREEVARTOKEN LPARTOKEN thing RPARTOKEN
+                          {
+			    $$ = makeApply(makeVariable(),addElement(NULL,$3));
+			  }                      
                       | FUNCTIONTOKEN LPARTOKEN thing RPARTOKEN
                           {
 			    $$ = makeProcedureFunction($3);
@@ -1891,6 +2022,10 @@ headfunction:           DIFFTOKEN LPARTOKEN thing RPARTOKEN
                           {
 			    $$ = makeLength($3);
 			  }
+                      | OBJECTNAMETOKEN LPARTOKEN thing RPARTOKEN
+                          {
+			    $$ = makeObjectName($3);
+			  }
 ;
 
 egalquestionmark:       EQUALTOKEN QUESTIONMARKTOKEN
@@ -1923,6 +2058,10 @@ statedereference:       PRECTOKEN egalquestionmark
                       | VERBOSITYTOKEN egalquestionmark
                           {
 			    $$ = makeVerbosityDeref();
+			  }
+                      | SHOWMESSAGENUMBERSTOKEN egalquestionmark
+                          {
+			    $$ = makeShowMessageNumbersDeref();
 			  }
                       | CANONICALTOKEN egalquestionmark
                           {
@@ -1979,6 +2118,12 @@ externalproctype:       CONSTANTTYPETOKEN
 			    *tempIntPtr = FUNCTION_TYPE;
 			    $$ = tempIntPtr;
 			  }
+                      | OBJECTTOKEN
+                          {
+			    tempIntPtr = (int *) safeMalloc(sizeof(int));
+			    *tempIntPtr = OBJECT_TYPE;
+			    $$ = tempIntPtr;
+			  }
                       | RANGETOKEN
                           {
 			    tempIntPtr = (int *) safeMalloc(sizeof(int));
@@ -2013,6 +2158,12 @@ externalproctype:       CONSTANTTYPETOKEN
                           {
 			    tempIntPtr = (int *) safeMalloc(sizeof(int));
 			    *tempIntPtr = FUNCTION_LIST_TYPE;
+			    $$ = tempIntPtr;
+			  }
+                      | LISTTOKEN OFTOKEN OBJECTTOKEN
+                          {
+			    tempIntPtr = (int *) safeMalloc(sizeof(int));
+			    *tempIntPtr = OBJECT_LIST_TYPE;
 			    $$ = tempIntPtr;
 			  }
                       | LISTTOKEN OFTOKEN RANGETOKEN

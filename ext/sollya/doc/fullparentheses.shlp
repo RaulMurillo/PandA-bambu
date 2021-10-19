@@ -1,0 +1,39 @@
+#NAME $FULLPARENTHESES
+#QUICK_DESCRIPTION activates, deactivates or inspects the state variable controlling output with full parenthesising
+#CALLING $COMMAND = <activation value>
+#TYPE $ONOFF_TYPE -> $VOID_TYPE
+#CALLING $COMMAND = <activation value> !
+#TYPE $ONOFF_TYPE -> $VOID_TYPE
+
+#PARAMETERS <activation value> represents $ON or $OFF, i.e. activation or deactivation
+
+#LIBRARYNAME void sollya_lib_set_fullparentheses_and_print(sollya_obj_t);
+#LIBRARYNAME void sollya_lib_set_fullparentheses(sollya_obj_t);
+#LIBRARYNAME sollya_obj_t sollya_lib_get_fullparentheses();
+
+#DESCRIPTION 
+An assignment $COMMAND = <activation value>, where <activation value>
+is one of $ON or $OFF, activates respectively deactivates the output
+of expressions with full parenthesising. In full parenthesising mode,
+$SOLLYA commands like $PRINT, $WRITE and the implicit command when an
+expression is given at the prompt will output expressions with
+parenthesising at all places where it is necessary for expressions
+containing infix operators to be parsed back with the same
+result. Otherwise parentheses around associative operators are
+omitted.
+§§ § §§
+If the assignment $COMMAND = <activation value> is followed by an
+exclamation mark, no message indicating the new state is
+displayed. Otherwise the user is informed of the new state of the
+global mode by an indication.
+
+#EXAMPLE
+autosimplify = off!;
+fullparentheses = off;
+print(1 + 2 + 3);
+fullparentheses = on;
+print(1 + 2 + 3);
+
+#SEEALSO $PRINT
+#SEEALSO $WRITE
+#SEEALSO $AUTOSIMPLIFY

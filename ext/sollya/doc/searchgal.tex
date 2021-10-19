@@ -1,7 +1,10 @@
 \subsection{searchgal}
 \label{labsearchgal}
 \noindent Name: \textbf{searchgal}\\
-searches for a preimage of a function such that the rounding the image yields an error smaller than a constant\\
+\phantom{aaa}searches for a preimage of a function such that the rounding the image yields an error smaller than a constant\\[0.2cm]
+\noindent Library name:\\
+\verb|   sollya_obj_t sollya_lib_searchgal(sollya_obj_t, sollya_obj_t, sollya_obj_t,|\\
+\verb|                                     sollya_obj_t, sollya_obj_t, sollya_obj_t)|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{searchgal}(\emph{function}, \emph{start}, \emph{preimage precision}, \emph{steps}, \emph{format}, \emph{error bound}) : (\textsf{function}, \textsf{constant}, \textsf{integer}, \textsf{integer}, \textsf{HP$|$halfprecision$|$SG$|$single$|$D$|$double$|$DE$|$doubleextended$|$DD$|$doubledouble$|$QD$|$quad$|$TD$|$tripledouble}, \textsf{constant}) $\rightarrow$ \textsf{list}\\
@@ -54,8 +57,8 @@ Parameters:
      v = s[0];
      print("The rounding error is 2^(",evaluate(log2(abs(DD(f)/f - 1)),v),")");
   } else print("No value found");
-The rounding error is 2^( -1.12106878438809380148206984258358542322113874177832e
-2 )
+The rounding error is 2^( -112.106878438809380148206984258358542322113874177832 
+)
 \end{Verbatim}
 \end{minipage}\end{center}
 \noindent Example 3: 

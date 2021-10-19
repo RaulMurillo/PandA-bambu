@@ -1,0 +1,68 @@
+#NAME $DIVEUCL
+#QUICK_DESCRIPTION Computes the euclidian division of polynomials or numbers and returns the quotient
+
+#CALLING $COMMAND(<a>, <b>)
+#TYPE ($FUNCTION_TYPE, $FUNCTION_TYPE) -> $FUNCTION_TYPE
+
+#LIBRARYNAME sollya_obj_t sollya_lib_euclidian_div(sollya_obj_t, sollya_obj_t)
+
+#PARAMETERS <a> is a constant or a polynomial.
+#PARAMETERS <b> is a constant or a polynomial.
+
+#DESCRIPTION
+When both <a> and <b> are constants, $COMMAND(<a>,<b>) computes
+$FLOOR(<a> $DIVIDE <b>). In other words, it returns the quotient of the Euclidian
+division of <a> by <b>.
+
+#DESCRIPTION
+When both <a> and <b> are polynomials with at least one being non-constant,
+$COMMAND(<a>,<b>) computes a polynomial <q> such that the polynomial <r> equal to
+§§<a> - <q> * <b>§$a-qb$§§ is of degree strictly smaller than the degree of <b> (see
+exception below). In order to recover <r>, use the $MODEUCL command.
+
+#DESCRIPTION
+$COMMAND works on polynomials whose coefficients are constant
+expressions that cannot be simplified (by the tool) to rational
+numbers. In most cases, the tool is able to perform the Euclidian
+polynomial division for such polynomials and stop the Euclidian
+division algorithm only when <r> is of degree strictly smaller than
+the degree of <b>. In certain cases, when the polynomials involve
+coefficients given as constant expressions that are mathematically
+zero but for which the tool is unable to detect this fact, the tool
+may be unable to correctly determine that <r> is actually of degree
+stricly smaller than the degree of <b>. The issue arises in particular
+for polynomials whose leading coefficient is a constant expression
+which is zero without the tool being able to detect this. In these
+cases, $COMMAND, together with $MODEUCL, just guarantee that <q> and
+<r>, as returned by the two commands, satisfy that <r> added to the
+product of <q> and <b> yields <a>, and that <r> is of the smallest
+degree the tool can admit. However, there might exist another pair of
+a quotient and remainder polynomial for which the remainder polynomial
+is of a degree less than the one of <r>.
+
+#DESCRIPTION
+When at least one of <a> or <b> is a function that is no polynomial,
+$COMMAND(<a>,<b>) returns §§0§$0$§§.
+
+#EXAMPLE
+div(1001, 231);
+div(13, 17);
+div(-14, 15);
+div(-213, -5);
+div(23/13, 11/17);
+div(exp(13),-sin(17));
+
+#EXAMPLE
+div(24 + 68 * x + 74 * x^2 + 39 * x^3 + 10 * x^4 + x^5, 4 + 4 * x + x^2);
+div(24 + 68 * x + 74 * x^2 + 39 * x^3 + 10 * x^4 + x^5, 2 * x^3);
+div(x^2, x^3);
+
+#EXAMPLE
+div(exp(x), x^2);
+
+#SEEALSO $GCD
+#SEEALSO $MODEUCL
+#SEEALSO $NUMBERROOTS
+
+
+

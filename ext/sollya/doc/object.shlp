@@ -1,0 +1,23 @@
+#NAME $OBJECT
+#QUICK_DESCRIPTION keyword representing a $SOLLYA object type 
+#CALLING $COMMAND
+#TYPE $TYPE_TYPE
+
+#LIBRARYNAME SOLLYA_EXTERNALPROC_TYPE_OBJECT
+
+#DESCRIPTION 
+$COMMAND represents the $SOLLYA object type for declarations
+of external procedures $EXTERNALPROC.
+§§ § §§
+Remark that in contrast to other indicators, type indicators like
+$COMMAND cannot be handled outside the $EXTERNALPROC context.  In
+particular, they cannot be assigned to variables.
+
+#SEEALSO $EXTERNALPROC
+#SEEALSO $BOOLEAN
+#SEEALSO $CONSTANT
+#SEEALSO $FUNCTION
+#SEEALSO $LISTOF
+#SEEALSO $RANGE
+#SEEALSO $STRING
+#SEEALSO $INTEGER

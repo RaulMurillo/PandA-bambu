@@ -1,0 +1,1002 @@
+The tool has been restarted.
+=============== Test number 1 ================
+Error in fpminimax: there is less formats indications than monomials
+Warning: at least one of the given expressions or a subexpression is not correctly typed
+or its evaluation has failed because of some error on a side-effect.
+error
+The tool has been restarted.
+=============== Test number 2 ================
+true
+The tool has been restarted.
+=============== Test number 3 ================
+The number of points has been set to 4.
+[|1.99999999999999999999999999999999999999999999999996, 2|]
+The tool has been restarted.
+=============== Test number 4 ================
+Warning: the inferred precision of the 7th coefficient of the polynomial is greater than
+the necessary precision computed for this step. This may make the automatic determination
+of precisions useless.
+
+
+void f(double *f_resh, double x) {
+
+
+
+
+double f_t_1_0h;
+double f_t_2_0h;
+double f_t_3_0h;
+double f_t_4_0h;
+double f_t_5_0h;
+double f_t_6_0h;
+double f_t_7_0h;
+double f_t_8_0h;
+double f_t_9_0h;
+double f_t_10_0h;
+double f_t_11_0h;
+double f_t_12_0h;
+double f_t_13_0h;
+double f_t_14_0h;
+double f_t_15_0h, f_t_15_0m;
+ 
+
+
+f_t_1_0h = f_coeff_7h;
+f_t_2_0h = f_t_1_0h * x;
+f_t_3_0h = f_coeff_6h + f_t_2_0h;
+f_t_4_0h = f_t_3_0h * x;
+f_t_5_0h = f_coeff_5h + f_t_4_0h;
+f_t_6_0h = f_t_5_0h * x;
+f_t_7_0h = f_coeff_4h + f_t_6_0h;
+f_t_8_0h = f_t_7_0h * x;
+f_t_9_0h = f_coeff_3h + f_t_8_0h;
+f_t_10_0h = f_t_9_0h * x;
+f_t_11_0h = f_coeff_2h + f_t_10_0h;
+f_t_12_0h = f_t_11_0h * x;
+f_t_13_0h = f_coeff_1h + f_t_12_0h;
+f_t_14_0h = f_t_13_0h * x;
+Add12(f_t_15_0h,f_t_15_0m,f_coeff_0h,f_t_14_0h);
+*f_resh = f_t_15_0h;
+
+
+}
+The tool has been restarted.
+=============== Test number 5 ================
+2999
+The tool has been restarted.
+=============== Test number 6 ================
+Display mode is hexadecimal numbers.
+0
+0x1p0
+0x1p1
+0x1.8p1
+0x1p2
+0x1.4p2
+0x1.8p2
+0x1.cp2
+0x1p3
+0x1.2p3
+0x1.4p3
+0x1.6p3
+0x1.8p3
+0x1.ap3
+0x1.cp3
+0x1.ep3
+0x1p4
+0x1.08p5
+true
+true
+true
+true
+0x1.30f842p21
+true
+true
+0x1.eaee86p-2
+0x1.eaee88p-2
+-0x1.5117aep-5
+-0x1.51179p-5
+0x1.6d2026p-9
+-0x1.03f2d4p-6
+0x1.5beeb4p-5
+-0x1.33194ep-4
+0x1.b403a8p-4
+-0x1.22f5c2p-3
+0x1.997748p-3
+-0x1.5554d8p-2
+-0x1.5554d8p0
+-0x1.5554d8p20
+-0x1.5554d8p19
+The tool has been restarted.
+=============== Test number 7 ================
+Computing data to test rounding to single precision
+Starting actual test
+All test values for rounding to single precision have yielded a correct result.
+Now testing printsingle displaying
+0 = 0x80000000
+0x1p-149 = 0x00000001
+-0x1p-149 = 0x80000001
+0x1p-148 = 0x00000002
+-0x1p-148 = 0x80000002
+0x1.fffff8p-127 = 0x007ffffe
+-0x1.fffff8p-127 = 0x807ffffe
+0x1.fffffcp-127 = 0x007fffff
+-0x1.fffffcp-127 = 0x807fffff
+0x1p-126 = 0x00800000
+-0x1p-126 = 0x80800000
+0x1.fffffcp127 = 0x7f7ffffe
+-0x1.fffffcp127 = 0xff7ffffe
+0x1.fffffep127 = 0x7f7fffff
+-0x1.fffffep127 = 0xff7fffff
+infty = 0x7f800000
+-infty = 0xff800000
+End of test
+The tool has been restarted.
+=============== Test number 8 ================
+true
+The tool has been restarted.
+=============== Test number 9 ================
+[0;0]
+The tool has been restarted.
+=============== Test number 10 ================
+[|{ .passed_args = [|1, "Coucou", 3...|], .called_proc = proc(l = ...)
+{
+getbacktrace();
+return void;
+} }|]
+The tool has been restarted.
+=============== Test number 10b ================
+X = 17, Y = 42
+X = 42
+Current backtrace:
+[|{ .passed_args = [| |], .called_proc = proc()
+{
+"Current backtrace:";
+getbacktrace();
+return void;
+} }, { .passed_args = [|42|], .called_proc = proc(X)
+{
+"X = ", X;
+testA();
+return void;
+} }, { .passed_args = [|17, 42|], .called_proc = proc(X, Y)
+{
+"X = ", X, ", Y = ", Y;
+testB(Y);
+return void;
+} }|]
+The tool has been restarted.
+=============== Test number 10c ================
+[| |]
+The tool has been restarted.
+=============== Test number 10d ================
+l[17] = 42
+number of arguments: infty
+Backtrace:
+  printnumargs, [|infty|]
+  numargs, [|25, 26, 27...|]
+  test1, [| |]
+number of arguments: 3
+Backtrace:
+  printnumargs, [|3|]
+  numargs, [|1, 2, 3|]
+  test2, [|[|1, 2, 3|]|]
+The tool has been restarted.
+=============== Test number 11 ================
+Using procedure function exponential with X = [0.25;0.25], n = 0, p = 100
+Warning: rounding has happened. The value displayed is a faithful rounding to 80 bits of the true result.
+1.28402541668774148407342
+Warning: rounding has happened. The value displayed is a faithful rounding to 53 bits of the true result.
+1.3956124250860895
+Warning: rounding has happened. The value displayed is a faithful rounding to 53 bits of the true result.
+1.2840254166877414
+Using procedure function exponential with X = [0.333333333333333333333333333333333333333333333333333333333;0.3333333333333333333333333333333333333333333333333333333334], n = 0, p = 190
+Warning: rounding has happened. The value displayed is a faithful rounding to 80 bits of the true result.
+1.395612425086089528628125
+The tool has been restarted.
+=============== Test number 12 ================
+false
+true
+false
+true
+false
+true
+false
+true
+false
+false
+Warning: the evaluation of one of the sides of an equality test yields error due to a syntax error or an error on a side-effect.
+The other side either also yields error due to an syntax or side-effect error or does not evaluate to error.
+The boolean returned may be meaningless.
+false
+Warning: the evaluation of one of the sides of an equality test yields error due to a syntax error or an error on a side-effect.
+The other side either also yields error due to an syntax or side-effect error or does not evaluate to error.
+The boolean returned may be meaningless.
+false
+Warning: the evaluation of one of the sides of an equality test yields error due to a syntax error or an error on a side-effect.
+The other side either also yields error due to an syntax or side-effect error or does not evaluate to error.
+The boolean returned may be meaningless.
+false
+Warning: the evaluation of one of the sides of an equality test yields error due to a syntax error or an error on a side-effect.
+The other side either also yields error due to an syntax or side-effect error or does not evaluate to error.
+The boolean returned may be meaningless.
+false
+false
+false
+Warning: the evaluation of one of the sides of an equality test yields error due to a syntax error or an error on a side-effect.
+The other side either also yields error due to an syntax or side-effect error or does not evaluate to error.
+The boolean returned may be meaningless.
+false
+Warning: the evaluation of one of the sides of an equality test yields error due to a syntax error or an error on a side-effect.
+The other side either also yields error due to an syntax or side-effect error or does not evaluate to error.
+The boolean returned may be meaningless.
+false
+Warning: at least one of the given expressions or a subexpression is not correctly typed
+or its evaluation has failed because of some error on a side-effect.
+error
+Warning: at least one of the given expressions or a subexpression is not correctly typed
+or its evaluation has failed because of some error on a side-effect.
+error
+Is a NaN
+Is a NaN
+Is not a NaN
+The tool has been restarted.
+=============== Test number 13 ================
+Running systematic tests for objectname...
+Test run. Removing temporary file.
+End of tests for objectname.
+The tool has been restarted.
+=============== Test number 14 ================
+Succeeded.
+The tool has been restarted.
+=============== Test number 15 ================
+Loop was not infinite
+The tool has been restarted.
+=============== Test number 15bis ================
+The precision has been set to 250 bits.
+Loop was not infinite
+The tool has been restarted.
+----------- Additional tests for min and max ---------------
+1: min([|-infty, -infty|]) = -infty vs. -infty
+2: min([|-infty, infty|]) = -infty vs. -infty
+3: min([|-infty, NaN|]) = -infty vs. -infty
+4: min([|-infty, 0|]) = -infty vs. -infty
+5: min([|-infty, sin(17 * (pi))|]) = -infty vs. -infty
+6: min([|-infty, sin(17 * (pi)) + 42|]) = -infty vs. -infty
+7: min([|-infty, 42|]) = -infty vs. -infty
+8: min([|-infty, 1664|]) = -infty vs. -infty
+9: min([|-infty, (log2(13) / log2(17)) - (log(13) / log(17))|]) = -infty vs. -infty
+10: min([|-infty, exp(24 / 10)|]) = -infty vs. -infty
+11: min([|-infty, log2(2076)|]) = -infty vs. -infty
+12: min([|-infty, -23|]) = -infty vs. -infty
+13: min([|-infty, 11.01953125|]) = -infty vs. -infty
+14: min([|infty, -infty|]) = -infty vs. -infty
+15: min([|infty, infty|]) = infty vs. infty
+16: min([|infty, NaN|]) = infty vs. infty
+17: min([|infty, 0|]) = 0 vs. 0
+18: min([|infty, sin(17 * (pi))|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+19: min([|infty, sin(17 * (pi)) + 42|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+20: min([|infty, 42|]) = 42 vs. 42
+21: min([|infty, 1664|]) = 1664 vs. 1664
+22: min([|infty, (log2(13) / log2(17)) - (log(13) / log(17))|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+23: min([|infty, exp(24 / 10)|]) = exp(24 / 10) vs. exp(24 / 10)
+24: min([|infty, log2(2076)|]) = log2(2076) vs. log2(2076)
+25: min([|infty, -23|]) = -23 vs. -23
+26: min([|infty, 11.01953125|]) = 11.01953125 vs. 11.01953125
+27: min([|NaN, -infty|]) = -infty vs. -infty
+28: min([|NaN, infty|]) = infty vs. infty
+29: min([|NaN, NaN|]) = NaN vs. NaN
+30: min([|NaN, 0|]) = 0 vs. 0
+31: min([|NaN, sin(17 * (pi))|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+32: min([|NaN, sin(17 * (pi)) + 42|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+33: min([|NaN, 42|]) = 42 vs. 42
+34: min([|NaN, 1664|]) = 1664 vs. 1664
+35: min([|NaN, (log2(13) / log2(17)) - (log(13) / log(17))|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+36: min([|NaN, exp(24 / 10)|]) = exp(24 / 10) vs. exp(24 / 10)
+37: min([|NaN, log2(2076)|]) = log2(2076) vs. log2(2076)
+38: min([|NaN, -23|]) = -23 vs. -23
+39: min([|NaN, 11.01953125|]) = 11.01953125 vs. 11.01953125
+40: min([|0, -infty|]) = -infty vs. -infty
+41: min([|0, infty|]) = 0 vs. 0
+42: min([|0, NaN|]) = 0 vs. 0
+43: min([|0, 0|]) = 0 vs. 0
+44: min([|0, sin(17 * (pi))|]) = sin(17 * (pi)) vs. 0 or sin(17 * (pi))
+45: min([|0, sin(17 * (pi)) + 42|]) = 0 vs. 0
+46: min([|0, 42|]) = 0 vs. 0
+47: min([|0, 1664|]) = 0 vs. 0
+48: min([|0, (log2(13) / log2(17)) - (log(13) / log(17))|]) = log2(13) / log2(17) - log(13) / log(17) vs. 0 or (log2(13) / log2(17)) - (log(13) / log(17))
+49: min([|0, exp(24 / 10)|]) = 0 vs. 0
+50: min([|0, log2(2076)|]) = 0 vs. 0
+51: min([|0, -23|]) = -23 vs. -23
+52: min([|0, 11.01953125|]) = 0 vs. 0
+53: min([|sin(17 * (pi)), -infty|]) = -infty vs. -infty
+54: min([|sin(17 * (pi)), infty|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+55: min([|sin(17 * (pi)), NaN|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+56: min([|sin(17 * (pi)), 0|]) = 0 vs. sin(17 * (pi)) or 0
+57: min([|sin(17 * (pi)), sin(17 * (pi))|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+58: min([|sin(17 * (pi)), sin(17 * (pi)) + 42|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+59: min([|sin(17 * (pi)), 42|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+60: min([|sin(17 * (pi)), 1664|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+61: min([|sin(17 * (pi)), (log2(13) / log2(17)) - (log(13) / log(17))|]) = log2(13) / log2(17) - log(13) / log(17) vs. sin(17 * (pi)) or (log2(13) / log2(17)) - (log(13) / log(17))
+62: min([|sin(17 * (pi)), exp(24 / 10)|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+63: min([|sin(17 * (pi)), log2(2076)|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+64: min([|sin(17 * (pi)), -23|]) = -23 vs. -23
+65: min([|sin(17 * (pi)), 11.01953125|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+66: min([|sin(17 * (pi)) + 42, -infty|]) = -infty vs. -infty
+67: min([|sin(17 * (pi)) + 42, infty|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+68: min([|sin(17 * (pi)) + 42, NaN|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+69: min([|sin(17 * (pi)) + 42, 0|]) = 0 vs. 0
+70: min([|sin(17 * (pi)) + 42, sin(17 * (pi))|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+71: min([|sin(17 * (pi)) + 42, sin(17 * (pi)) + 42|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+72: min([|sin(17 * (pi)) + 42, 42|]) = 42 vs. sin(17 * (pi)) + 42 or 42
+73: min([|sin(17 * (pi)) + 42, 1664|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+74: min([|sin(17 * (pi)) + 42, (log2(13) / log2(17)) - (log(13) / log(17))|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+75: min([|sin(17 * (pi)) + 42, exp(24 / 10)|]) = exp(24 / 10) vs. exp(24 / 10)
+76: min([|sin(17 * (pi)) + 42, log2(2076)|]) = log2(2076) vs. log2(2076)
+77: min([|sin(17 * (pi)) + 42, -23|]) = -23 vs. -23
+78: min([|sin(17 * (pi)) + 42, 11.01953125|]) = 11.01953125 vs. 11.01953125
+79: min([|42, -infty|]) = -infty vs. -infty
+80: min([|42, infty|]) = 42 vs. 42
+81: min([|42, NaN|]) = 42 vs. 42
+82: min([|42, 0|]) = 0 vs. 0
+83: min([|42, sin(17 * (pi))|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+84: min([|42, sin(17 * (pi)) + 42|]) = sin(17 * (pi)) + 42 vs. 42 or sin(17 * (pi)) + 42
+85: min([|42, 42|]) = 42 vs. 42
+86: min([|42, 1664|]) = 42 vs. 42
+87: min([|42, (log2(13) / log2(17)) - (log(13) / log(17))|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+88: min([|42, exp(24 / 10)|]) = exp(24 / 10) vs. exp(24 / 10)
+89: min([|42, log2(2076)|]) = log2(2076) vs. log2(2076)
+90: min([|42, -23|]) = -23 vs. -23
+91: min([|42, 11.01953125|]) = 11.01953125 vs. 11.01953125
+92: min([|1664, -infty|]) = -infty vs. -infty
+93: min([|1664, infty|]) = 1664 vs. 1664
+94: min([|1664, NaN|]) = 1664 vs. 1664
+95: min([|1664, 0|]) = 0 vs. 0
+96: min([|1664, sin(17 * (pi))|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+97: min([|1664, sin(17 * (pi)) + 42|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+98: min([|1664, 42|]) = 42 vs. 42
+99: min([|1664, 1664|]) = 1664 vs. 1664
+100: min([|1664, (log2(13) / log2(17)) - (log(13) / log(17))|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+101: min([|1664, exp(24 / 10)|]) = exp(24 / 10) vs. exp(24 / 10)
+102: min([|1664, log2(2076)|]) = log2(2076) vs. log2(2076)
+103: min([|1664, -23|]) = -23 vs. -23
+104: min([|1664, 11.01953125|]) = 11.01953125 vs. 11.01953125
+105: min([|(log2(13) / log2(17)) - (log(13) / log(17)), -infty|]) = -infty vs. -infty
+106: min([|(log2(13) / log2(17)) - (log(13) / log(17)), infty|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+107: min([|(log2(13) / log2(17)) - (log(13) / log(17)), NaN|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+108: min([|(log2(13) / log2(17)) - (log(13) / log(17)), 0|]) = 0 vs. (log2(13) / log2(17)) - (log(13) / log(17)) or 0
+109: min([|(log2(13) / log2(17)) - (log(13) / log(17)), sin(17 * (pi))|]) = sin(17 * (pi)) vs. (log2(13) / log2(17)) - (log(13) / log(17)) or sin(17 * (pi))
+110: min([|(log2(13) / log2(17)) - (log(13) / log(17)), sin(17 * (pi)) + 42|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+111: min([|(log2(13) / log2(17)) - (log(13) / log(17)), 42|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+112: min([|(log2(13) / log2(17)) - (log(13) / log(17)), 1664|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+113: min([|(log2(13) / log2(17)) - (log(13) / log(17)), (log2(13) / log2(17)) - (log(13) / log(17))|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+114: min([|(log2(13) / log2(17)) - (log(13) / log(17)), exp(24 / 10)|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+115: min([|(log2(13) / log2(17)) - (log(13) / log(17)), log2(2076)|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+116: min([|(log2(13) / log2(17)) - (log(13) / log(17)), -23|]) = -23 vs. -23
+117: min([|(log2(13) / log2(17)) - (log(13) / log(17)), 11.01953125|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+118: min([|exp(24 / 10), -infty|]) = -infty vs. -infty
+119: min([|exp(24 / 10), infty|]) = exp(24 / 10) vs. exp(24 / 10)
+120: min([|exp(24 / 10), NaN|]) = exp(24 / 10) vs. exp(24 / 10)
+121: min([|exp(24 / 10), 0|]) = 0 vs. 0
+122: min([|exp(24 / 10), sin(17 * (pi))|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+123: min([|exp(24 / 10), sin(17 * (pi)) + 42|]) = exp(24 / 10) vs. exp(24 / 10)
+124: min([|exp(24 / 10), 42|]) = exp(24 / 10) vs. exp(24 / 10)
+125: min([|exp(24 / 10), 1664|]) = exp(24 / 10) vs. exp(24 / 10)
+126: min([|exp(24 / 10), (log2(13) / log2(17)) - (log(13) / log(17))|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+127: min([|exp(12 / 5), exp(12 / 5)|]) = exp(12 / 5) vs. exp(12 / 5)
+128: min([|exp(12 / 5), log2(2076)|]) = log2(2076) vs. log2(2076)
+129: min([|exp(12 / 5), -23|]) = -23 vs. -23
+130: min([|exp(12 / 5), 11.01953125|]) = 11.01953125 vs. 11.01953125
+131: min([|log2(2076), -infty|]) = -infty vs. -infty
+132: min([|log2(2076), infty|]) = log2(2076) vs. log2(2076)
+133: min([|log2(2076), NaN|]) = log2(2076) vs. log2(2076)
+134: min([|log2(2076), 0|]) = 0 vs. 0
+135: min([|log2(2076), sin(17 * (pi))|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+136: min([|log2(2076), sin(17 * (pi)) + 42|]) = log2(2076) vs. log2(2076)
+137: min([|log2(2076), 42|]) = log2(2076) vs. log2(2076)
+138: min([|log2(2076), 1664|]) = log2(2076) vs. log2(2076)
+139: min([|log2(2076), (log2(13) / log2(17)) - (log(13) / log(17))|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+140: min([|log2(2076), exp(24 / 10)|]) = log2(2076) vs. log2(2076)
+141: min([|log2(2076), log2(2076)|]) = log2(2076) vs. log2(2076)
+142: min([|log2(2076), -23|]) = -23 vs. -23
+143: min([|log2(2076), 11.01953125|]) = 11.01953125 vs. 11.01953125
+144: min([|-23, -infty|]) = -infty vs. -infty
+145: min([|-23, infty|]) = -23 vs. -23
+146: min([|-23, NaN|]) = -23 vs. -23
+147: min([|-23, 0|]) = -23 vs. -23
+148: min([|-23, sin(17 * (pi))|]) = -23 vs. -23
+149: min([|-23, sin(17 * (pi)) + 42|]) = -23 vs. -23
+150: min([|-23, 42|]) = -23 vs. -23
+151: min([|-23, 1664|]) = -23 vs. -23
+152: min([|-23, (log2(13) / log2(17)) - (log(13) / log(17))|]) = -23 vs. -23
+153: min([|-23, exp(24 / 10)|]) = -23 vs. -23
+154: min([|-23, log2(2076)|]) = -23 vs. -23
+155: min([|-23, -23|]) = -23 vs. -23
+156: min([|-23, 11.01953125|]) = -23 vs. -23
+157: min([|11.01953125, -infty|]) = -infty vs. -infty
+158: min([|11.01953125, infty|]) = 11.01953125 vs. 11.01953125
+159: min([|11.01953125, NaN|]) = 11.01953125 vs. 11.01953125
+160: min([|11.01953125, 0|]) = 0 vs. 0
+161: min([|11.01953125, sin(17 * (pi))|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+162: min([|11.01953125, sin(17 * (pi)) + 42|]) = 11.01953125 vs. 11.01953125
+163: min([|11.01953125, 42|]) = 11.01953125 vs. 11.01953125
+164: min([|11.01953125, 1664|]) = 11.01953125 vs. 11.01953125
+165: min([|11.01953125, (log2(13) / log2(17)) - (log(13) / log(17))|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+166: min([|11.01953125, exp(24 / 10)|]) = 11.01953125 vs. 11.01953125
+167: min([|11.01953125, log2(2076)|]) = 11.01953125 vs. 11.01953125
+168: min([|11.01953125, -23|]) = -23 vs. -23
+169: min([|11.01953125, 11.01953125|]) = 11.01953125 vs. 11.01953125
+170: min(-infty, -infty) = -infty vs. -infty
+171: min(-infty, infty) = -infty vs. -infty
+172: min(-infty, NaN) = -infty vs. -infty
+173: min(-infty, 0) = -infty vs. -infty
+174: min(-infty, sin(17 * (pi))) = -infty vs. -infty
+175: min(-infty, sin(17 * (pi)) + 42) = -infty vs. -infty
+176: min(-infty, 42) = -infty vs. -infty
+177: min(-infty, 1664) = -infty vs. -infty
+178: min(-infty, (log2(13) / log2(17)) - (log(13) / log(17))) = -infty vs. -infty
+179: min(-infty, exp(24 / 10)) = -infty vs. -infty
+180: min(-infty, log2(2076)) = -infty vs. -infty
+181: min(-infty, -23) = -infty vs. -infty
+182: min(-infty, 11.01953125) = -infty vs. -infty
+183: min(infty, -infty) = -infty vs. -infty
+184: min(infty, infty) = infty vs. infty
+185: min(infty, NaN) = infty vs. infty
+186: min(infty, 0) = 0 vs. 0
+187: min(infty, sin(17 * (pi))) = sin(17 * (pi)) vs. sin(17 * (pi))
+188: min(infty, sin(17 * (pi)) + 42) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+189: min(infty, 42) = 42 vs. 42
+190: min(infty, 1664) = 1664 vs. 1664
+191: min(infty, (log2(13) / log2(17)) - (log(13) / log(17))) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+192: min(infty, exp(24 / 10)) = exp(24 / 10) vs. exp(24 / 10)
+193: min(infty, log2(2076)) = log2(2076) vs. log2(2076)
+194: min(infty, -23) = -23 vs. -23
+195: min(infty, 11.01953125) = 11.01953125 vs. 11.01953125
+196: min(NaN, -infty) = -infty vs. -infty
+197: min(NaN, infty) = infty vs. infty
+198: min(NaN, NaN) = NaN vs. NaN
+199: min(NaN, 0) = 0 vs. 0
+200: min(NaN, sin(17 * (pi))) = sin(17 * (pi)) vs. sin(17 * (pi))
+201: min(NaN, sin(17 * (pi)) + 42) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+202: min(NaN, 42) = 42 vs. 42
+203: min(NaN, 1664) = 1664 vs. 1664
+204: min(NaN, (log2(13) / log2(17)) - (log(13) / log(17))) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+205: min(NaN, exp(24 / 10)) = exp(24 / 10) vs. exp(24 / 10)
+206: min(NaN, log2(2076)) = log2(2076) vs. log2(2076)
+207: min(NaN, -23) = -23 vs. -23
+208: min(NaN, 11.01953125) = 11.01953125 vs. 11.01953125
+209: min(0, -infty) = -infty vs. -infty
+210: min(0, infty) = 0 vs. 0
+211: min(0, NaN) = 0 vs. 0
+212: min(0, 0) = 0 vs. 0
+213: min(0, sin(17 * (pi))) = sin(17 * (pi)) vs. 0 or sin(17 * (pi))
+214: min(0, sin(17 * (pi)) + 42) = 0 vs. 0
+215: min(0, 42) = 0 vs. 0
+216: min(0, 1664) = 0 vs. 0
+217: min(0, (log2(13) / log2(17)) - (log(13) / log(17))) = log2(13) / log2(17) - log(13) / log(17) vs. 0 or (log2(13) / log2(17)) - (log(13) / log(17))
+218: min(0, exp(24 / 10)) = 0 vs. 0
+219: min(0, log2(2076)) = 0 vs. 0
+220: min(0, -23) = -23 vs. -23
+221: min(0, 11.01953125) = 0 vs. 0
+222: min(sin(17 * (pi)), -infty) = -infty vs. -infty
+223: min(sin(17 * (pi)), infty) = sin(17 * (pi)) vs. sin(17 * (pi))
+224: min(sin(17 * (pi)), NaN) = sin(17 * (pi)) vs. sin(17 * (pi))
+225: min(sin(17 * (pi)), 0) = 0 vs. sin(17 * (pi)) or 0
+226: min(sin(17 * (pi)), sin(17 * (pi))) = sin(17 * (pi)) vs. sin(17 * (pi))
+227: min(sin(17 * (pi)), sin(17 * (pi)) + 42) = sin(17 * (pi)) vs. sin(17 * (pi))
+228: min(sin(17 * (pi)), 42) = sin(17 * (pi)) vs. sin(17 * (pi))
+229: min(sin(17 * (pi)), 1664) = sin(17 * (pi)) vs. sin(17 * (pi))
+230: min(sin(17 * (pi)), (log2(13) / log2(17)) - (log(13) / log(17))) = log2(13) / log2(17) - log(13) / log(17) vs. sin(17 * (pi)) or (log2(13) / log2(17)) - (log(13) / log(17))
+231: min(sin(17 * (pi)), exp(24 / 10)) = sin(17 * (pi)) vs. sin(17 * (pi))
+232: min(sin(17 * (pi)), log2(2076)) = sin(17 * (pi)) vs. sin(17 * (pi))
+233: min(sin(17 * (pi)), -23) = -23 vs. -23
+234: min(sin(17 * (pi)), 11.01953125) = sin(17 * (pi)) vs. sin(17 * (pi))
+235: min(sin(17 * (pi)) + 42, -infty) = -infty vs. -infty
+236: min(sin(17 * (pi)) + 42, infty) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+237: min(sin(17 * (pi)) + 42, NaN) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+238: min(sin(17 * (pi)) + 42, 0) = 0 vs. 0
+239: min(sin(17 * (pi)) + 42, sin(17 * (pi))) = sin(17 * (pi)) vs. sin(17 * (pi))
+240: min(sin(17 * (pi)) + 42, sin(17 * (pi)) + 42) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+241: min(sin(17 * (pi)) + 42, 42) = 42 vs. sin(17 * (pi)) + 42 or 42
+242: min(sin(17 * (pi)) + 42, 1664) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+243: min(sin(17 * (pi)) + 42, (log2(13) / log2(17)) - (log(13) / log(17))) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+244: min(sin(17 * (pi)) + 42, exp(24 / 10)) = exp(24 / 10) vs. exp(24 / 10)
+245: min(sin(17 * (pi)) + 42, log2(2076)) = log2(2076) vs. log2(2076)
+246: min(sin(17 * (pi)) + 42, -23) = -23 vs. -23
+247: min(sin(17 * (pi)) + 42, 11.01953125) = 11.01953125 vs. 11.01953125
+248: min(42, -infty) = -infty vs. -infty
+249: min(42, infty) = 42 vs. 42
+250: min(42, NaN) = 42 vs. 42
+251: min(42, 0) = 0 vs. 0
+252: min(42, sin(17 * (pi))) = sin(17 * (pi)) vs. sin(17 * (pi))
+253: min(42, sin(17 * (pi)) + 42) = sin(17 * (pi)) + 42 vs. 42 or sin(17 * (pi)) + 42
+254: min(42, 42) = 42 vs. 42
+255: min(42, 1664) = 42 vs. 42
+256: min(42, (log2(13) / log2(17)) - (log(13) / log(17))) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+257: min(42, exp(24 / 10)) = exp(24 / 10) vs. exp(24 / 10)
+258: min(42, log2(2076)) = log2(2076) vs. log2(2076)
+259: min(42, -23) = -23 vs. -23
+260: min(42, 11.01953125) = 11.01953125 vs. 11.01953125
+261: min(1664, -infty) = -infty vs. -infty
+262: min(1664, infty) = 1664 vs. 1664
+263: min(1664, NaN) = 1664 vs. 1664
+264: min(1664, 0) = 0 vs. 0
+265: min(1664, sin(17 * (pi))) = sin(17 * (pi)) vs. sin(17 * (pi))
+266: min(1664, sin(17 * (pi)) + 42) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+267: min(1664, 42) = 42 vs. 42
+268: min(1664, 1664) = 1664 vs. 1664
+269: min(1664, (log2(13) / log2(17)) - (log(13) / log(17))) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+270: min(1664, exp(24 / 10)) = exp(24 / 10) vs. exp(24 / 10)
+271: min(1664, log2(2076)) = log2(2076) vs. log2(2076)
+272: min(1664, -23) = -23 vs. -23
+273: min(1664, 11.01953125) = 11.01953125 vs. 11.01953125
+274: min((log2(13) / log2(17)) - (log(13) / log(17)), -infty) = -infty vs. -infty
+275: min((log2(13) / log2(17)) - (log(13) / log(17)), infty) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+276: min((log2(13) / log2(17)) - (log(13) / log(17)), NaN) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+277: min((log2(13) / log2(17)) - (log(13) / log(17)), 0) = 0 vs. (log2(13) / log2(17)) - (log(13) / log(17)) or 0
+278: min((log2(13) / log2(17)) - (log(13) / log(17)), sin(17 * (pi))) = sin(17 * (pi)) vs. (log2(13) / log2(17)) - (log(13) / log(17)) or sin(17 * (pi))
+279: min((log2(13) / log2(17)) - (log(13) / log(17)), sin(17 * (pi)) + 42) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+280: min((log2(13) / log2(17)) - (log(13) / log(17)), 42) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+281: min((log2(13) / log2(17)) - (log(13) / log(17)), 1664) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+282: min((log2(13) / log2(17)) - (log(13) / log(17)), (log2(13) / log2(17)) - (log(13) / log(17))) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+283: min((log2(13) / log2(17)) - (log(13) / log(17)), exp(24 / 10)) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+284: min((log2(13) / log2(17)) - (log(13) / log(17)), log2(2076)) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+285: min((log2(13) / log2(17)) - (log(13) / log(17)), -23) = -23 vs. -23
+286: min((log2(13) / log2(17)) - (log(13) / log(17)), 11.01953125) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+287: min(exp(24 / 10), -infty) = -infty vs. -infty
+288: min(exp(24 / 10), infty) = exp(24 / 10) vs. exp(24 / 10)
+289: min(exp(24 / 10), NaN) = exp(24 / 10) vs. exp(24 / 10)
+290: min(exp(24 / 10), 0) = 0 vs. 0
+291: min(exp(24 / 10), sin(17 * (pi))) = sin(17 * (pi)) vs. sin(17 * (pi))
+292: min(exp(24 / 10), sin(17 * (pi)) + 42) = exp(24 / 10) vs. exp(24 / 10)
+293: min(exp(24 / 10), 42) = exp(24 / 10) vs. exp(24 / 10)
+294: min(exp(24 / 10), 1664) = exp(24 / 10) vs. exp(24 / 10)
+295: min(exp(24 / 10), (log2(13) / log2(17)) - (log(13) / log(17))) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+296: min(exp(12 / 5), exp(12 / 5)) = exp(12 / 5) vs. exp(12 / 5)
+297: min(exp(12 / 5), log2(2076)) = log2(2076) vs. log2(2076)
+298: min(exp(12 / 5), -23) = -23 vs. -23
+299: min(exp(12 / 5), 11.01953125) = 11.01953125 vs. 11.01953125
+300: min(log2(2076), -infty) = -infty vs. -infty
+301: min(log2(2076), infty) = log2(2076) vs. log2(2076)
+302: min(log2(2076), NaN) = log2(2076) vs. log2(2076)
+303: min(log2(2076), 0) = 0 vs. 0
+304: min(log2(2076), sin(17 * (pi))) = sin(17 * (pi)) vs. sin(17 * (pi))
+305: min(log2(2076), sin(17 * (pi)) + 42) = log2(2076) vs. log2(2076)
+306: min(log2(2076), 42) = log2(2076) vs. log2(2076)
+307: min(log2(2076), 1664) = log2(2076) vs. log2(2076)
+308: min(log2(2076), (log2(13) / log2(17)) - (log(13) / log(17))) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+309: min(log2(2076), exp(24 / 10)) = log2(2076) vs. log2(2076)
+310: min(log2(2076), log2(2076)) = log2(2076) vs. log2(2076)
+311: min(log2(2076), -23) = -23 vs. -23
+312: min(log2(2076), 11.01953125) = 11.01953125 vs. 11.01953125
+313: min(-23, -infty) = -infty vs. -infty
+314: min(-23, infty) = -23 vs. -23
+315: min(-23, NaN) = -23 vs. -23
+316: min(-23, 0) = -23 vs. -23
+317: min(-23, sin(17 * (pi))) = -23 vs. -23
+318: min(-23, sin(17 * (pi)) + 42) = -23 vs. -23
+319: min(-23, 42) = -23 vs. -23
+320: min(-23, 1664) = -23 vs. -23
+321: min(-23, (log2(13) / log2(17)) - (log(13) / log(17))) = -23 vs. -23
+322: min(-23, exp(24 / 10)) = -23 vs. -23
+323: min(-23, log2(2076)) = -23 vs. -23
+324: min(-23, -23) = -23 vs. -23
+325: min(-23, 11.01953125) = -23 vs. -23
+326: min(11.01953125, -infty) = -infty vs. -infty
+327: min(11.01953125, infty) = 11.01953125 vs. 11.01953125
+328: min(11.01953125, NaN) = 11.01953125 vs. 11.01953125
+329: min(11.01953125, 0) = 0 vs. 0
+330: min(11.01953125, sin(17 * (pi))) = sin(17 * (pi)) vs. sin(17 * (pi))
+331: min(11.01953125, sin(17 * (pi)) + 42) = 11.01953125 vs. 11.01953125
+332: min(11.01953125, 42) = 11.01953125 vs. 11.01953125
+333: min(11.01953125, 1664) = 11.01953125 vs. 11.01953125
+334: min(11.01953125, (log2(13) / log2(17)) - (log(13) / log(17))) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+335: min(11.01953125, exp(24 / 10)) = 11.01953125 vs. 11.01953125
+336: min(11.01953125, log2(2076)) = 11.01953125 vs. 11.01953125
+337: min(11.01953125, -23) = -23 vs. -23
+338: min(11.01953125, 11.01953125) = 11.01953125 vs. 11.01953125
+339: max([|-infty, -infty|]) = -infty vs. -infty
+340: max([|-infty, infty|]) = infty vs. infty
+341: max([|-infty, NaN|]) = -infty vs. -infty
+342: max([|-infty, 0|]) = 0 vs. 0
+343: max([|-infty, sin(17 * (pi))|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+344: max([|-infty, sin(17 * (pi)) + 42|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+345: max([|-infty, 42|]) = 42 vs. 42
+346: max([|-infty, 1664|]) = 1664 vs. 1664
+347: max([|-infty, (log2(13) / log2(17)) - (log(13) / log(17))|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+348: max([|-infty, exp(24 / 10)|]) = exp(24 / 10) vs. exp(24 / 10)
+349: max([|-infty, log2(2076)|]) = log2(2076) vs. log2(2076)
+350: max([|-infty, -23|]) = -23 vs. -23
+351: max([|-infty, 11.01953125|]) = 11.01953125 vs. 11.01953125
+352: max([|infty, -infty|]) = infty vs. infty
+353: max([|infty, infty|]) = infty vs. infty
+354: max([|infty, NaN|]) = infty vs. infty
+355: max([|infty, 0|]) = infty vs. infty
+356: max([|infty, sin(17 * (pi))|]) = infty vs. infty
+357: max([|infty, sin(17 * (pi)) + 42|]) = infty vs. infty
+358: max([|infty, 42|]) = infty vs. infty
+359: max([|infty, 1664|]) = infty vs. infty
+360: max([|infty, (log2(13) / log2(17)) - (log(13) / log(17))|]) = infty vs. infty
+361: max([|infty, exp(24 / 10)|]) = infty vs. infty
+362: max([|infty, log2(2076)|]) = infty vs. infty
+363: max([|infty, -23|]) = infty vs. infty
+364: max([|infty, 11.01953125|]) = infty vs. infty
+365: max([|NaN, -infty|]) = -infty vs. -infty
+366: max([|NaN, infty|]) = infty vs. infty
+367: max([|NaN, NaN|]) = NaN vs. NaN
+368: max([|NaN, 0|]) = 0 vs. 0
+369: max([|NaN, sin(17 * (pi))|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+370: max([|NaN, sin(17 * (pi)) + 42|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+371: max([|NaN, 42|]) = 42 vs. 42
+372: max([|NaN, 1664|]) = 1664 vs. 1664
+373: max([|NaN, (log2(13) / log2(17)) - (log(13) / log(17))|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+374: max([|NaN, exp(24 / 10)|]) = exp(24 / 10) vs. exp(24 / 10)
+375: max([|NaN, log2(2076)|]) = log2(2076) vs. log2(2076)
+376: max([|NaN, -23|]) = -23 vs. -23
+377: max([|NaN, 11.01953125|]) = 11.01953125 vs. 11.01953125
+378: max([|0, -infty|]) = 0 vs. 0
+379: max([|0, infty|]) = infty vs. infty
+380: max([|0, NaN|]) = 0 vs. 0
+381: max([|0, 0|]) = 0 vs. 0
+382: max([|0, sin(17 * (pi))|]) = 0 vs. 0 or sin(17 * (pi))
+383: max([|0, sin(17 * (pi)) + 42|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+384: max([|0, 42|]) = 42 vs. 42
+385: max([|0, 1664|]) = 1664 vs. 1664
+386: max([|0, (log2(13) / log2(17)) - (log(13) / log(17))|]) = 0 vs. 0 or (log2(13) / log2(17)) - (log(13) / log(17))
+387: max([|0, exp(24 / 10)|]) = exp(24 / 10) vs. exp(24 / 10)
+388: max([|0, log2(2076)|]) = log2(2076) vs. log2(2076)
+389: max([|0, -23|]) = 0 vs. 0
+390: max([|0, 11.01953125|]) = 11.01953125 vs. 11.01953125
+391: max([|sin(17 * (pi)), -infty|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+392: max([|sin(17 * (pi)), infty|]) = infty vs. infty
+393: max([|sin(17 * (pi)), NaN|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+394: max([|sin(17 * (pi)), 0|]) = sin(17 * (pi)) vs. sin(17 * (pi)) or 0
+395: max([|sin(17 * (pi)), sin(17 * (pi))|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+396: max([|sin(17 * (pi)), sin(17 * (pi)) + 42|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+397: max([|sin(17 * (pi)), 42|]) = 42 vs. 42
+398: max([|sin(17 * (pi)), 1664|]) = 1664 vs. 1664
+399: max([|sin(17 * (pi)), (log2(13) / log2(17)) - (log(13) / log(17))|]) = sin(17 * (pi)) vs. sin(17 * (pi)) or (log2(13) / log2(17)) - (log(13) / log(17))
+400: max([|sin(17 * (pi)), exp(24 / 10)|]) = exp(24 / 10) vs. exp(24 / 10)
+401: max([|sin(17 * (pi)), log2(2076)|]) = log2(2076) vs. log2(2076)
+402: max([|sin(17 * (pi)), -23|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+403: max([|sin(17 * (pi)), 11.01953125|]) = 11.01953125 vs. 11.01953125
+404: max([|sin(17 * (pi)) + 42, -infty|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+405: max([|sin(17 * (pi)) + 42, infty|]) = infty vs. infty
+406: max([|sin(17 * (pi)) + 42, NaN|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+407: max([|sin(17 * (pi)) + 42, 0|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+408: max([|sin(17 * (pi)) + 42, sin(17 * (pi))|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+409: max([|sin(17 * (pi)) + 42, sin(17 * (pi)) + 42|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+410: max([|sin(17 * (pi)) + 42, 42|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42 or 42
+411: max([|sin(17 * (pi)) + 42, 1664|]) = 1664 vs. 1664
+412: max([|sin(17 * (pi)) + 42, (log2(13) / log2(17)) - (log(13) / log(17))|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+413: max([|sin(17 * (pi)) + 42, exp(24 / 10)|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+414: max([|sin(17 * (pi)) + 42, log2(2076)|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+415: max([|sin(17 * (pi)) + 42, -23|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+416: max([|sin(17 * (pi)) + 42, 11.01953125|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+417: max([|42, -infty|]) = 42 vs. 42
+418: max([|42, infty|]) = infty vs. infty
+419: max([|42, NaN|]) = 42 vs. 42
+420: max([|42, 0|]) = 42 vs. 42
+421: max([|42, sin(17 * (pi))|]) = 42 vs. 42
+422: max([|42, sin(17 * (pi)) + 42|]) = 42 vs. 42 or sin(17 * (pi)) + 42
+423: max([|42, 42|]) = 42 vs. 42
+424: max([|42, 1664|]) = 1664 vs. 1664
+425: max([|42, (log2(13) / log2(17)) - (log(13) / log(17))|]) = 42 vs. 42
+426: max([|42, exp(24 / 10)|]) = 42 vs. 42
+427: max([|42, log2(2076)|]) = 42 vs. 42
+428: max([|42, -23|]) = 42 vs. 42
+429: max([|42, 11.01953125|]) = 42 vs. 42
+430: max([|1664, -infty|]) = 1664 vs. 1664
+431: max([|1664, infty|]) = infty vs. infty
+432: max([|1664, NaN|]) = 1664 vs. 1664
+433: max([|1664, 0|]) = 1664 vs. 1664
+434: max([|1664, sin(17 * (pi))|]) = 1664 vs. 1664
+435: max([|1664, sin(17 * (pi)) + 42|]) = 1664 vs. 1664
+436: max([|1664, 42|]) = 1664 vs. 1664
+437: max([|1664, 1664|]) = 1664 vs. 1664
+438: max([|1664, (log2(13) / log2(17)) - (log(13) / log(17))|]) = 1664 vs. 1664
+439: max([|1664, exp(24 / 10)|]) = 1664 vs. 1664
+440: max([|1664, log2(2076)|]) = 1664 vs. 1664
+441: max([|1664, -23|]) = 1664 vs. 1664
+442: max([|1664, 11.01953125|]) = 1664 vs. 1664
+443: max([|(log2(13) / log2(17)) - (log(13) / log(17)), -infty|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+444: max([|(log2(13) / log2(17)) - (log(13) / log(17)), infty|]) = infty vs. infty
+445: max([|(log2(13) / log2(17)) - (log(13) / log(17)), NaN|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+446: max([|(log2(13) / log2(17)) - (log(13) / log(17)), 0|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17)) or 0
+447: max([|(log2(13) / log2(17)) - (log(13) / log(17)), sin(17 * (pi))|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17)) or sin(17 * (pi))
+448: max([|(log2(13) / log2(17)) - (log(13) / log(17)), sin(17 * (pi)) + 42|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+449: max([|(log2(13) / log2(17)) - (log(13) / log(17)), 42|]) = 42 vs. 42
+450: max([|(log2(13) / log2(17)) - (log(13) / log(17)), 1664|]) = 1664 vs. 1664
+451: max([|(log2(13) / log2(17)) - (log(13) / log(17)), (log2(13) / log2(17)) - (log(13) / log(17))|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+452: max([|(log2(13) / log2(17)) - (log(13) / log(17)), exp(24 / 10)|]) = exp(24 / 10) vs. exp(24 / 10)
+453: max([|(log2(13) / log2(17)) - (log(13) / log(17)), log2(2076)|]) = log2(2076) vs. log2(2076)
+454: max([|(log2(13) / log2(17)) - (log(13) / log(17)), -23|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+455: max([|(log2(13) / log2(17)) - (log(13) / log(17)), 11.01953125|]) = 11.01953125 vs. 11.01953125
+456: max([|exp(24 / 10), -infty|]) = exp(24 / 10) vs. exp(24 / 10)
+457: max([|exp(24 / 10), infty|]) = infty vs. infty
+458: max([|exp(24 / 10), NaN|]) = exp(24 / 10) vs. exp(24 / 10)
+459: max([|exp(24 / 10), 0|]) = exp(24 / 10) vs. exp(24 / 10)
+460: max([|exp(24 / 10), sin(17 * (pi))|]) = exp(24 / 10) vs. exp(24 / 10)
+461: max([|exp(24 / 10), sin(17 * (pi)) + 42|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+462: max([|exp(24 / 10), 42|]) = 42 vs. 42
+463: max([|exp(24 / 10), 1664|]) = 1664 vs. 1664
+464: max([|exp(24 / 10), (log2(13) / log2(17)) - (log(13) / log(17))|]) = exp(24 / 10) vs. exp(24 / 10)
+465: max([|exp(12 / 5), exp(12 / 5)|]) = exp(12 / 5) vs. exp(12 / 5)
+466: max([|exp(12 / 5), log2(2076)|]) = exp(12 / 5) vs. exp(12 / 5)
+467: max([|exp(12 / 5), -23|]) = exp(12 / 5) vs. exp(12 / 5)
+468: max([|exp(12 / 5), 11.01953125|]) = exp(12 / 5) vs. exp(12 / 5)
+469: max([|log2(2076), -infty|]) = log2(2076) vs. log2(2076)
+470: max([|log2(2076), infty|]) = infty vs. infty
+471: max([|log2(2076), NaN|]) = log2(2076) vs. log2(2076)
+472: max([|log2(2076), 0|]) = log2(2076) vs. log2(2076)
+473: max([|log2(2076), sin(17 * (pi))|]) = log2(2076) vs. log2(2076)
+474: max([|log2(2076), sin(17 * (pi)) + 42|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+475: max([|log2(2076), 42|]) = 42 vs. 42
+476: max([|log2(2076), 1664|]) = 1664 vs. 1664
+477: max([|log2(2076), (log2(13) / log2(17)) - (log(13) / log(17))|]) = log2(2076) vs. log2(2076)
+478: max([|log2(2076), exp(24 / 10)|]) = exp(24 / 10) vs. exp(24 / 10)
+479: max([|log2(2076), log2(2076)|]) = log2(2076) vs. log2(2076)
+480: max([|log2(2076), -23|]) = log2(2076) vs. log2(2076)
+481: max([|log2(2076), 11.01953125|]) = log2(2076) vs. log2(2076)
+482: max([|-23, -infty|]) = -23 vs. -23
+483: max([|-23, infty|]) = infty vs. infty
+484: max([|-23, NaN|]) = -23 vs. -23
+485: max([|-23, 0|]) = 0 vs. 0
+486: max([|-23, sin(17 * (pi))|]) = sin(17 * (pi)) vs. sin(17 * (pi))
+487: max([|-23, sin(17 * (pi)) + 42|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+488: max([|-23, 42|]) = 42 vs. 42
+489: max([|-23, 1664|]) = 1664 vs. 1664
+490: max([|-23, (log2(13) / log2(17)) - (log(13) / log(17))|]) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+491: max([|-23, exp(24 / 10)|]) = exp(24 / 10) vs. exp(24 / 10)
+492: max([|-23, log2(2076)|]) = log2(2076) vs. log2(2076)
+493: max([|-23, -23|]) = -23 vs. -23
+494: max([|-23, 11.01953125|]) = 11.01953125 vs. 11.01953125
+495: max([|11.01953125, -infty|]) = 11.01953125 vs. 11.01953125
+496: max([|11.01953125, infty|]) = infty vs. infty
+497: max([|11.01953125, NaN|]) = 11.01953125 vs. 11.01953125
+498: max([|11.01953125, 0|]) = 11.01953125 vs. 11.01953125
+499: max([|11.01953125, sin(17 * (pi))|]) = 11.01953125 vs. 11.01953125
+500: max([|11.01953125, sin(17 * (pi)) + 42|]) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+501: max([|11.01953125, 42|]) = 42 vs. 42
+502: max([|11.01953125, 1664|]) = 1664 vs. 1664
+503: max([|11.01953125, (log2(13) / log2(17)) - (log(13) / log(17))|]) = 11.01953125 vs. 11.01953125
+504: max([|11.01953125, exp(24 / 10)|]) = exp(24 / 10) vs. exp(24 / 10)
+505: max([|11.01953125, log2(2076)|]) = log2(2076) vs. log2(2076)
+506: max([|11.01953125, -23|]) = 11.01953125 vs. 11.01953125
+507: max([|11.01953125, 11.01953125|]) = 11.01953125 vs. 11.01953125
+508: max(-infty, -infty) = -infty vs. -infty
+509: max(-infty, infty) = infty vs. infty
+510: max(-infty, NaN) = -infty vs. -infty
+511: max(-infty, 0) = 0 vs. 0
+512: max(-infty, sin(17 * (pi))) = sin(17 * (pi)) vs. sin(17 * (pi))
+513: max(-infty, sin(17 * (pi)) + 42) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+514: max(-infty, 42) = 42 vs. 42
+515: max(-infty, 1664) = 1664 vs. 1664
+516: max(-infty, (log2(13) / log2(17)) - (log(13) / log(17))) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+517: max(-infty, exp(24 / 10)) = exp(24 / 10) vs. exp(24 / 10)
+518: max(-infty, log2(2076)) = log2(2076) vs. log2(2076)
+519: max(-infty, -23) = -23 vs. -23
+520: max(-infty, 11.01953125) = 11.01953125 vs. 11.01953125
+521: max(infty, -infty) = infty vs. infty
+522: max(infty, infty) = infty vs. infty
+523: max(infty, NaN) = infty vs. infty
+524: max(infty, 0) = infty vs. infty
+525: max(infty, sin(17 * (pi))) = infty vs. infty
+526: max(infty, sin(17 * (pi)) + 42) = infty vs. infty
+527: max(infty, 42) = infty vs. infty
+528: max(infty, 1664) = infty vs. infty
+529: max(infty, (log2(13) / log2(17)) - (log(13) / log(17))) = infty vs. infty
+530: max(infty, exp(24 / 10)) = infty vs. infty
+531: max(infty, log2(2076)) = infty vs. infty
+532: max(infty, -23) = infty vs. infty
+533: max(infty, 11.01953125) = infty vs. infty
+534: max(NaN, -infty) = -infty vs. -infty
+535: max(NaN, infty) = infty vs. infty
+536: max(NaN, NaN) = NaN vs. NaN
+537: max(NaN, 0) = 0 vs. 0
+538: max(NaN, sin(17 * (pi))) = sin(17 * (pi)) vs. sin(17 * (pi))
+539: max(NaN, sin(17 * (pi)) + 42) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+540: max(NaN, 42) = 42 vs. 42
+541: max(NaN, 1664) = 1664 vs. 1664
+542: max(NaN, (log2(13) / log2(17)) - (log(13) / log(17))) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+543: max(NaN, exp(24 / 10)) = exp(24 / 10) vs. exp(24 / 10)
+544: max(NaN, log2(2076)) = log2(2076) vs. log2(2076)
+545: max(NaN, -23) = -23 vs. -23
+546: max(NaN, 11.01953125) = 11.01953125 vs. 11.01953125
+547: max(0, -infty) = 0 vs. 0
+548: max(0, infty) = infty vs. infty
+549: max(0, NaN) = 0 vs. 0
+550: max(0, 0) = 0 vs. 0
+551: max(0, sin(17 * (pi))) = 0 vs. 0 or sin(17 * (pi))
+552: max(0, sin(17 * (pi)) + 42) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+553: max(0, 42) = 42 vs. 42
+554: max(0, 1664) = 1664 vs. 1664
+555: max(0, (log2(13) / log2(17)) - (log(13) / log(17))) = 0 vs. 0 or (log2(13) / log2(17)) - (log(13) / log(17))
+556: max(0, exp(24 / 10)) = exp(24 / 10) vs. exp(24 / 10)
+557: max(0, log2(2076)) = log2(2076) vs. log2(2076)
+558: max(0, -23) = 0 vs. 0
+559: max(0, 11.01953125) = 11.01953125 vs. 11.01953125
+560: max(sin(17 * (pi)), -infty) = sin(17 * (pi)) vs. sin(17 * (pi))
+561: max(sin(17 * (pi)), infty) = infty vs. infty
+562: max(sin(17 * (pi)), NaN) = sin(17 * (pi)) vs. sin(17 * (pi))
+563: max(sin(17 * (pi)), 0) = sin(17 * (pi)) vs. sin(17 * (pi)) or 0
+564: max(sin(17 * (pi)), sin(17 * (pi))) = sin(17 * (pi)) vs. sin(17 * (pi))
+565: max(sin(17 * (pi)), sin(17 * (pi)) + 42) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+566: max(sin(17 * (pi)), 42) = 42 vs. 42
+567: max(sin(17 * (pi)), 1664) = 1664 vs. 1664
+568: max(sin(17 * (pi)), (log2(13) / log2(17)) - (log(13) / log(17))) = sin(17 * (pi)) vs. sin(17 * (pi)) or (log2(13) / log2(17)) - (log(13) / log(17))
+569: max(sin(17 * (pi)), exp(24 / 10)) = exp(24 / 10) vs. exp(24 / 10)
+570: max(sin(17 * (pi)), log2(2076)) = log2(2076) vs. log2(2076)
+571: max(sin(17 * (pi)), -23) = sin(17 * (pi)) vs. sin(17 * (pi))
+572: max(sin(17 * (pi)), 11.01953125) = 11.01953125 vs. 11.01953125
+573: max(sin(17 * (pi)) + 42, -infty) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+574: max(sin(17 * (pi)) + 42, infty) = infty vs. infty
+575: max(sin(17 * (pi)) + 42, NaN) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+576: max(sin(17 * (pi)) + 42, 0) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+577: max(sin(17 * (pi)) + 42, sin(17 * (pi))) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+578: max(sin(17 * (pi)) + 42, sin(17 * (pi)) + 42) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+579: max(sin(17 * (pi)) + 42, 42) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42 or 42
+580: max(sin(17 * (pi)) + 42, 1664) = 1664 vs. 1664
+581: max(sin(17 * (pi)) + 42, (log2(13) / log2(17)) - (log(13) / log(17))) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+582: max(sin(17 * (pi)) + 42, exp(24 / 10)) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+583: max(sin(17 * (pi)) + 42, log2(2076)) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+584: max(sin(17 * (pi)) + 42, -23) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+585: max(sin(17 * (pi)) + 42, 11.01953125) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+586: max(42, -infty) = 42 vs. 42
+587: max(42, infty) = infty vs. infty
+588: max(42, NaN) = 42 vs. 42
+589: max(42, 0) = 42 vs. 42
+590: max(42, sin(17 * (pi))) = 42 vs. 42
+591: max(42, sin(17 * (pi)) + 42) = 42 vs. 42 or sin(17 * (pi)) + 42
+592: max(42, 42) = 42 vs. 42
+593: max(42, 1664) = 1664 vs. 1664
+594: max(42, (log2(13) / log2(17)) - (log(13) / log(17))) = 42 vs. 42
+595: max(42, exp(24 / 10)) = 42 vs. 42
+596: max(42, log2(2076)) = 42 vs. 42
+597: max(42, -23) = 42 vs. 42
+598: max(42, 11.01953125) = 42 vs. 42
+599: max(1664, -infty) = 1664 vs. 1664
+600: max(1664, infty) = infty vs. infty
+601: max(1664, NaN) = 1664 vs. 1664
+602: max(1664, 0) = 1664 vs. 1664
+603: max(1664, sin(17 * (pi))) = 1664 vs. 1664
+604: max(1664, sin(17 * (pi)) + 42) = 1664 vs. 1664
+605: max(1664, 42) = 1664 vs. 1664
+606: max(1664, 1664) = 1664 vs. 1664
+607: max(1664, (log2(13) / log2(17)) - (log(13) / log(17))) = 1664 vs. 1664
+608: max(1664, exp(24 / 10)) = 1664 vs. 1664
+609: max(1664, log2(2076)) = 1664 vs. 1664
+610: max(1664, -23) = 1664 vs. 1664
+611: max(1664, 11.01953125) = 1664 vs. 1664
+612: max((log2(13) / log2(17)) - (log(13) / log(17)), -infty) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+613: max((log2(13) / log2(17)) - (log(13) / log(17)), infty) = infty vs. infty
+614: max((log2(13) / log2(17)) - (log(13) / log(17)), NaN) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+615: max((log2(13) / log2(17)) - (log(13) / log(17)), 0) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17)) or 0
+616: max((log2(13) / log2(17)) - (log(13) / log(17)), sin(17 * (pi))) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17)) or sin(17 * (pi))
+617: max((log2(13) / log2(17)) - (log(13) / log(17)), sin(17 * (pi)) + 42) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+618: max((log2(13) / log2(17)) - (log(13) / log(17)), 42) = 42 vs. 42
+619: max((log2(13) / log2(17)) - (log(13) / log(17)), 1664) = 1664 vs. 1664
+620: max((log2(13) / log2(17)) - (log(13) / log(17)), (log2(13) / log2(17)) - (log(13) / log(17))) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+621: max((log2(13) / log2(17)) - (log(13) / log(17)), exp(24 / 10)) = exp(24 / 10) vs. exp(24 / 10)
+622: max((log2(13) / log2(17)) - (log(13) / log(17)), log2(2076)) = log2(2076) vs. log2(2076)
+623: max((log2(13) / log2(17)) - (log(13) / log(17)), -23) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+624: max((log2(13) / log2(17)) - (log(13) / log(17)), 11.01953125) = 11.01953125 vs. 11.01953125
+625: max(exp(24 / 10), -infty) = exp(24 / 10) vs. exp(24 / 10)
+626: max(exp(24 / 10), infty) = infty vs. infty
+627: max(exp(24 / 10), NaN) = exp(24 / 10) vs. exp(24 / 10)
+628: max(exp(24 / 10), 0) = exp(24 / 10) vs. exp(24 / 10)
+629: max(exp(24 / 10), sin(17 * (pi))) = exp(24 / 10) vs. exp(24 / 10)
+630: max(exp(24 / 10), sin(17 * (pi)) + 42) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+631: max(exp(24 / 10), 42) = 42 vs. 42
+632: max(exp(24 / 10), 1664) = 1664 vs. 1664
+633: max(exp(24 / 10), (log2(13) / log2(17)) - (log(13) / log(17))) = exp(24 / 10) vs. exp(24 / 10)
+634: max(exp(12 / 5), exp(12 / 5)) = exp(12 / 5) vs. exp(12 / 5)
+635: max(exp(12 / 5), log2(2076)) = exp(12 / 5) vs. exp(12 / 5)
+636: max(exp(12 / 5), -23) = exp(12 / 5) vs. exp(12 / 5)
+637: max(exp(12 / 5), 11.01953125) = exp(12 / 5) vs. exp(12 / 5)
+638: max(log2(2076), -infty) = log2(2076) vs. log2(2076)
+639: max(log2(2076), infty) = infty vs. infty
+640: max(log2(2076), NaN) = log2(2076) vs. log2(2076)
+641: max(log2(2076), 0) = log2(2076) vs. log2(2076)
+642: max(log2(2076), sin(17 * (pi))) = log2(2076) vs. log2(2076)
+643: max(log2(2076), sin(17 * (pi)) + 42) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+644: max(log2(2076), 42) = 42 vs. 42
+645: max(log2(2076), 1664) = 1664 vs. 1664
+646: max(log2(2076), (log2(13) / log2(17)) - (log(13) / log(17))) = log2(2076) vs. log2(2076)
+647: max(log2(2076), exp(24 / 10)) = exp(24 / 10) vs. exp(24 / 10)
+648: max(log2(2076), log2(2076)) = log2(2076) vs. log2(2076)
+649: max(log2(2076), -23) = log2(2076) vs. log2(2076)
+650: max(log2(2076), 11.01953125) = log2(2076) vs. log2(2076)
+651: max(-23, -infty) = -23 vs. -23
+652: max(-23, infty) = infty vs. infty
+653: max(-23, NaN) = -23 vs. -23
+654: max(-23, 0) = 0 vs. 0
+655: max(-23, sin(17 * (pi))) = sin(17 * (pi)) vs. sin(17 * (pi))
+656: max(-23, sin(17 * (pi)) + 42) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+657: max(-23, 42) = 42 vs. 42
+658: max(-23, 1664) = 1664 vs. 1664
+659: max(-23, (log2(13) / log2(17)) - (log(13) / log(17))) = log2(13) / log2(17) - log(13) / log(17) vs. (log2(13) / log2(17)) - (log(13) / log(17))
+660: max(-23, exp(24 / 10)) = exp(24 / 10) vs. exp(24 / 10)
+661: max(-23, log2(2076)) = log2(2076) vs. log2(2076)
+662: max(-23, -23) = -23 vs. -23
+663: max(-23, 11.01953125) = 11.01953125 vs. 11.01953125
+664: max(11.01953125, -infty) = 11.01953125 vs. 11.01953125
+665: max(11.01953125, infty) = infty vs. infty
+666: max(11.01953125, NaN) = 11.01953125 vs. 11.01953125
+667: max(11.01953125, 0) = 11.01953125 vs. 11.01953125
+668: max(11.01953125, sin(17 * (pi))) = 11.01953125 vs. 11.01953125
+669: max(11.01953125, sin(17 * (pi)) + 42) = sin(17 * (pi)) + 42 vs. sin(17 * (pi)) + 42
+670: max(11.01953125, 42) = 42 vs. 42
+671: max(11.01953125, 1664) = 1664 vs. 1664
+672: max(11.01953125, (log2(13) / log2(17)) - (log(13) / log(17))) = 11.01953125 vs. 11.01953125
+673: max(11.01953125, exp(24 / 10)) = exp(24 / 10) vs. exp(24 / 10)
+674: max(11.01953125, log2(2076)) = log2(2076) vs. log2(2076)
+675: max(11.01953125, -23) = 11.01953125 vs. 11.01953125
+676: max(11.01953125, 11.01953125) = 11.01953125 vs. 11.01953125
+The tool has been restarted.
+=============== Test number 16 ================
+Before
+After
+The tool has been restarted.
+=============== Test number 17 ================
+true
+true
+The tool has been restarted.
+=============== Test number 18 ================
+The tool has been restarted.
+=============== Test number 19 ================
+7
+2.9848325750782556358905295209370478133410616843382
+The tool has been restarted.
+=============== Test number 20 ================
+2.0303871530716273387767026816745333382256430939119
+The tool has been restarted.
+=============== Test number 21 ================
+1
+The tool has been restarted.
+=============== Test number 22 ================
+[-infty;infty]
+[-1;1]
+[-1.5707963267948966192313216916397514420985846996876;1.5707963267948966192313216916397514420985846996876]
+0
+0
+[-infty;infty]
+[-1;1]
+The tool has been restarted.
+=============== Test number 23 ================
+check_increasing_func( sqrt(x) , [0.25;0.5] : success
+check_increasing_func( sqrt(x) , [2;3] : success
+check_increasing_func( exp(x) , [1;2] : success
+check_increasing_func( log(x) , [2;3] : success
+check_increasing_func( log2(x) , [3;5] : success
+check_increasing_func( log10(x) , [3;5] : success
+check_increasing_func( tan(x) , [2;3] : success
+check_increasing_func( tan(x) , [4.5;4.625] : success
+check_increasing_func( asin(x) , [-0.75;-0.5] : success
+check_increasing_func( asin(x) , [0.25;0.375] : success
+check_increasing_func( atan(x) , [-0.75;-0.5] : success
+check_increasing_func( atan(x) , [0.25;0.375] : success
+check_increasing_func( sinh(x) , [-0.75;-0.5] : success
+check_increasing_func( sinh(x) , [0.25;0.375] : success
+check_increasing_func( cosh(x) , [0.25;0.375] : success
+check_increasing_func( tanh(x) , [-0.75;-0.5] : success
+check_increasing_func( tanh(x) , [0.25;0.375] : success
+check_increasing_func( asinh(x) , [-0.75;-0.5] : success
+check_increasing_func( asinh(x) , [0.25;0.375] : success
+check_increasing_func( acosh(x) , [2;3] : success
+check_increasing_func( atanh(x) , [-0.75;-0.5] : success
+check_increasing_func( atanh(x) , [0.25;0.375] : success
+check_increasing_func( abs(x) , [3.1415926535897932384626433832795028841971693993751;6.2831853071795864769252867665590057683943387987503] : success
+check_increasing_func( erf(x) , [-2;-1] : success
+check_increasing_func( erf(x) , [-0.5;-0.25] : success
+check_increasing_func( erf(x) , [0.25;0.5] : success
+check_increasing_func( erf(x) , [1;2] : success
+check_increasing_func( log1p(x) , [-0.5;-0.25] : success
+check_increasing_func( log1p(x) , [1;2] : success
+check_increasing_func( expm1(x) , [-0.5;-0.25] : success
+check_increasing_func( expm1(x) , [1;2] : success
+check_decreasing_func( acos(x) , [-0.5;0.25] : success
+check_decreasing_func( acos(x) , [0.75;0.875] : success
+check_decreasing_func( cosh(x) , [-2;-1] : success
+check_decreasing_func( abs(x) , [-6.2831853071795864769252867665590057683943387987503;-3.1415926535897932384626433832795028841971693993751] : success
+check_decreasing_func( erfc(x) , [-2;-1] : success
+check_decreasing_func( erfc(x) , [1;2] : success

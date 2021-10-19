@@ -1,0 +1,49 @@
+#NAME $ISEVALUABLE
+#QUICK_DESCRIPTION tests whether a function can be evaluated at a point 
+#CALLING $COMMAND(<function>, <constant>)
+#TYPE ($FUNCTION_TYPE, $CONSTANT_TYPE) -> $BOOLEAN_TYPE
+#PARAMETERS <function> represents a function
+#PARAMETERS <constant> represents a constant point
+
+
+#DESCRIPTION 
+$COMMAND applied to function <function> and a constant <constant>
+returns a boolean indicating whether or not a subsequent call to $EVALUATE on
+the same function <function> and constant <constant> will produce a numerical
+result or NaN. This means $COMMAND returns false iff $EVALUATE will
+return NaN.
+
+#DESCRIPTION
+The command $COMMAND is now considered DEPRECATED in $SOLLYA.
+
+As checks for NaNs are now possible in Sollya, the command $COMMAND
+can be fully emulated with a call to evaluate and a couple of tests, 
+as shown below in the last example.
+
+#EXAMPLE
+isevaluable(sin(pi * log(x)), 0.5);
+print(evaluate(sin(pi * log(x)), 0.5));
+
+#EXAMPLE
+isevaluable(sin(pi * log(x)), 0);
+print(evaluate(sin(pi * log(x)), 0));
+
+
+#EXAMPLE
+isevaluable(sin(pi * 1/x), 0.5);
+print(evaluate(sin(pi * 1/x), 0.5));
+
+#EXAMPLE
+procedure isEvaluableEmulation(f, c) {
+	  return match evaluate(f, c) with 
+	  	       NaN : (false)
+		       [NaN;NaN] : (false)
+		       default : (true);
+};
+
+isEvaluableEmulation(sin(pi * log(x)), 0.5);
+isEvaluableEmulation(sin(pi * log(x)), 0);
+isEvaluableEmulation(sin(pi * log(x)), -1);
+
+#SEEALSO $EVALUATE
+

@@ -1,0 +1,60 @@
+#NAME $DIRTYFINDZEROS
+#QUICK_DESCRIPTION gives a list of numerical values listing the zeros of a function on an interval.
+
+#CALLING $COMMAND(<f>,<I>)
+#TYPE ($FUNCTION_TYPE, $RANGE_TYPE) -> $LIST_TYPE
+
+#LIBRARYNAME sollya_obj_t sollya_lib_dirtyfindzeros(sollya_obj_t, sollya_obj_t)
+
+#PARAMETERS <f> is a function.
+#PARAMETERS <I> is an interval.
+
+#DESCRIPTION
+$COMMAND(<f>,<I>) returns a list containing some zeros of <f> in the
+interval <I>. The values in the list are numerical approximation of the exact
+zeros. The precision of these approximations is approximately the precision
+stored in $PREC. If <f> does not have two zeros very close to each other, it 
+can be expected that all zeros are listed. However, some zeros may be
+forgotten. This command should be considered as a numerical algorithm and
+should not be used if safety is critical.
+
+#DESCRIPTION
+More precisely, the algorithm relies on global variables $PREC and $POINTS and it performs the following steps: 
+let §§n§$n$§§ be the value of variable $POINTS and §§t§$t$§§ be the value
+of variable $PREC.
+§§ §\begin{itemize}§§
+§§   -§\item§§ Evaluate §§|f|§$|f|$§§ at §§n§$n$§§ evenly distributed points in the interval §§I§$I$§§.
+§§    § §§ The working precision to be used is automatically chosen in order to ensure that the sign
+§§    § §§ is correct.
+§§   -§\item§§ Whenever §§f§$f$§§ changes its sign for two consecutive points,
+§§    § §§ find an approximation §§x§$x$§§ of its zero with precision §§t§$t$§§ using
+§§    § §§ Newton's algorithm. The number of steps in Newton's iteration depends on §§t§$t$§§:
+§§    § §§ the precision of the approximation is supposed to be doubled at each step.
+§§   -§\item§§ Add this value to the list.
+§§ §\end{itemize}§§
+
+#DESCRIPTION
+The user should be aware that the list returned by $COMMAND may
+contain a certain floating-point number twice. These repetitions
+reflect the existence of different zeros of the function the value of
+which rounds to the same floating-point number in the current working
+precision. In this case, increasing the working precision will end up
+making the two zeros distinguishable even in rounded floating-point
+arithmetic.
+
+
+#EXAMPLE
+dirtyfindzeros(sin(x),[-5;5]);
+
+#EXAMPLE
+L1=dirtyfindzeros(x^2*sin(1/x),[0;1]);
+points=1000!;
+L2=dirtyfindzeros(x^2*sin(1/x),[0;1]);
+length(L1); length(L2);
+
+#SEEALSO $PREC
+#SEEALSO $POINTS
+#SEEALSO $FINDZEROS
+#SEEALSO $DIRTYINFNORM
+#SEEALSO $NUMBERROOTS
+

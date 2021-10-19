@@ -4,8 +4,7 @@ SUBDIRS = src
 DIST_SUBDIRS = src
 ACLOCAL_AMFLAGS = -I m4
 
-## Comment out to make new version of FloPoColib
-## TODO: emulate CMakefiles.txt to link with Factories.cpp etc.
+
 bin_PROGRAMS = flopoco longacc2fp fp2bin bin2fp fpadder_example
 
 

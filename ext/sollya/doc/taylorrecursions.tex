@@ -1,7 +1,11 @@
 \subsection{taylorrecursions}
 \label{labtaylorrecursions}
 \noindent Name: \textbf{taylorrecursions}\\
-controls the number of recursion steps when applying Taylor's rule.\\
+\phantom{aaa}controls the number of recursion steps when applying Taylor's rule.\\[0.2cm]
+\noindent Library names:\\
+\verb|   void sollya_lib_set_taylorrecursions_and_print(sollya_obj_t)|\\
+\verb|   void sollya_lib_set_taylorrecursions(sollya_obj_t)|\\
+\verb|   sollya_obj_t sollya_lib_get_taylorrecursions()|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{taylorrecursions} = \emph{n} : \textsf{integer} $\rightarrow$ \textsf{void}\\
@@ -36,13 +40,13 @@ Parameters:
 > taylorrecursions=0;
 The number of recursions for Taylor evaluation has been set to 0.
 > evaluate(f-p, [0;1]);
-[-0.46839364816303627522963565754743169862357620487739;0.46947781754667086491682
-464997088054443583003517779]
+[-0.46839364816268368775174657814112460243249079671039;0.46947781754646820647293
+019728402934746974652584671]
 > taylorrecursions=1;
 The number of recursions for Taylor evaluation has been set to 1.
 > evaluate(f-p, [0;1]);
-[-0.13813111495387910066337940912697015317218647208804;0.13921528433751369035056
-840155041899898444030238844]
+[-0.138131114954063839905475752120786856031651747712954;0.1392152843378483586266
+5937126369160106890747684927]
 \end{Verbatim}
 \end{minipage}\end{center}
 See also: \textbf{hopitalrecursions} (\ref{labhopitalrecursions}), \textbf{evaluate} (\ref{labevaluate}), \textbf{infnorm} (\ref{labinfnorm})

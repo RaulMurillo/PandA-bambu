@@ -1,7 +1,9 @@
 \subsection{$\sim$}
 \label{labapprox}
 \noindent Name: \textbf{$\sim$}\\
-floating-point evaluation of a constant expression\\
+\phantom{aaa}floating-point evaluation of a constant expression\\[0.2cm]
+\noindent Library name:\\
+\verb|   sollya_obj_t sollya_lib_approx(sollya_obj_t)|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{$\sim$} \emph{expression} : \textsf{function} $\rightarrow$ \textsf{constant}\\
@@ -40,7 +42,7 @@ Parameters:
 > print(exp(5));
 exp(5)
 > print(~ exp(5));
-1.48413159102576603421115580040552279623487667593878e2
+148.41315910257660342111558004055227962348766759388
 \end{Verbatim}
 \end{minipage}\end{center}
 \noindent Example 2: 
@@ -67,15 +69,15 @@ Hello
 > print(~exp(x*5*Pi));
 exp((pi) * 5 * x)
 > print(exp(x* ~(5*Pi)));
-exp(x * 1.57079632679489661923132169163975144209858469968757e1)
+exp(x * 15.7079632679489661923132169163975144209858469968757)
 \end{Verbatim}
 \end{minipage}\end{center}
 \noindent Example 6: 
 \begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
 > print(~exp(5)*x);
-1.48413159102576603421115580040552279623487667593878e2 * x
+148.41315910257660342111558004055227962348766759388 * x
 > print( (~exp(5))*x);
-1.48413159102576603421115580040552279623487667593878e2 * x
+148.41315910257660342111558004055227962348766759388 * x
 > print(~(exp(5)*x));
 exp(5) * x
 \end{Verbatim}

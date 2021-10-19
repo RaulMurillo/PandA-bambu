@@ -1,0 +1,69 @@
+#NAME $GCD
+#QUICK_DESCRIPTION Computes the greatest common divisor of polynomials or numbers.
+
+#CALLING $COMMAND(<p>, <q>)
+#TYPE ($FUNCTION_TYPE, $FUNCTION_TYPE) -> $FUNCTION_TYPE
+
+#LIBRARYNAME sollya_obj_t sollya_lib_gcd(sollya_obj_t, sollya_obj_t)
+
+#PARAMETERS <p> is a constant or a polynomial.
+#PARAMETERS <q> is a constant or a polynomial.
+
+#DESCRIPTION
+When both <p> and <q> are integers, $COMMAND(<p>,<q>) computes the greatest
+common divisor of these two integers, i.e. the greatest non-negative integer
+dividing both <p> and <q>.
+
+#DESCRIPTION
+When both <p> and <q> are rational numbers, say §§a/b§$a/b$§§ and §§c/d§$c/d$§§,
+$COMMAND(<p>,<q>) computes the greatest common divisor of §§a * d§$a \cdot d$§§ and §§b * c§$b \cdot c$§§,
+divided by the product of the denominators, §§b * d§$b \cdot d$§§.
+
+#DESCRIPTION
+When both <p> and <q> are constants but at least one of them is no rational
+number, $COMMAND(<p>,<q>) returns§§ 1§~$1$§§.
+
+#DESCRIPTION
+When both <p> and <q> are polynomials with at least one being non-constant,
+$COMMAND(<p>,<q>) returns the polynomial of greatest degree dividing both <p> and
+<q>, and whose leading coefficient is the greatest common divisor of the
+leading coefficients of <p> and <q>.
+
+#DESCRIPTION
+Similarly to the cases documented for $DIVEUCL and $MODEUCL, $COMMAND
+may fail to return the unique polynomial of largest degree dividing
+both <p> and <q> in cases when certain coefficients of either <p> or
+<q> are constant expressions for which the tool is unable to determine
+whether they are zero or not. These cases typically involve
+polynomials whose leading coefficient is zero but the tool is unable
+to detect this fact.
+
+#DESCRIPTION
+When at least one of <p> or <q> is a function that is no polynomial,
+$COMMAND(<p>,<q>) returns §§1§$1$§§.
+
+#EXAMPLE
+gcd(1001, 231);
+gcd(13, 17);
+gcd(-210, 462);
+
+#EXAMPLE
+rationalmode = on!;
+gcd(6/7, 33/13);
+
+#EXAMPLE
+gcd(exp(13),sin(17));
+
+#EXAMPLE
+gcd(24 + 68 * x + 74 * x^2 + 39 * x^3 + 10 * x^4 + x^5, 480 + 776 * x + 476 * x^2 + 138 * x^3 + 19 * x^4 + x^5);
+gcd(1001 * x^2, 231 * x);
+
+#EXAMPLE
+gcd(exp(x), x^2);
+
+#SEEALSO $DIVEUCL
+#SEEALSO $MODEUCL
+#SEEALSO $NUMBERROOTS
+
+
+

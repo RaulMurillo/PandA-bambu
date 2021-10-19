@@ -1,7 +1,11 @@
 \subsection{roundingwarnings}
 \label{labroundingwarnings}
 \noindent Name: \textbf{roundingwarnings}\\
-global variable controlling whether or not a warning is displayed when roundings occur.\\
+\phantom{aaa}global variable controlling whether or not a warning is displayed when roundings occur.\\[0.2cm]
+\noindent Library names:\\
+\verb|   void sollya_lib_set_roundingwarnings_and_print(sollya_obj_t)|\\
+\verb|   void sollya_lib_set_roundingwarnings(sollya_obj_t)|\\
+\verb|   sollya_obj_t sollya_lib_get_roundingwarnings()|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{roundingwarnings} = \emph{activation value} : \textsf{on$|$off} $\rightarrow$ \textsf{void}\\
@@ -33,8 +37,8 @@ Rounding warning mode has been activated.
 Warning: Rounding occurred when converting the constant "0.1" to floating-point 
 with 165 bits.
 If safe computation is needed, try to increase the precision.
-Warning: rounding has happened. The value displayed is a faithful rounding of th
-e true result.
+Warning: rounding has happened. The value displayed is a faithful rounding to 16
+5 bits of the true result.
 1.1051709180756476248117078264902466682245471947375
 > roundingwarnings = off;
 Rounding warning mode has been deactivated.
@@ -42,4 +46,4 @@ Rounding warning mode has been deactivated.
 1.1051709180756476248117078264902466682245471947375
 \end{Verbatim}
 \end{minipage}\end{center}
-See also: \textbf{on} (\ref{labon}), \textbf{off} (\ref{laboff}), \textbf{verbosity} (\ref{labverbosity}), \textbf{midpointmode} (\ref{labmidpointmode}), \textbf{rationalmode} (\ref{labrationalmode})
+See also: \textbf{on} (\ref{labon}), \textbf{off} (\ref{laboff}), \textbf{verbosity} (\ref{labverbosity}), \textbf{midpointmode} (\ref{labmidpointmode}), \textbf{rationalmode} (\ref{labrationalmode}), \textbf{suppressmessage} (\ref{labsuppressmessage}), \textbf{unsuppressmessage} (\ref{labunsuppressmessage}), \textbf{showmessagenumbers} (\ref{labshowmessagenumbers}), \textbf{getsuppressedmessages} (\ref{labgetsuppressedmessages})

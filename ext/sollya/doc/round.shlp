@@ -1,0 +1,78 @@
+#NAME $ROUND
+#QUICK_DESCRIPTION rounds a number to a floating-point format.
+
+#CALLING $COMMAND(<x>,<n>,<mode>)
+#TYPE ($CONSTANT_TYPE, $INTEGER_TYPE, $ROUND_TYPE) -> $CONSTANT_TYPE
+#CALLING $COMMAND(<x>,<format>,<mode>)
+#TYPE ($CONSTANT_TYPE, $FORMAT_TYPE, $ROUND_TYPE) -> $CONSTANT_TYPE
+
+
+#LIBRARYNAME sollya_obj_t sollya_lib_round(sollya_obj_t, sollya_obj_t, sollya_obj_t)
+
+#PARAMETERS <x> is a constant to be rounded.
+#PARAMETERS <n> is the precision of the target format.
+#PARAMETERS <format> is the name of a supported floating-point format.
+#PARAMETERS <mode> is the desired rounding mode.
+
+#DESCRIPTION 
+If used with an integer parameter <n>, $COMMAND(<x>,<n>,<mode>) rounds <x> to a floating-point number with 
+precision <n>, according to rounding-mode <mode>. 
+
+#DESCRIPTION 
+If used with a format parameter <format>, $COMMAND(<x>,<format>,<mode>) rounds <x> to a floating-point number in the 
+floating-point format <format>, according to rounding-mode <mode>. 
+
+#DESCRIPTION 
+Subnormal numbers are handled for the case when <format> is one of
+$HALFPRECISION, $SINGLE, $DOUBLE, $DOUBLEEXTENDED, $DOUBLEDOUBLE,
+$QUAD or $TRIPLEDOUBLE. Otherwise, when <format> is an integer,
+$COMMAND does not take any exponent range into consideration,
+i.e. typically uses the full exponent range of the underlying MPFR
+library.
+
+#DESCRIPTION
+It is worth mentionning that the result of $COMMAND does not depend on
+the current global precision of $SOLLYA, unless a warning is
+displayed. As a matter of fact, $COMMAND rounds the given constant or
+constant expression <x> applying all rules of IEEE 754 correct
+rounding, unless a warning is displayed. The result of $COMMAND is
+hence the floating-point value of the given precision <n> or format
+<format> that is nearest to <x> (resp. just below or just above,
+depending on <mode>), computed as if infinite precision were used for
+evaluating the constant <x>, unless a warning is displayed.
+
+#EXAMPLE
+display=binary!;
+round(Pi,20,RN);
+
+#EXAMPLE
+printdouble(round(exp(17),53,RU));
+printdouble(D(exp(17)));
+
+#EXAMPLE
+display=binary!;
+a=2^(-1100);
+round(a,53,RN);
+round(a,D,RN);
+double(a);
+
+#SEEALSO $RN
+#SEEALSO $RD
+#SEEALSO $RU
+#SEEALSO $RZ
+#SEEALSO $HALFPRECISION
+#SEEALSO $SINGLE
+#SEEALSO $DOUBLE
+#SEEALSO $DOUBLEEXTENDED
+#SEEALSO $DOUBLEDOUBLE
+#SEEALSO $QUAD
+#SEEALSO $TRIPLEDOUBLE
+#SEEALSO $ROUNDCOEFFICIENTS
+#SEEALSO $ROUNDCORRECTLY
+#SEEALSO $PRINTDOUBLE
+#SEEALSO $PRINTSINGLE
+#SEEALSO $CEIL
+#SEEALSO $FLOOR
+#SEEALSO $NEARESTINT
+
+

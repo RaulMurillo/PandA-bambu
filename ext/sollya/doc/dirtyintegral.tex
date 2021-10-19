@@ -1,7 +1,9 @@
 \subsection{dirtyintegral}
 \label{labdirtyintegral}
 \noindent Name: \textbf{dirtyintegral}\\
-computes a numerical approximation of the integral of a function on an interval.\\
+\phantom{aaa}computes a numerical approximation of the integral of a function on an interval.\\[0.2cm]
+\noindent Library name:\\
+\verb|   sollya_obj_t sollya_lib_dirtyintegral(sollya_obj_t, sollya_obj_t)|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{dirtyintegral}(\emph{f},\emph{I}) : (\textsf{function}, \textsf{range}) $\rightarrow$ \textsf{constant}\\
@@ -27,18 +29,18 @@ Parameters:
    command \textbf{integral} instead.
 
 \item Warning: this command is currently known to be unsatisfactory. If you really
-   need to compute integrals, think of using an other tool or report a feature
+   need to compute integrals, think of using another tool or report a feature
    request to sylvain.chevillard@ens-lyon.org.
 \end{itemize}
 \noindent Example 1: 
 \begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
 > sin(10);
--0.54402111088936981340474766185137728168364301291621
+-0.54402111088936981340474766185137728168364301291622
 > dirtyintegral(cos(x),[0;10]);
--0.54400304905152629822448058882475382036536298356281
+-0.54400304905152629822448058882475382036536298356282
 > points=2000!;
 > dirtyintegral(cos(x),[0;10]);
--0.54401997751158321972222697312583199035995837926892
+-0.54401997751158321972222697312583199035995837926893
 \end{Verbatim}
 \end{minipage}\end{center}
 See also: \textbf{prec} (\ref{labprec}), \textbf{points} (\ref{labpoints}), \textbf{integral} (\ref{labintegral})

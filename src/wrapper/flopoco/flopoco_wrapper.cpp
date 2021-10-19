@@ -205,18 +205,20 @@ flopoco_wrapper::flopoco_wrapper(int
    else
       THROW_UNREACHABLE("Non supported target architecture.");
 
-   // /// sollya initialization
-   // jmp_buf recover;
+#if 0
+   /// sollya initialization
+   jmp_buf recover;
 
-   // initTool();
-   // if(setjmp(recover))
-   // {
-   //    /* If we are here, we have come back from an error in the library */
-   //    THROW_ERROR("An error occurred somewhere");
-   // }
-   // setRecoverEnvironment(&recover);
-   // extern int recoverEnvironmentReady;
-   // recoverEnvironmentReady = 1;
+   initTool();
+   if(setjmp(recover))
+   {
+      /* If we are here, we have come back from an error in the library */
+      THROW_ERROR("An error occurred somewhere");
+   }
+   setRecoverEnvironment(&recover);
+   extern int recoverEnvironmentReady;
+   recoverEnvironmentReady = 1;
+#endif
 }
 
 flopoco_wrapper::~flopoco_wrapper()
