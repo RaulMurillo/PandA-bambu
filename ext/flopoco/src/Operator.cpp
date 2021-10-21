@@ -80,6 +80,7 @@ namespace flopoco{
 		isLibraryComponent_         = false;
 		noParseNoSchedule_          = false;
 		isOperatorScheduled_        = false;
+		isOperatorImplemented_      = false;
 
  		parentOp_                   = parentOp;
 		isOperatorApplyScheduleDone_= false;
