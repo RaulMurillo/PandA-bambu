@@ -204,6 +204,33 @@ flopoco_wrapper::flopoco_wrapper(int
       target = new flopoco::Virtex6();
    else
       THROW_UNREACHABLE("Non supported target architecture.");
+   // Initialize target parameters
+   // Default values
+   double targetFrequencyMHz=400;
+   bool useHardMult=true;
+   double unusedHardMultThreshold=0.7;
+   bool registerLargeTables=false;
+   bool tableCompression=false;
+   bool plainVHDL=true;
+   bool generateFigures = false;
+   bool useTargetOptimizations=true;
+   string compression = "heuristicMaxEff";
+   string ilpSolver = "Gurobi";
+   int ilpTimeout = 0; //timeout disabled
+   string tiling = "heuristicBasicTiling"; //should be heuristicBeamSearchTiling in future
+
+   target->setFrequency(1e6*targetFrequencyMHz);
+   target->setUseHardMultipliers(useHardMult);
+   target->setUnusedHardMultThreshold(unusedHardMultThreshold);
+   target->setRegisterLargeTables(registerLargeTables);
+   target->setTableCompression(tableCompression);
+   target->setPlainVHDL(plainVHDL);
+   target->setGenerateFigures(generateFigures);
+   target->setUseTargetOptimizations(useTargetOptimizations);
+   target->setCompressionMethod(compression);
+   target->setILPSolver(ilpSolver);
+   target->setILPTimeout(ilpTimeout);
+   target->setTilingMethod(tiling);
 
 #if 0
    /// sollya initialization
