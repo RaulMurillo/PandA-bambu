@@ -683,8 +683,9 @@ void flopoco_wrapper::outputPortMap(const std::string& FU_name_stored, std::ostr
    if(pipe_parameter != "" && pipe_parameter != "0")
    {
       const std::string p_clock = get_port(clk);
-      const std::string p_reset = get_port(rst);
-      mapping += ", " + p_clock + "=> " + std::string(CLOCK_PORT_NAME) + ", " + p_reset + "=> " + std::string(RESET_PORT_NAME);
+      // const std::string p_reset = get_port(rst);
+      // mapping += ", " + p_clock + "=> " + std::string(CLOCK_PORT_NAME) + ", " + p_reset + "=> " + std::string(RESET_PORT_NAME);
+      mapping += ", " + p_clock + "=> " + std::string(CLOCK_PORT_NAME);
    }
 
    if(type == flopoco_wrapper::UT_ADDSUB)
@@ -711,8 +712,9 @@ void flopoco_wrapper::outputPortMap(const std::string& FU_name_stored, std::ostr
          if(pipe_parameter != "" && pipe_parameter != "0")
          {
             const std::string p_clock = get_port(clk);
-            const std::string p_reset = get_port(rst);
-            mapping += ", " + p_clock + "=> " + std::string(CLOCK_PORT_NAME) + ", " + p_reset + "=> " + std::string(RESET_PORT_NAME);
+            // const std::string p_reset = get_port(rst);
+            // mapping += ", " + p_clock + "=> " + std::string(CLOCK_PORT_NAME) + ", " + p_reset + "=> " + std::string(RESET_PORT_NAME);
+            mapping += ", " + p_clock + "=> " + std::string(CLOCK_PORT_NAME);
          }
          PP(os, "in" + STR(i + 1) + " : " + STR(IN_WRAP_PREFIX + FU_name_stored) + " port map (" + mapping + ");\n");
       }
@@ -728,8 +730,9 @@ void flopoco_wrapper::outputPortMap(const std::string& FU_name_stored, std::ostr
          if(pipe_parameter != "" && pipe_parameter != "0")
          {
             const std::string p_clock = get_port(clk);
-            const std::string p_reset = get_port(rst);
-            mapping += ", " + p_clock + "=> " + std::string(CLOCK_PORT_NAME) + ", " + p_reset + "=> " + std::string(RESET_PORT_NAME);
+            // const std::string p_reset = get_port(rst);
+            // mapping += ", " + p_clock + "=> " + std::string(CLOCK_PORT_NAME) + ", " + p_reset + "=> " + std::string(RESET_PORT_NAME);
+            mapping += ", " + p_clock + "=> " + std::string(CLOCK_PORT_NAME);
          }
          PP(os, "out" + STR(i + 1) + " : " + STR(OUT_WRAP_PREFIX + FU_name_stored) + " port map (" + mapping + ");\n");
       }
@@ -835,7 +838,7 @@ void flopoco_wrapper::outputPortDeclaration(const std::string& FU_prefix, const 
       if(wrapped == c_type || in_wrap == c_type || out_wrap == c_type)
       {
          PP(os, get_port(clk) + " : in std_logic;\n");
-         PP(os, get_port(rst) + " : in std_logic;\n");
+         // PP(os, get_port(rst) + " : in std_logic;\n");
       }
    }
    const std::vector<std::string> p_in = get_ports(FU_prefix + FU_name_stored, 0, port_in, false);
@@ -1021,7 +1024,10 @@ const std::vector<std::string> flopoco_wrapper::get_ports(const std::string& FU_
 const std::string flopoco_wrapper::get_port(port_type local_type) const
 {
    if(local_type == rst)
+   {
+      THROW_UNREACHABLE("Something went wrong!");
       return "rst";
+   }
    else if(local_type == clk)
       return "clk";
    THROW_UNREACHABLE("Something went wrong!");
