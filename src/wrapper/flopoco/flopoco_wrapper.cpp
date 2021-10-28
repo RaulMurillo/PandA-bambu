@@ -100,6 +100,7 @@
 /// FloPoCo include
 #undef DEBUG
 #include "Operator.hpp"
+#include "UserInterface.hpp"
 #include "FPAddSub/FPAddSinglePath.hpp"
 #include "FPMultSquare/FPMult.hpp"
 #include "FPDivSqrt/FPDiv.hpp"
@@ -206,7 +207,7 @@ flopoco_wrapper::flopoco_wrapper(int
       THROW_UNREACHABLE("Non supported target architecture.");
    // Initialize target parameters
    // Default values
-   double targetFrequencyMHz=400;
+   double targetFrequencyMHz=0;
    bool useHardMult=true;
    double unusedHardMultThreshold=0.7;
    bool registerLargeTables=false;
@@ -232,6 +233,7 @@ flopoco_wrapper::flopoco_wrapper(int
    target->setILPTimeout(ilpTimeout);
    target->setTilingMethod(tiling);
 
+   UserInterface::initialize();
 #if 0
    /// sollya initialization
    jmp_buf recover;
@@ -493,6 +495,8 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
    std::string FU_name_stored;
    FU_name_stored = ENCODE_NAME(FU_name, FU_prec_in, FU_prec_out, pipe_parameter);
    op->changeName(WRAPPED_PREFIX + FU_name_stored);
+   op->schedule();
+   op->applySchedule();
    FUs[WRAPPED_PREFIX + FU_name_stored] = op;
    FU_to_prec.insert(make_pair(FU_name_stored, std::pair<unsigned int, unsigned int>(FU_prec_in, FU_prec_out)));
 
@@ -506,6 +510,8 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
          op = new flopoco::InputIEEE(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), static_cast<int>(n_exp_in), static_cast<int>(n_mant_in));
       OPLIST.push_back(op);
       op->changeName(IN_WRAP_PREFIX + FU_name_stored);
+      op->schedule();
+      op->applySchedule();
       FUs[IN_WRAP_PREFIX + FU_name_stored] = op;
    }
    if(type != flopoco_wrapper::UT_FP2UFIX and type != flopoco_wrapper::UT_FP2IFIX and type != flopoco_wrapper::UT_compare_expr)
@@ -513,6 +519,8 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
       op = new flopoco::OutputIEEE(nullptr, target, static_cast<int>(n_exp_out), static_cast<int>(n_mant_out), static_cast<int>(n_exp_out), static_cast<int>(n_mant_out), true);
       OPLIST.push_back(op);
       op->changeName(OUT_WRAP_PREFIX + FU_name_stored);
+      op->schedule();
+      op->applySchedule();
       FUs[OUT_WRAP_PREFIX + FU_name_stored] = op;
    }
 }
