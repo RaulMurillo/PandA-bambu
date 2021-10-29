@@ -1,58 +1,74 @@
 /*
 
-Copyright 2006-2011 by
+  Copyright 2006-2018 by
 
-Laboratoire de l'Informatique du Parallelisme,
-UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668
+  Laboratoire de l'Informatique du Parallelisme,
+  UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668,
 
-and by
+  Laboratoire d'Informatique de Paris 6, equipe PEQUAN,
+  UPMC Universite Paris 06 - CNRS - UMR 7606 - LIP6, Paris, France,
 
-Laboratoire d'Informatique de Paris 6, equipe PEQUAN,
-UPMC Universite Paris 06 - CNRS - UMR 7606 - LIP6, Paris, France,
+  Laboratoire d'Informatique de Paris 6 - Équipe PEQUAN
+  Sorbonne Universités
+  UPMC Univ Paris 06
+  UMR 7606, LIP6
+  Boîte Courrier 169
+  4, place Jussieu
+  F-75252 Paris Cedex 05
+  France
 
-Contributors Ch. Lauter, S. Chevillard
+  and by
 
-christoph.lauter@ens-lyon.org
-sylvain.chevillard@ens-lyon.org
+  Sorbonne Université
+  CNRS, Laboratoire d'Informatique de Paris 6, LIP6
+  F - 75005 Paris
+  France.
 
-This software is a computer program whose purpose is to provide an
-environment for safe floating-point code development. It is
-particularily targeted to the automatized implementation of
-mathematical floating-point libraries (libm). Amongst other features,
-it offers a certified infinity norm, an automatic polynomial
-implementer and a fast Remez algorithm.
+  Contributors Ch. Lauter, S. Chevillard
 
-This software is governed by the CeCILL-C license under French law and
-abiding by the rules of distribution of free software.  You can  use,
-modify and/ or redistribute the software under the terms of the CeCILL-C
-license as circulated by CEA, CNRS and INRIA at the following URL
-"http://www.cecill.info".
+  christoph.lauter@ens-lyon.org
+  sylvain.chevillard@ens-lyon.org
 
-As a counterpart to the access to the source code and  rights to copy,
-modify and redistribute granted by the license, users are provided only
-with a limited warranty  and the software's author,  the holder of the
-economic rights,  and the successive licensors  have only  limited
-liability.
+  This software is a computer program whose purpose is to provide an
+  environment for safe floating-point code development. It is
+  particularly targeted to the automated implementation of
+  mathematical floating-point libraries (libm). Amongst other features,
+  it offers a certified infinity norm, an automatic polynomial
+  implementer and a fast Remez algorithm.
 
-In this respect, the user's attention is drawn to the risks associated
-with loading,  using,  modifying and/or developing or reproducing the
-software by the user in light of its specific status of free software,
-that may mean  that it is complicated to manipulate,  and  that  also
-therefore means  that it is reserved for developers  and  experienced
-professionals having in-depth computer knowledge. Users are therefore
-encouraged to load and test the software's suitability as regards their
-requirements in conditions enabling the security of their systems and/or
-data to be ensured and,  more generally, to use and operate it in the
-same conditions as regards security.
+  This software is governed by the CeCILL-C license under French law and
+  abiding by the rules of distribution of free software.  You can  use,
+  modify and/ or redistribute the software under the terms of the CeCILL-C
+  license as circulated by CEA, CNRS and INRIA at the following URL
+  "http://www.cecill.info".
 
-The fact that you are presently reading this means that you have had
-knowledge of the CeCILL-C license and that you accept its terms.
+  As a counterpart to the access to the source code and  rights to copy,
+  modify and redistribute granted by the license, users are provided only
+  with a limited warranty  and the software's author,  the holder of the
+  economic rights,  and the successive licensors  have only  limited
+  liability.
 
-This program is distributed WITHOUT ANY WARRANTY; without even the
-implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  In this respect, the user's attention is drawn to the risks associated
+  with loading,  using,  modifying and/or developing or reproducing the
+  software by the user in light of its specific status of free software,
+  that may mean  that it is complicated to manipulate,  and  that  also
+  therefore means  that it is reserved for developers  and  experienced
+  professionals having in-depth computer knowledge. Users are therefore
+  encouraged to load and test the software's suitability as regards their
+  requirements in conditions enabling the security of their systems and/or
+  data to be ensured and,  more generally, to use and operate it in the
+  same conditions as regards security.
+
+  The fact that you are presently reading this means that you have had
+  knowledge of the CeCILL-C license and that you accept its terms.
+
+  This program is distributed WITHOUT ANY WARRANTY; without even the
+  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 */
 
+#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 
 #include <unistd.h> /* execve, fork, daemon */
 #include <stdio.h>
@@ -70,6 +86,8 @@ implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #include "plot.h"
 #include "infnorm.h"
 #include "general.h"
+#include "printf.h"
+#include "signalhandling.h"
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -81,16 +99,17 @@ extern int fileNumber;
 
 int bashExecute(char *command) {
   int i;
+  deferSignalHandling();
   fflush(NULL);
   i = system(command);
   fflush(NULL);
+  resumeSignalHandling();
   return WEXITSTATUS(i);
 }
 
 char *evaluateStringAsBashCommand(char *command, char *input) {
   char *res;
   int okay, errorOnInput;
-  int exitcode;
   int pipesToBash[2];
   int pipesFromBash[2];
   pid_t pid;
@@ -102,80 +121,89 @@ char *evaluateStringAsBashCommand(char *command, char *input) {
   int i;
 
   if ((command == NULL) || (strlen(command) == 0)) {
-    printMessage(1,"Warning in bashevaluate: no command provided\n");
+    printMessage(1,SOLLYA_MSG_NO_COMMAND_PROVIDED,"Warning in bashevaluate: no command provided\n");
     return NULL;
   }
 
   res = NULL;
   okay = 0;
+  deferSignalHandling();
   fflush(NULL);
-  
-  // Create two unnamed pipe
+  resumeSignalHandling();
+
+  /* Create two unnamed pipes */
   if ((input != NULL) && (pipe(pipesToBash) == -1)) {
-    // Error creating the pipe
-    printMessage(1,"Warning in bashevaluate: error while creating a pipe");
+    /* Error creating the pipe */
+    printMessage(1,SOLLYA_MSG_ERROR_WHILE_CREATING_A_PIPE,"Warning in bashevaluate: error while creating a pipe");
   } else {
     if (pipe(pipesFromBash) == -1) {
-      // Error creating the pipe
-      printMessage(1, "Warning in bashevaluate: error while creating a pipe");
+      /* Error creating the pipe */
+      printMessage(1, SOLLYA_MSG_ERROR_WHILE_CREATING_A_PIPE, "Warning in bashevaluate: error while creating a pipe");
     } else {
-      // Fork
+      /* Fork
       //
       // Flush before forking
-      //
+      */
+      deferSignalHandling();
       fflush(NULL);
+      parserFlushInput();
+      resumeSignalHandling();
       if ((pid = fork()) == -1) {
-	// Error forking
-	printMessage(1, "Warning in bashevaluate: error while forking");
+	/* Error forking */
+	printMessage(1, SOLLYA_MSG_ERROR_WHILE_FORKING, "Warning in bashevaluate: error while forking");
       } else {
-	// Fork worked
+	/* Fork worked */
 	if (pid == 0) {
-	  // I am the child
+	  /* I am the child
 	  //
 	  // Close the unneeded ends of the pipes.
-	  //
+	  */
 	  if (input != NULL) close(pipesToBash[1]);
 	  close(pipesFromBash[0]);
-	  
-	  // Connect my input and output to the pipe
-	  //
+
+	  /* Connect my input and output to the pipe
+	   */
 	  if (input != NULL) {
-	    if (dup2(pipesToBash[0],0) == -1) {
+	    if (sollya_dup2(pipesToBash[0],0) == -1) {
 	      _exit(1);
 	    }
 	  }
-	  if (dup2(pipesFromBash[1],1) == -1) {
+	  if (sollya_dup2(pipesFromBash[1],1) == -1) {
 	    _exit(1);
 	  }
-	  
-	  // Execute bash
-	  //
+
+	  /* Execute bash
+	   */
+	  deferSignalHandling();
 	  fflush(NULL);
 	  execlp("sh","sh","-c",command,(char *) NULL);
 	  fflush(NULL);
+	  resumeSignalHandling();
 
 	  _exit(1);
 	} else {
-	  // I am the father
+	  /* I am the father
 	  //
 	  // Close the unneeded ends of the pipes.
-	  //
+	  */
 	  if (input != NULL) close(pipesToBash[0]);
 	  close(pipesFromBash[1]);
-	  
-	  // Do my job
-	  //
+
+	  /* Do my job
+	   */
 	  errorOnInput = 0;
 	  if (input != NULL) {
 	    if (write(pipesToBash[1],input,
 		      strlen(input) * sizeof(char)) == -1) {
-	      printMessage(1,"Warning in bashevaluate: unable to write to bash");
+	      printMessage(1,SOLLYA_MSG_UNABLE_TO_WRITE_TO_BASH,"Warning in bashevaluate: unable to write to bash");
 	      errorOnInput = 1;
 	    }
 	    close(pipesToBash[1]);
 	  }
 
+	  deferSignalHandling();
 	  fflush(NULL);
+	  resumeSignalHandling();
 
 	  if (!errorOnInput) {
 	    do {
@@ -188,7 +216,7 @@ char *evaluateStringAsBashCommand(char *command, char *input) {
 		  len = strlen(res);
 		  buf = safeCalloc(len + readLen + 1, sizeof(char));
 		  strcpy(buf,res);
-		  free(res);
+		  safeFree(res);
 		  res = buf;
 		  buf += len;
 		}
@@ -199,11 +227,12 @@ char *evaluateStringAsBashCommand(char *command, char *input) {
 	      }
 	    } while (readLen == READ_BUFFER_SIZE);
 
-	    // Wait for my child to exit
+	    /* Wait for my child to exit */
 	    wait(&childStatus);
-	    
-	    // Read the rest of the pipe if it filled up again after 
-	    // having been emptied already.
+
+	    /* Read the rest of the pipe if it filled up again after
+	       having been emptied already.
+	    */
 	    do {
 	      readLen = read(pipesFromBash[0],readBuffer,READ_BUFFER_SIZE);
 	      if (readLen > 0) {
@@ -214,7 +243,7 @@ char *evaluateStringAsBashCommand(char *command, char *input) {
 		  len = strlen(res);
 		  buf = safeCalloc(len + readLen + 1, sizeof(char));
 		  strcpy(buf,res);
-		  free(res);
+		  safeFree(res);
 		  res = buf;
 		  buf += len;
 		}
@@ -226,9 +255,9 @@ char *evaluateStringAsBashCommand(char *command, char *input) {
 	    } while (readLen == READ_BUFFER_SIZE);
 
 	    if (WEXITSTATUS(childStatus) != 0) {
-	      printMessage(1, "Warning in bashevaluate: the exit code of the child process is %d.\n", WEXITSTATUS(childStatus));
+	      printMessage(1, SOLLYA_MSG_THE_EXIT_CODE_OF_CHILD_PROCESS_IS, "Warning in bashevaluate: the exit code of the child process is %d.\n", WEXITSTATUS(childStatus));
 	    } else {
-	      printMessage(2, "Information in bashevaluate: the exit code of the child process is %d.\n", WEXITSTATUS(childStatus));
+	      printMessage(2, SOLLYA_MSG_THE_EXIT_CODE_OF_CHILD_PROCESS_IS, "Information in bashevaluate: the exit code of the child process is %d.\n", WEXITSTATUS(childStatus));
 	    }
 
 	    close(pipesFromBash[0]);
@@ -248,11 +277,14 @@ char *evaluateStringAsBashCommand(char *command, char *input) {
   }
 
   if (!okay) {
-    if (res != NULL) free(res);
+    if (res != NULL) safeFree(res);
     res = NULL;
   }
 
+  deferSignalHandling();
   fflush(NULL);
+  parserFlushInput();
+  resumeSignalHandling();
 
   return res;
 }
@@ -269,33 +301,35 @@ void externalPlot(char *library, mpfr_t a, mpfr_t b, mp_prec_t samplingPrecision
   char *gplotname;
   char *dataname;
   char *outputname;
+  int n;
+  char *gnuplotname;
 
-
-  gmp_randinit_default (state);
+  gnuplotname = getGnuplotName();
 
   if(samplingPrecision > prec) {
-    sollyaFprintf(stderr, "Error: you must use a sampling precision lower than the current precision\n");
+    printMessage(1,SOLLYA_MSG_SAMPLING_PREC_MUST_BE_LOWER_THAN_CURR_PREC,"Error: you must use a sampling precision lower than the current precision\n");
     return;
   }
 
   descr = dlopen(library, RTLD_NOW);
   if (descr==NULL) {
-    sollyaFprintf(stderr, "Error: the given library (%s) is not available (%s)!\n",library,dlerror());
+    printMessage(1,SOLLYA_MSG_EXTERNALPLOT_COULD_NOT_OPEN_A_LIBRARY, "Error: the given library (%s) is not available (%s)!\n",library,dlerror());
     return;
   }
 
   dlerror(); /* Clear any existing error */
   myFunction = (void (*)(mpfr_t, mpfr_t)) dlsym(descr, "f");
   if ((error = dlerror()) != NULL) {
-    sollyaFprintf(stderr, "Error: the function f cannot be found in library %s (%s)\n",library,error);
+    printMessage(1, SOLLYA_MSG_EXTERNALPLOT_DID_NOT_FIND_FUNCTION_F, "Error: the function f cannot be found in library %s (%s)\n",library,error);
     return;
   }
 
   if(name==NULL) {
-    gplotname = (char *)safeCalloc(13 + strlen(PACKAGE_NAME), sizeof(char));
-    sprintf(gplotname,"/tmp/%s-%04d.p",PACKAGE_NAME,fileNumber);
-    dataname = (char *)safeCalloc(15 + strlen(PACKAGE_NAME), sizeof(char));
-    sprintf(dataname,"/tmp/%s-%04d.dat",PACKAGE_NAME,fileNumber);
+    n = sollya_snprintf(NULL, 0, "%s/%s%s-%04d", getTempDir(), PACKAGE_NAME, getUniqueId(), fileNumber);
+    gplotname = (char *)safeCalloc(n+3, sizeof(char));
+    sollya_snprintf(gplotname, n+3, "%s/%s%s-%04d.p",getTempDir(), PACKAGE_NAME, getUniqueId(), fileNumber);
+    dataname = (char *)safeCalloc(n+5, sizeof(char));
+    sollya_snprintf(dataname, n+5, "%s/%s%s-%04d.dat",getTempDir(),PACKAGE_NAME,getUniqueId(), fileNumber);
     outputname = (char *)safeCalloc(1, sizeof(char));
     fileNumber++;
     if (fileNumber >= NUMBEROFFILES) fileNumber=0;
@@ -305,30 +339,37 @@ void externalPlot(char *library, mpfr_t a, mpfr_t b, mp_prec_t samplingPrecision
     sprintf(gplotname,"%s.p",name);
     dataname = (char *)safeCalloc(strlen(name)+5,sizeof(char));
     sprintf(dataname,"%s.dat",name);
-    outputname = (char *)safeCalloc(strlen(name)+5,sizeof(char));   
+    outputname = (char *)safeCalloc(strlen(name)+5,sizeof(char));
     if ((type==PLOTPOSTSCRIPT) || (type==PLOTPOSTSCRIPTFILE)) sprintf(outputname,"%s.eps",name);
   }
 
-  
+
   /* Beginning of the interesting part of the code */
   file = fopen(gplotname, "w");
   if (file == NULL) {
-    sollyaFprintf(stderr,"Error: the file %s requested by plot could not be opened for writing: ",gplotname);
-    sollyaFprintf(stderr,"\"%s\".\n",strerror(errno));
+    printMessage(1,SOLLYA_MSG_COULD_NOT_OPEN_PLOT_FILE,"Error: the file %s requested by plot could not be opened for writing: ",gplotname);
+    printMessage(1,SOLLYA_MSG_CONTINUATION,"\"%s\".\n",strerror(errno));
     return;
   }
   sollyaFprintf(file, "# Gnuplot script generated by %s\n",PACKAGE_NAME);
   if ((type==PLOTPOSTSCRIPT) || (type==PLOTPOSTSCRIPTFILE)) sollyaFprintf(file,"set terminal postscript eps color\nset out \"%s\"\n",outputname);
-  sollyaFprintf(file, "set xrange [%1.50e:%1.50e]\n", mpfr_get_d(a, GMP_RNDD),mpfr_get_d(b, GMP_RNDU));
+  sollyaFprintf(file, "set format x \"%%g\"\n");
+  sollyaFprintf(file, "set format y \"%%g\"\n");
+  sollyaFprintf(file, "set xrange [%1.50e:%1.50e]\n", sollya_mpfr_get_d(a, GMP_RNDD),sollya_mpfr_get_d(b, GMP_RNDU));
   sollyaFprintf(file, "plot \"%s\" using 1:2 with dots t \"\"\n",dataname);
+  if ((name==NULL) || (type==PLOTFILE)) {
+    sollyaFprintf(file,"pause mouse close\n");
+  }
   fclose(file);
 
   file = fopen(dataname, "w");
   if (file == NULL) {
-    sollyaFprintf(stderr,"Error: the file %s requested by plot could not be opened for writing: ",dataname);
-    sollyaFprintf(stderr,"\"%s\".\n",strerror(errno));
+    printMessage(1,SOLLYA_MSG_COULD_NOT_OPEN_PLOT_FILE,"Error: the file %s requested by plot could not be opened for writing: ",dataname);
+    printMessage(1,SOLLYA_MSG_CONTINUATION,"\"%s\".\n",strerror(errno));
     return;
   }
+
+  gmp_randinit_default (state);
 
   mpfr_init2(x_h,samplingPrecision);
   mpfr_init2(perturb, prec);
@@ -342,10 +383,10 @@ void externalPlot(char *library, mpfr_t a, mpfr_t b, mp_prec_t samplingPrecision
   mpfr_div_2ui(min_value, min_value, 12, GMP_RNDN);
 
   mpfr_set(x_h,a,GMP_RNDD);
-  
+
   while(mpfr_less_p(x_h,b)) {
-    mpfr_set(x, x_h, GMP_RNDN); // exact
-    
+    mpfr_set(x, x_h, GMP_RNDN); /* exact */
+
     if (mpfr_zero_p(x_h)) {
       mpfr_set(x_h, min_value, GMP_RNDU);
     }
@@ -361,31 +402,28 @@ void externalPlot(char *library, mpfr_t a, mpfr_t b, mp_prec_t samplingPrecision
       mpfr_add(x, x, perturb, GMP_RNDN);
     }
 
+    if (mpfr_zero_p(x)) {
+      mpfr_mul(x,x,x,GMP_RNDN); /* (+/- 0)^2 = + 0 */
+    }
     (*myFunction)(temp,x);
     evaluateFaithful(y, func, x,prec);
     mpfr_sub(temp, temp, y, GMP_RNDN);
     if(mode==RELATIVE) mpfr_div(temp, temp, y, GMP_RNDN);
-    xd =  mpfr_get_d(x, GMP_RNDN);
+    xd =  sollya_mpfr_get_d(x, GMP_RNDN);
     if (xd >= MAX_VALUE_GNUPLOT) xd = MAX_VALUE_GNUPLOT;
     if (xd <= -MAX_VALUE_GNUPLOT) xd = -MAX_VALUE_GNUPLOT;
     sollyaFprintf(file, "%1.50e",xd);
     if (!mpfr_number_p(temp)) {
-      if (verbosity >= 2) {
-	changeToWarningMode();
-	sollyaPrintf("Information: function undefined or not evaluable in point %s = ",variablename);
-	printValue(&x);
-	sollyaPrintf("\nThis point will not be plotted.\n");
-	restoreMode();
-      }
+      printMessage(2,SOLLYA_MSG_A_FUNCTION_COULD_NOT_BE_PLOTTED_AT_A_POINT,"Information: function undefined or not evaluable in point %s = %v\nThis point will not be plotted.\n",((variablename == NULL) ? "_x_" : variablename),x);
     }
-    yd = mpfr_get_d(temp, GMP_RNDN);
+    yd = sollya_mpfr_get_d(temp, GMP_RNDN);
     if (yd >= MAX_VALUE_GNUPLOT) yd = MAX_VALUE_GNUPLOT;
     if (yd <= -MAX_VALUE_GNUPLOT) yd = -MAX_VALUE_GNUPLOT;
     sollyaFprintf(file, "\t%1.50e\n", yd);
   }
 
   fclose(file);
- 
+
   /* End of the interesting part.... */
 
   dlclose(descr);
@@ -397,32 +435,67 @@ void externalPlot(char *library, mpfr_t a, mpfr_t b, mp_prec_t samplingPrecision
   mpfr_clear(ulp);
   mpfr_clear(min_value);
 
+  deferSignalHandling();
+  fflush(NULL);
+  parserFlushInput();
+  resumeSignalHandling();
   if ((name==NULL) || (type==PLOTFILE)) {
-    if (fork()==0) {
-      daemon(1,1);
-      execlp("gnuplot", "gnuplot", "-persist", gplotname, NULL);
-      perror("An error occurred when calling gnuplot ");
-      exit(1);
+    if (fork()==0) { /* The daemon call could fail (and will on certain Cygwin), in which case a double fork yields (almost (mod HUP etc.)) the same result. If daemon works, the fork has no effect */
+      if (daemon(1,0) == 0) { /* We want the prompt to return, so we need a daemon. We need to connect that daemon to /dev/null, which we do by setting the 2nd arg to zero */
+	if (fork() == 0) { /* We need a child of the daemon that waits for gnuplot to remove the file */
+	  execlp(gnuplotname, gnuplotname, gplotname, NULL);
+	  perror("An error occurred when calling gnuplot ");
+	  exit(1);
+	} else {
+	  wait(NULL);
+	  sleep(1);
+	  remove(gplotname);
+	  remove(dataname);
+	  sleep(1);
+	  exit(0);
+	}
+      } else {
+	fprintf(stderr, "Could not create a daemon for gnuplot\n");
+	if (fork() == 0) { /* We could not create a daemon but we still want a child to wait for us */
+	  execlp(gnuplotname, gnuplotname, gplotname, NULL);
+	  perror("An error occurred when calling gnuplot ");
+	  exit(1);
+	} else {
+	  wait(NULL);
+	  sleep(2);
+	  exit(0);
+	}	  
+      }
     }
-    else wait(NULL);
+    else {
+      wait(NULL);
+      sleep(1);
+    }
   }
   else { /* Case we have an output: no daemon */
     if (fork()==0) {
-      execlp("gnuplot", "gnuplot", "-persist", gplotname, NULL);
+      execlp(gnuplotname, gnuplotname, gplotname, NULL);
       perror("An error occurred when calling gnuplot ");
       exit(1);
     }
     else {
       wait(NULL);
-      if((type==PLOTPOSTSCRIPT)) {
+      if(type==PLOTPOSTSCRIPT) {
 	remove(gplotname);
 	remove(dataname);
       }
+      sleep(1);
     }
   }
+
+  deferSignalHandling();
+  fflush(NULL);
+  parserFlushInput();
+  resumeSignalHandling();
   
-  free(gplotname);
-  free(dataname);
-  free(outputname);
+  safeFree(gplotname);
+  safeFree(dataname);
+  safeFree(outputname);
+  gmp_randclear(state);
   return;
 }

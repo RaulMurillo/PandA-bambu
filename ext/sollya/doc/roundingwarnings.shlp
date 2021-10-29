@@ -1,0 +1,47 @@
+#NAME $ROUNDINGWARNINGS
+#QUICK_DESCRIPTION global variable controlling whether or not a warning is displayed when roundings occur.
+#CALLING $COMMAND = <activation value>
+#TYPE $ONOFF_TYPE -> $VOID_TYPE
+#CALLING $COMMAND = <activation value> !
+#TYPE $ONOFF_TYPE -> $VOID_TYPE
+#CALLING $COMMAND
+#TYPE $ONOFF_TYPE
+
+#LIBRARYNAME void sollya_lib_set_roundingwarnings_and_print(sollya_obj_t)
+#LIBRARYNAME void sollya_lib_set_roundingwarnings(sollya_obj_t)
+#LIBRARYNAME sollya_obj_t sollya_lib_get_roundingwarnings()
+
+#PARAMETERS <activation value> controls if warnings should be shown or not
+
+
+#DESCRIPTION 
+$COMMAND is a global variable. When its value is $ON, warnings are
+emitted in appropriate verbosity modes (see $VERBOSITY) when roundings
+occur.  When its value is $OFF, these warnings are suppressed.
+
+#DESCRIPTION 
+This mode depends on a verbosity of at least 1. See
+$VERBOSITY for more details.
+
+#DESCRIPTION 
+Default is $ON when the standard input is a terminal and
+$OFF when $SOLLYA input is read from a file.
+
+
+#EXAMPLE
+verbosity=1!;
+roundingwarnings = on;
+exp(0.1);
+roundingwarnings = off;
+exp(0.1);
+
+#SEEALSO $ON
+#SEEALSO $OFF
+#SEEALSO $VERBOSITY
+#SEEALSO $MIDPOINTMODE
+#SEEALSO $RATIONALMODE
+#SEEALSO $SUPPRESSMESSAGE
+#SEEALSO $UNSUPPRESSMESSAGE
+#SEEALSO $SHOWMESSAGENUMBERS
+#SEEALSO $GETSUPPRESSEDMESSAGES
+

@@ -1,0 +1,59 @@
+#NAME $DOUBLEEXTENDED
+#NAME $DE
+
+#QUICK_DESCRIPTION computes the nearest number with 64 bits of mantissa.
+
+#LIBRARYNAME sollya_obj_t sollya_lib_doubleextended(sollya_obj_t)
+#LIBRARYNAME sollya_obj_t sollya_lib_doubleextended_obj()
+#LIBRARYNAME int sollya_lib_is_doubleextended_obj(sollya_obj_t)
+#LIBRARYNAME sollya_obj_t sollya_lib_build_function_doubleextended(sollya_obj_t)
+#LIBRARYNAME #define SOLLYA_DE(x) sollya_lib_build_function_doubleextended(x)
+
+#DESCRIPTION 
+$COMMAND is a function that computes the nearest floating-point number with
+64 bits of mantissa to a given number. Since it is a function, it can be
+composed with other $SOLLYA functions such as $EXP, $SIN, etc.
+
+#DESCRIPTION
+$COMMAND now does handle subnormal numbers for a presumed exponent width
+of the double-extended format of 15 bits. This means, with respect to 
+rounding, $COMMAND behaves as a IEEE 754-2008 binary79 with a 64 bit 
+significand (with a hidden bit normal range), one sign bit and a 
+15 bit exponent field would behave. This behavior may be different
+from the one observed on Intel-based IA32/Intel64 processors (or compatible
+versions from other vendors). However it is the one seen on HP/Intel 
+Itanium when the precision specifier is double-extended and pseudo-denormals
+are activated.
+
+#DESCRIPTION
+Since it is a function and not a command, its behavior is a bit different from 
+the behavior of $ROUND(x,64,RN) even if the result is exactly the same.
+$ROUND(x,64,RN) is immediately evaluated whereas $COMMAND(x) can be composed 
+with other functions (and thus be plotted and so on).
+
+#EXAMPLE
+display=binary!;
+DE(0.1);
+round(0.1,64,RN);
+
+#EXAMPLE
+D(2^(-2000));
+DE(2^(-20000));
+
+#EXAMPLE
+verbosity=1!;
+f = sin(DE(x));
+f(pi);
+g = sin(round(x,64,RN));
+
+#SEEALSO $ROUNDCOEFFICIENTS
+#SEEALSO $HALFPRECISION
+#SEEALSO $SINGLE
+#SEEALSO $DOUBLE
+#SEEALSO $DOUBLEDOUBLE
+#SEEALSO $QUAD
+#SEEALSO $TRIPLEDOUBLE
+#SEEALSO $ROUND
+
+
+

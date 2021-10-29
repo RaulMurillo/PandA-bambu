@@ -1,0 +1,57 @@
+restart;
+print("=============== Test number 1 ================");
+foo = library("./libraryexample.a");
+verbosity=9;
+evaluate(diff(foo(x+1)), 0);
+
+
+/* Testing the __unique_id feature */
+restart;
+print("=============== Test number 2 ================");
+s = __unique_id;
+print(s) > "tmp_check024";
+write("Checkingthat __unique_id is made of [0-9a-zA-Z_-]... ");
+bashexecute("sed -n 's/[0-9A-Za-z_-]//g;p' tmp_check024");
+print("Done.");
+
+restart;
+s = __unique_id;
+print(s) > "tmp_check024b";
+write("Checking that __unique_id is made of [0-9a-zA-Z_-]... ");
+bashexecute("sed -n 's/[0-9A-Za-z_-]//g;p' tmp_check024b");
+print("Done.");
+
+print("Checking that __unique_id changes after restart... ");
+bashexecute("diff tmp_check024 tmp_check024b > /dev/null && echo \"__unique_id did not change after restart!\" && cat tmp_check024 && cat tmp_check024b");
+print("Done.");
+
+bashexecute("rm -rf tmp_check024 tmp_check024b");
+
+
+restart;
+print("=============== Test number 3 ================");
+/* Non-regression test for bug [#20818] */
+f = asin(x);
+dom = [1b-100; 0x3fefffffffffffff];
+q = x * (6180970211295773 * 2^(-53) + x^2 * 7192083860379593*2^(-53));
+r_exact = x*cos(q(x))-sin(q(x))*sqrt(1-x^2);
+monomials1 = [| q(x) * sqrt(1-x^2) / x|];
+monomials2 = [|1, q(x)^2|];
+display = dyadic!;
+fullparentheses = on!;
+autosimplify = off!;
+verbosity = 0!;
+rrstar = remez(r_exact/x, monomials1 @ monomials2, dom);
+verbosity = 1!;
+filename = "tempfile"@__unique_id;
+print("rrstar2 = ", rrstar, ";") > filename;
+execute(filename);
+bashexecute("rm -rf " @ filename);
+rrstar2 == rrstar;
+
+restart;
+print("=============== Test number 4 ================");
+filename = "tempfile"@__unique_id;
+print("showmessagenumbers=on!; roundingwarnings=on!; verbosity=1!; a=0.1;") > filename;
+execute(filename);
+bashexecute("rm -rf " @ filename);

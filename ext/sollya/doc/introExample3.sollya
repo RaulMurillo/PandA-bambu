@@ -1,0 +1,6 @@
+f = sin(x)/x; /* hidden */
+g = cos(x) - 1; /* hidden */
+rename(x,y);
+g;
+x=3;
+x;

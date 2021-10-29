@@ -1,0 +1,48 @@
+#NAME $DOUBLEDOUBLE
+#NAME $DD
+#QUICK_DESCRIPTION represents a number as the sum of two IEEE doubles.
+
+#LIBRARYNAME sollya_obj_t sollya_lib_double_double(sollya_obj_t)
+#LIBRARYNAME sollya_obj_t sollya_lib_double_double_obj()
+#LIBRARYNAME int sollya_lib_is_double_double_obj(sollya_obj_t)
+#LIBRARYNAME sollya_obj_t sollya_lib_build_function_double_double(sollya_obj_t)
+#LIBRARYNAME #define SOLLYA_DD(x) sollya_lib_build_function_double_double(x)
+
+#DESCRIPTION 
+$COMMAND is both a function and a constant.
+
+#DESCRIPTION
+As a function, it rounds its argument to the nearest number that can be written
+as the sum of two double precision numbers.
+
+#DESCRIPTION
+The algorithm used to compute $COMMAND(§§x§$x$§§) is the following: let §§xh§$x_h$§§ = $DOUBLE(§§x§$x$§§)
+and let §§xl§$x_l$§§ = $DOUBLE(§§x - xh§$x-x_h$§§). Return the number §§xh + xl§$x_h+x_l$§§. Note that if the current 
+precision is not sufficient to exactly represent §§xh + xl§$x_h + x_l$§§, a rounding will occur
+and the result of $COMMAND(§§x§$x$§§) will be useless.
+
+#DESCRIPTION
+As a constant, it symbolizes the double-double precision format. It is used in 
+contexts when a precision format is necessary, e.g. in the commands 
+$ROUND, $ROUNDCOEFFICIENTS and $IMPLEMENTPOLY.
+See the corresponding help pages for examples.
+
+#EXAMPLE
+verbosity=1!;
+a = 1+ 2^(-100);
+DD(a);
+prec=50!;
+DD(a);
+
+#SEEALSO $HALFPRECISION
+#SEEALSO $SINGLE
+#SEEALSO $DOUBLE
+#SEEALSO $DOUBLEEXTENDED
+#SEEALSO $QUAD
+#SEEALSO $TRIPLEDOUBLE
+#SEEALSO $ROUNDCOEFFICIENTS
+#SEEALSO $IMPLEMENTPOLY
+#SEEALSO $ROUND
+
+
+

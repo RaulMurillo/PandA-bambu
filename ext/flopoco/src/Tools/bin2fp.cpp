@@ -80,32 +80,32 @@ int main(int argc, char* argv[] )
     usage(argv[0]);
   }
 
-
+	
   // significand
   mpfr_t sig, one, two;
   mpfr_init2(one, 2);
-  mpfr_set_d(one, 1.0, GMP_RNDN);
+  mpfr_set_d(one, 1.0, MPFR_RNDN);
   mpfr_init2(two, 2);
-  mpfr_set_d(two, 2.0, GMP_RNDN);
+  mpfr_set_d(two, 2.0, MPFR_RNDN);
 
   mpfr_init2(sig, wF+1);
-  mpfr_set_d(sig, 1.0, GMP_RNDN); // this will be the implicit one
+  mpfr_set_d(sig, 1.0, MPFR_RNDN); // this will be the implicit one
 
   p=x+3+wE;
   for (int i=0; i< wF; i++) {
-    mpfr_mul(sig, sig, two, GMP_RNDN);
+    mpfr_mul(sig, sig, two, MPFR_RNDN);
     if (*p=='1') {
-      mpfr_add(sig, sig, one, GMP_RNDN);
+      mpfr_add(sig, sig, one, MPFR_RNDN);
     }
     p++;
   }
 
   // set sign
   if(x[2]=='1')
-    mpfr_neg(sig, sig, GMP_RNDN);
+    mpfr_neg(sig, sig, MPFR_RNDN);
 
   // bring back between 1 and 2: multiply by 2^-wF
-  mpfr_mul_2si (sig, sig, -wF, GMP_RNDN);
+  mpfr_mul_2si (sig, sig, -wF, MPFR_RNDN);
 
   // exponent
   int exp=0;
@@ -121,14 +121,15 @@ int main(int argc, char* argv[] )
   exp -= ((1<<(wE-1)) -1);
 
   // scale sig according to exp
-  mpfr_mul_2si (sig, sig, exp, GMP_RNDN);
+  mpfr_mul_2si (sig, sig, exp, MPFR_RNDN);
+
 
   // output on enough bits
-  mpfr_out_str (0, // std out
-		10, // base
-		0, // enough digits so that number may be read back
-		sig, 
-		GMP_RNDN);
+	mpfr_out_str (stdout, // please allocate this memory
+								10, // base
+								0, // enough digits so that number may be read back
+								sig, 
+								MPFR_RNDN);
   cout << endl;
   return 0;
 }

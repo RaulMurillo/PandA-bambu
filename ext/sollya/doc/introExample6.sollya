@@ -1,0 +1,2 @@
+prec=200!;  /* hidden */
+log2(5)/log2(17) - log(5)/log(17);

@@ -1,0 +1,81 @@
+\subsection{div}
+\label{labdiveucl}
+\noindent Name: \textbf{div}\\
+\phantom{aaa}Computes the euclidian division of polynomials or numbers and returns the quotient\\[0.2cm]
+\noindent Library name:\\
+\verb|   sollya_obj_t sollya_lib_euclidian_div(sollya_obj_t, sollya_obj_t)|\\[0.2cm]
+\noindent Usage: 
+\begin{center}
+\textbf{div}(\emph{a}, \emph{b}) : (\textsf{function}, \textsf{function}) $\rightarrow$ \textsf{function}\\
+\end{center}
+Parameters: 
+\begin{itemize}
+\item \emph{a} is a constant or a polynomial.
+\item \emph{b} is a constant or a polynomial.
+\end{itemize}
+\noindent Description: \begin{itemize}
+
+\item When both \emph{a} and \emph{b} are constants, \textbf{div}(\emph{a},\emph{b}) computes
+   \textbf{floor}(\emph{a} \textbf{/} \emph{b}). In other words, it returns the quotient of the Euclidian
+   division of \emph{a} by \emph{b}.
+
+\item When both \emph{a} and \emph{b} are polynomials with at least one being non-constant,
+   \textbf{div}(\emph{a},\emph{b}) computes a polynomial \emph{q} such that the polynomial \emph{r} equal to
+   $a-qb$ is of degree strictly smaller than the degree of \emph{b} (see
+   exception below). In order to recover \emph{r}, use the \textbf{mod} command.
+
+\item \textbf{div} works on polynomials whose coefficients are constant
+   expressions that cannot be simplified (by the tool) to rational
+   numbers. In most cases, the tool is able to perform the Euclidian
+   polynomial division for such polynomials and stop the Euclidian
+   division algorithm only when \emph{r} is of degree strictly smaller than
+   the degree of \emph{b}. In certain cases, when the polynomials involve
+   coefficients given as constant expressions that are mathematically
+   zero but for which the tool is unable to detect this fact, the tool
+   may be unable to correctly determine that \emph{r} is actually of degree
+   stricly smaller than the degree of \emph{b}. The issue arises in particular
+   for polynomials whose leading coefficient is a constant expression
+   which is zero without the tool being able to detect this. In these
+   cases, \textbf{div}, together with \textbf{mod}, just guarantee that \emph{q} and
+   \emph{r}, as returned by the two commands, satisfy that \emph{r} added to the
+   product of \emph{q} and \emph{b} yields \emph{a}, and that \emph{r} is of the smallest
+   degree the tool can admit. However, there might exist another pair of
+   a quotient and remainder polynomial for which the remainder polynomial
+   is of a degree less than the one of \emph{r}.
+
+\item When at least one of \emph{a} or \emph{b} is a function that is no polynomial,
+   \textbf{div}(\emph{a},\emph{b}) returns $0$.
+\end{itemize}
+\noindent Example 1: 
+\begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
+> div(1001, 231);
+4
+> div(13, 17);
+0
+> div(-14, 15);
+-1
+> div(-213, -5);
+42
+> div(23/13, 11/17);
+2
+> div(exp(13),-sin(17));
+460177
+\end{Verbatim}
+\end{minipage}\end{center}
+\noindent Example 2: 
+\begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
+> div(24 + 68 * x + 74 * x^2 + 39 * x^3 + 10 * x^4 + x^5, 4 + 4 * x + x^2);
+6 + x * (11 + x * (6 + x))
+> div(24 + 68 * x + 74 * x^2 + 39 * x^3 + 10 * x^4 + x^5, 2 * x^3);
+19.5 + x * (5 + x * 0.5)
+> div(x^2, x^3);
+0
+\end{Verbatim}
+\end{minipage}\end{center}
+\noindent Example 3: 
+\begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
+> div(exp(x), x^2);
+0
+\end{Verbatim}
+\end{minipage}\end{center}
+See also: \textbf{gcd} (\ref{labgcd}), \textbf{mod} (\ref{labmodeucl}), \textbf{numberroots} (\ref{labnumberroots})

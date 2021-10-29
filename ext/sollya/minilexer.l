@@ -1,14 +1,23 @@
 /*
 
-Copyright 2007-2011 by
+Copyright 2007-2017 by
 
 Laboratoire de l'Informatique du Parallelisme,
-UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668
-
-and
+UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668,
 
 Laboratoire d'Informatique de Paris 6, equipe PEQUAN,
-UPMC Universite Paris 06 - CNRS - UMR 7606 - LIP6, Paris, France.
+UPMC Universite Paris 06 - CNRS - UMR 7606 - LIP6, Paris, France
+
+and by
+
+Laboratoire d'Informatique de Paris 6 - Équipe PEQUAN
+Sorbonne Universités
+UPMC Univ Paris 06
+UMR 7606, LIP6
+Boîte Courrier 169
+4, place Jussieu
+F-75252 Paris Cedex 05
+France.
 
 Contributors Ch. Lauter, S. Chevillard
 
@@ -17,7 +26,7 @@ sylvain.chevillard@ens-lyon.org
 
 This software is a computer program whose purpose is to provide an
 environment for safe floating-point code development. It is
-particularily targeted to the automatized implementation of
+particularly targeted to the automated implementation of
 mathematical floating-point libraries (libm). Amongst other features,
 it offers a certified infinity norm, an automatic polynomial
 implementer and a fast Remez algorithm.
@@ -64,8 +73,50 @@ implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #include "chain.h"
 
 #define YY_NO_UNPUT 1
+#define YY_NO_INPUT 1
+
+/* Mess with the mallocs used by the lexer */
+extern void *parserCalloc(size_t, size_t);
+extern void *parserMalloc(size_t);
+extern void *parserRealloc(void *, size_t);
+extern void parserFree(void *);
+#undef malloc
+#undef realloc
+#undef calloc
+#undef free
+#define malloc parserMalloc
+#define realloc parserRealloc
+#define calloc parserCalloc
+#define free UNUSED_PARAM(yyscanner); parserFree
+/* End of the malloc mess */
+
+/* Mess with fprintf to use sollyaFprintf instead. */
+#undef  fprintf
+#define fprintf UNUSED_PARAM(yyscanner); sollyaFprintf
+/* End of fprintf mess */
+
+/* Mess with getc... and fread to use sollya_getc, sollya_feof, sollya_ferror, sollya_fwrite and sollya_fread instead. */
+#undef  getc
+#undef  fread
+#undef  feof
+#undef  ferror
+#undef  fwrite
+#define getc sollya_getc
+#define fread sollya_fread
+#define feof sollya_feof
+#define ferror sollya_ferror
+#define fwrite sollya_fwrite
+/* End of getc, feof, ferror, fwrite and fread mess */
+
+/* const mess */
+#if defined(const)
+#undef const
+#endif
+/* End of the const mess */
 
 %}
+
+%option noyyalloc noyyrealloc noyyfree
 
 %option noyywrap
 %option always-interactive
@@ -113,6 +164,7 @@ DIV             "/"
 POW             "^"
 SQRT            "sqrt"
 EXP             "exp"
+FREEVAR         "_x_"
 LOG             "log"
 LOG2            "log2"
 LOG10           "log10"
@@ -148,11 +200,14 @@ ASSIGNEQUAL     ":="
 SEMICOLON       ";"
 QUIT            "quit"
 PRINT           "print"
+SUPPRESSMESSAGE "suppressmessage"
+UNSUPPRESSMESSAGE "unsuppressmessage"
 DIFF            "diff"
-SIMPLIFY        "simplify"
+DIRTYSIMPLIFY   "dirtysimplify"
 CANONICAL       "canonical"
 PLOT            "plot"
 REMEZ           "remez"
+ANNOTATEFUNCTION "annotatefunction"
 FPMINIMAX       "fpminimax"
 INFNORM         "infnorm"
 SUPNORM         "supnorm"
@@ -188,18 +243,22 @@ HORNER          "horner"
 DEGREE          "degree"
 EXPAND          "expand"
 
-SIMPLIFYSAFE1   "safesimplify"
+SIMPLIFYSAFE1   "simplify"
 SIMPLIFYSAFE2   "simplifysafe"
 
 SIMPLIFYSAFE    ({SIMPLIFYSAFE1}|{SIMPLIFYSAFE2})
 
 TAYLOR          "taylor"
 TAYLORFORM      "taylorform"
+CHEBYSHEVFORM   "chebyshevform"
 AUTODIFF        "autodiff"
 
 FINDZEROS       "findzeros"
 FPFINDZEROS     "fpfindzeros"
 DIRTYINFNORM    "dirtyinfnorm"
+GCD             "gcd"
+EUCLDIV         "div"
+EUCLMOD         "mod"
 NUMBERROOTS     "numberroots"
 
 EVALUATE        "evaluate"
@@ -228,6 +287,7 @@ STRING          ({STRINGDELIMITER})((("\\\\")|(("\\")[\"\'\?ntabfrv])|(("\\")({O
 
 
 VERBOSITY       "verbosity"
+SHOWMESSAGENUMBERS "showmessagenumbers"
 
 WORSTCASE       "worstcase"
 
@@ -245,6 +305,7 @@ AND             "&&"
 OR              "||"
 
 SUBSTITUTE      "substitute"
+COMPOSEPOLYNOMIALS "composepolynomials"
 
 DOTS            "..."
 
@@ -280,6 +341,8 @@ PRINTEXPANSION  "printexpansion"
 
 BASHEXECUTE     "bashexecute"
 BASHEVALUATE    "bashevaluate"
+GETSUPPRESSEDMESSAGES "getsuppressedmessages"
+GETBACKTRACE    "getbacktrace"
 EXTERNALPLOT    "externalplot"
 PERTURB         "perturb"
 
@@ -327,6 +390,7 @@ SUPPRESSWARNINGS "roundingwarnings"
 RATIONALMODE    "rationalmode"
 
 LIBRARY         "library"
+LIBRARYCONSTANT "libraryconstant"
 
 HOPITALRECURSIONS "hopitalrecursions"
 
@@ -368,6 +432,8 @@ MATCH           "match"
 WITH            "with"
 
 RENAME          "rename"
+OBJECTNAME      "objectname"
+BIND            "bind"
 
 LENGTH          "length"
 
@@ -409,6 +475,7 @@ EXTERNALPROC    "externalproc"
 VOID            "void"
 CONSTANTTYPE    "constant"
 FUNCTION        "function"
+OBJECT          "object"
 RANGE           "range"
 INTEGER         "integer"
 STRINGTYPE      "string"
@@ -433,314 +500,345 @@ NOP             "nop"
 
 
 
-{COMMENTSTART}  {     BEGIN(commentstate); }
+{COMMENTSTART}  { miniparserCharactersRead += yyleng;    BEGIN(commentstate); }
 
-<commentstate>{COMMENTEND} { BEGIN(INITIAL); }
+<commentstate>{COMMENTEND} { miniparserCharactersRead += yyleng; BEGIN(INITIAL); }
 
-<commentstate>. { // Eat up comments
-
+<commentstate>. { /* Eat up comments */
+                  miniparserCharactersRead += yyleng;
                  }
 
-<commentstate>[\n] { // Eat up newlines in comments
-
+<commentstate>[\n] { /* Eat up newlines in comments */
+                     miniparserCharactersRead += yyleng;
 		}
 
 
 
-{ONELINECOMMENT} {  // Eat up comments
-
+{ONELINECOMMENT} {  /* Eat up comments */
+                    miniparserCharactersRead += yyleng;
                  }
 
 <<EOF>>         {
+                      miniparserEofReached = 1;
                       yyterminate();
                 }
 {MIDPOINTCONSTANT}                          {
+                                              miniparserCharactersRead += yyleng;
 					      constBuffer2 = (char *) safeCalloc(yyleng+1,sizeof(char));
 					      if (removeSpaces(constBuffer2,yytext)) {
-						printMessage(2,"Information: removed spaces in scientific notation constant \"%s\", it will be considered as \"%s\"\n",yytext,constBuffer2);
+						printMessage(2,SOLLYA_MSG_SPACES_REMOVED_FROM_CONSTANT_IN_SCIENTIF_NOTAT,"Information: removed spaces in scientific notation constant \"%s\", it will be considered as \"%s\"\n",yytext,constBuffer2);
 					      }
 					      yylval->value = constBuffer2;
                                               return MIDPOINTCONSTANTTOKEN; }
 {CONSTANT}                                  {
+                                              miniparserCharactersRead += yyleng;
 					      constBuffer2 = (char *) safeCalloc(yyleng+1,sizeof(char));
 					      if (removeSpaces(constBuffer2,yytext)) {
-						printMessage(2,"Information: removed spaces in scientific notation constant \"%s\", it will be considered as \"%s\"\n",yytext,constBuffer2);
+						printMessage(2,SOLLYA_MSG_SPACES_REMOVED_FROM_CONSTANT_IN_SCIENTIF_NOTAT,"Information: removed spaces in scientific notation constant \"%s\", it will be considered as \"%s\"\n",yytext,constBuffer2);
 					      }
 					      yylval->value = constBuffer2;
                                                return CONSTANTTOKEN; }
 {DYADICCONSTANT} 			    {
+                                              miniparserCharactersRead += yyleng;
                                               constBuffer = (char *) safeCalloc(yyleng+1,sizeof(char));
 					      strncpy(constBuffer,yytext,yyleng);
 					      yylval->value = constBuffer;
                                                return DYADICCONSTANTTOKEN; }
-{HEXADECIMALCONSTANT}     		    { constBuffer = (char *) safeCalloc(yyleng+1,sizeof(char));
+{HEXADECIMALCONSTANT}     		    { miniparserCharactersRead += yyleng;
+                                              constBuffer = (char *) safeCalloc(yyleng+1,sizeof(char));
 					      strncpy(constBuffer,yytext,yyleng);
 					      yylval->value = constBuffer;
                                               return HEXADECIMALCONSTANTTOKEN; }
-{HEXCONSTANT}     			    { constBuffer = (char *) safeCalloc(yyleng+1,sizeof(char));
+{HEXCONSTANT}     			    { miniparserCharactersRead += yyleng;
+                                              constBuffer = (char *) safeCalloc(yyleng+1,sizeof(char));
 					      strncpy(constBuffer,yytext,yyleng);
 					      yylval->value = constBuffer;
                                                return HEXCONSTANTTOKEN; }
-{BINARYCONSTANT}  			    { constBuffer = (char *) safeCalloc(yyleng-1,sizeof(char));
+{BINARYCONSTANT}  			    { miniparserCharactersRead += yyleng;
+                                              constBuffer = (char *) safeCalloc(yyleng-1,sizeof(char));
 					      strncpy(constBuffer,yytext,yyleng-2);
 					      yylval->value = constBuffer;
                                                return BINARYCONSTANTTOKEN; }
 
-{PI}              			    {  return PITOKEN; }
+{PI}              			    { miniparserCharactersRead += yyleng; return PITOKEN; }
 
 {STRING}          			    {
+                                              miniparserCharactersRead += yyleng;
 					      constBuffer = (char *) safeCalloc(yyleng-1,sizeof(char));
 					      constBuffer2 = (char *) safeCalloc(yyleng-1,sizeof(char));
 					      strncpy(constBuffer2,yytext+1,yyleng-2);
 					      demaskString(constBuffer,constBuffer2);
-					      free(constBuffer2);
+					      safeFree(constBuffer2);
 					      yylval->value = constBuffer;
                                                return STRINGTOKEN; }
 
-{LPAR}            			    {  return LPARTOKEN; }
-{RPAR}            			    {  return RPARTOKEN; }
-{LBRACKET}        			    {  return LBRACKETTOKEN; }
-{RBRACKET}        			    {  return RBRACKETTOKEN; }
-{EXCLAMATIONEQUAL}			    {  return EXCLAMATIONEQUALTOKEN; }
-{COMPAREEQUAL}                              {  return COMPAREEQUALTOKEN; }
-{EQUAL}           			    {  return EQUALTOKEN; }
-{ASSIGNEQUAL}          			    {  return ASSIGNEQUALTOKEN; }
-{COMMA}           			    {  return COMMATOKEN; }
-{EXCLAMATION}				    {  return EXCLAMATIONTOKEN; }
-{SEMICOLON}       			    {  return SEMICOLONTOKEN; }
-{LEFTANGLE}       			    {  return LEFTANGLETOKEN; }
-{STARLEFTANGLE}   			    {  return STARLEFTANGLETOKEN; }
-{RIGHTANGLEUNDERSCORE}			    {  return RIGHTANGLEUNDERSCORETOKEN; }
-{RIGHTANGLEDOT} 			    {  return RIGHTANGLEDOTTOKEN; }
-{RIGHTANGLESTAR}			    {  return RIGHTANGLESTARTOKEN; }
-{RIGHTANGLE}      			    {  return RIGHTANGLETOKEN; }
-{DOTS}            			    {  return DOTSTOKEN; }
-{DOT}            			    {  return DOTTOKEN; }
-{QUESTIONMARK}				    {  return QUESTIONMARKTOKEN; }
-{AND}         				    {  return ANDTOKEN; }
-{OR}         				    {  return ORTOKEN; }
-{VERTBAR}				    {  return VERTBARTOKEN; }
-{VAR}					    {  return VARTOKEN; }
-{PROC}					    {  return PROCTOKEN; }
-{PROCEDURE}				    {  return PROCEDURETOKEN; }
-{RETURN}				    {  return RETURNTOKEN; }
-{NOP}	         			    {  return NOPTOKEN; }
-{AT}					    {  return ATTOKEN; }
-{DOUBLECOLON}				    {  return DOUBLECOLONTOKEN; }
-{COLON}  				    {  return COLONTOKEN; }
-{DOTCOLON}				    {  return DOTCOLONTOKEN; }
-{COLONDOT}				    {  return COLONDOTTOKEN; }
+{LPAR}            			    {  miniparserCharactersRead += yyleng; return LPARTOKEN; }
+{RPAR}            			    {  miniparserCharactersRead += yyleng; return RPARTOKEN; }
+{LBRACKET}        			    {  miniparserCharactersRead += yyleng; return LBRACKETTOKEN; }
+{RBRACKET}        			    {  miniparserCharactersRead += yyleng; return RBRACKETTOKEN; }
+{EXCLAMATIONEQUAL}			    {  miniparserCharactersRead += yyleng; return EXCLAMATIONEQUALTOKEN; }
+{COMPAREEQUAL}                              {  miniparserCharactersRead += yyleng; return COMPAREEQUALTOKEN; }
+{EQUAL}           			    {  miniparserCharactersRead += yyleng; return EQUALTOKEN; }
+{ASSIGNEQUAL}          			    {  miniparserCharactersRead += yyleng; return ASSIGNEQUALTOKEN; }
+{COMMA}           			    {  miniparserCharactersRead += yyleng; return COMMATOKEN; }
+{EXCLAMATION}				    {  miniparserCharactersRead += yyleng; return EXCLAMATIONTOKEN; }
+{SEMICOLON}       			    {  miniparserCharactersRead += yyleng; return SEMICOLONTOKEN; }
+{LEFTANGLE}       			    {  miniparserCharactersRead += yyleng; return LEFTANGLETOKEN; }
+{STARLEFTANGLE}   			    {  miniparserCharactersRead += yyleng; return STARLEFTANGLETOKEN; }
+{RIGHTANGLEUNDERSCORE}			    {  miniparserCharactersRead += yyleng; return RIGHTANGLEUNDERSCORETOKEN; }
+{RIGHTANGLEDOT} 			    {  miniparserCharactersRead += yyleng; return RIGHTANGLEDOTTOKEN; }
+{RIGHTANGLESTAR}			    {  miniparserCharactersRead += yyleng; return RIGHTANGLESTARTOKEN; }
+{RIGHTANGLE}      			    {  miniparserCharactersRead += yyleng; return RIGHTANGLETOKEN; }
+{DOTS}            			    {  miniparserCharactersRead += yyleng; return DOTSTOKEN; }
+{DOT}            			    {  miniparserCharactersRead += yyleng; return DOTTOKEN; }
+{QUESTIONMARK}				    {  miniparserCharactersRead += yyleng; return QUESTIONMARKTOKEN; }
+{AND}         				    {  miniparserCharactersRead += yyleng; return ANDTOKEN; }
+{OR}         				    {  miniparserCharactersRead += yyleng; return ORTOKEN; }
+{VERTBAR}				    {  miniparserCharactersRead += yyleng; return VERTBARTOKEN; }
+{VAR}					    {  miniparserCharactersRead += yyleng; return VARTOKEN; }
+{PROC}					    {  miniparserCharactersRead += yyleng; return PROCTOKEN; }
+{PROCEDURE}				    {  miniparserCharactersRead += yyleng; return PROCEDURETOKEN; }
+{RETURN}				    {  miniparserCharactersRead += yyleng; return RETURNTOKEN; }
+{NOP}	         			    {  miniparserCharactersRead += yyleng; return NOPTOKEN; }
+{AT}					    {  miniparserCharactersRead += yyleng; return ATTOKEN; }
+{DOUBLECOLON}				    {  miniparserCharactersRead += yyleng; return DOUBLECOLONTOKEN; }
+{COLON}  				    {  miniparserCharactersRead += yyleng; return COLONTOKEN; }
+{DOTCOLON}				    {  miniparserCharactersRead += yyleng; return DOTCOLONTOKEN; }
+{COLONDOT}				    {  miniparserCharactersRead += yyleng; return COLONDOTTOKEN; }
 
 
-{PLUS}            			    {  return PLUSTOKEN; }
-{MINUS}           			    {  return MINUSTOKEN; }
-{MUL}          				    {  return MULTOKEN; }
-{DIV}            			    {  return DIVTOKEN; }
-{POW}            			    {  return POWTOKEN; }
+{PLUS}            			    {  miniparserCharactersRead += yyleng; return PLUSTOKEN; }
+{MINUS}           			    {  miniparserCharactersRead += yyleng; return MINUSTOKEN; }
+{MUL}          				    {  miniparserCharactersRead += yyleng; return MULTOKEN; }
+{DIV}            			    {  miniparserCharactersRead += yyleng; return DIVTOKEN; }
+{POW}            			    {  miniparserCharactersRead += yyleng; return POWTOKEN; }
 
-{SQRT}            			    {  return SQRTTOKEN; }
-{EXP}             			    {  return EXPTOKEN; }
-{LOG}             			    {  return LOGTOKEN; }
-{LOG2}            			    {  return LOG2TOKEN; }
-{LOG10}           			    {  return LOG10TOKEN; }
-{SIN}             			    {  return SINTOKEN; }
-{COS}             			    {  return COSTOKEN; }
-{TAN}             			    {  return TANTOKEN; }
-{ASIN}            			    {  return ASINTOKEN; }
-{ACOS}            			    {  return ACOSTOKEN; }
-{ATAN}            			    {  return ATANTOKEN; }
-{SINH}            			    {  return SINHTOKEN; }
-{COSH}            			    {  return COSHTOKEN; }
-{TANH}            			    {  return TANHTOKEN; }
-{ASINH}           			    {  return ASINHTOKEN; }
-{ACOSH}           			    {  return ACOSHTOKEN; }
-{ATANH}           			    {  return ATANHTOKEN; }
-{ABS}             			    {  return ABSTOKEN; }
-{ERF}             			    {  return ERFTOKEN; }
-{ERFC}            			    {  return ERFCTOKEN; }
-{LOG1P}           			    {  return LOG1PTOKEN; }
-{EXPM1}           			    {  return EXPM1TOKEN; }
-{DOUBLE}          			    {  return DOUBLETOKEN; }
-{SINGLE}          			    {  return SINGLETOKEN; }
-{QUAD}          			    {  return QUADTOKEN; }
-{HALFPRECISION}          		    {  return HALFPRECISIONTOKEN; }
-{DOUBLEDOUBLE}				    {  return DOUBLEDOUBLETOKEN; }
-{TRIPLEDOUBLE}    			    {  return TRIPLEDOUBLETOKEN; }
-{DOUBLEEXTENDED}  			    {  return DOUBLEEXTENDEDTOKEN; }
-{CEIL}            			    {  return CEILTOKEN; }
-{FLOOR}           			    {  return FLOORTOKEN; }
+{SQRT}            			    {  miniparserCharactersRead += yyleng; return SQRTTOKEN; }
+{EXP}             			    {  miniparserCharactersRead += yyleng; return EXPTOKEN; }
+{FREEVAR}             			    {  miniparserCharactersRead += yyleng; return FREEVARTOKEN; }
+{LOG}             			    {  miniparserCharactersRead += yyleng; return LOGTOKEN; }
+{LOG2}            			    {  miniparserCharactersRead += yyleng; return LOG2TOKEN; }
+{LOG10}           			    {  miniparserCharactersRead += yyleng; return LOG10TOKEN; }
+{SIN}             			    {  miniparserCharactersRead += yyleng; return SINTOKEN; }
+{COS}             			    {  miniparserCharactersRead += yyleng; return COSTOKEN; }
+{TAN}             			    {  miniparserCharactersRead += yyleng; return TANTOKEN; }
+{ASIN}            			    {  miniparserCharactersRead += yyleng; return ASINTOKEN; }
+{ACOS}            			    {  miniparserCharactersRead += yyleng; return ACOSTOKEN; }
+{ATAN}            			    {  miniparserCharactersRead += yyleng; return ATANTOKEN; }
+{SINH}            			    {  miniparserCharactersRead += yyleng; return SINHTOKEN; }
+{COSH}            			    {  miniparserCharactersRead += yyleng; return COSHTOKEN; }
+{TANH}            			    {  miniparserCharactersRead += yyleng; return TANHTOKEN; }
+{ASINH}           			    {  miniparserCharactersRead += yyleng; return ASINHTOKEN; }
+{ACOSH}           			    {  miniparserCharactersRead += yyleng; return ACOSHTOKEN; }
+{ATANH}           			    {  miniparserCharactersRead += yyleng; return ATANHTOKEN; }
+{ABS}             			    {  miniparserCharactersRead += yyleng; return ABSTOKEN; }
+{ERF}             			    {  miniparserCharactersRead += yyleng; return ERFTOKEN; }
+{ERFC}            			    {  miniparserCharactersRead += yyleng; return ERFCTOKEN; }
+{LOG1P}           			    {  miniparserCharactersRead += yyleng; return LOG1PTOKEN; }
+{EXPM1}           			    {  miniparserCharactersRead += yyleng; return EXPM1TOKEN; }
+{DOUBLE}          			    {  miniparserCharactersRead += yyleng; return DOUBLETOKEN; }
+{SINGLE}          			    {  miniparserCharactersRead += yyleng; return SINGLETOKEN; }
+{QUAD}          			    {  miniparserCharactersRead += yyleng; return QUADTOKEN; }
+{HALFPRECISION}          		    {  miniparserCharactersRead += yyleng; return HALFPRECISIONTOKEN; }
+{DOUBLEDOUBLE}				    {  miniparserCharactersRead += yyleng; return DOUBLEDOUBLETOKEN; }
+{TRIPLEDOUBLE}    			    {  miniparserCharactersRead += yyleng; return TRIPLEDOUBLETOKEN; }
+{DOUBLEEXTENDED}  			    {  miniparserCharactersRead += yyleng; return DOUBLEEXTENDEDTOKEN; }
+{CEIL}            			    {  miniparserCharactersRead += yyleng; return CEILTOKEN; }
+{FLOOR}           			    {  miniparserCharactersRead += yyleng; return FLOORTOKEN; }
 
-{PREC}            			    {  return PRECTOKEN; }
-{POINTS}          			    {  return POINTSTOKEN; }
-{DIAM}            			    {  return DIAMTOKEN; }
-{DISPLAY}          			    {  return DISPLAYTOKEN; }
-{VERBOSITY}       			    {  return VERBOSITYTOKEN; }
-{CANONICAL}       			    {  return CANONICALTOKEN; }
-{AUTOSIMPLIFY}    			    {  return AUTOSIMPLIFYTOKEN; }
-{TAYLORRECURSIONS}			    {  return TAYLORRECURSIONSTOKEN; }
-{TIMING}          			    {  return TIMINGTOKEN; }
-{TIME}          			    {  return TIMETOKEN; }
-{FULLPARENTHESES} 			    {  return FULLPARENTHESESTOKEN; }
-{MIDPOINTMODE}    			    {  return MIDPOINTMODETOKEN; }
-{DIEONERRORMODE}    			    {  return DIEONERRORMODETOKEN; }
-{SUPPRESSWARNINGS}			    {  return SUPPRESSWARNINGSTOKEN; }
-{RATIONALMODE}			            {  return RATIONALMODETOKEN; }
-{HOPITALRECURSIONS}			    {  return HOPITALRECURSIONSTOKEN; }
+{PREC}            			    {  miniparserCharactersRead += yyleng; return PRECTOKEN; }
+{POINTS}          			    {  miniparserCharactersRead += yyleng; return POINTSTOKEN; }
+{DIAM}            			    {  miniparserCharactersRead += yyleng; return DIAMTOKEN; }
+{DISPLAY}          			    {  miniparserCharactersRead += yyleng; return DISPLAYTOKEN; }
+{VERBOSITY}       			    {  miniparserCharactersRead += yyleng; return VERBOSITYTOKEN; }
+{SHOWMESSAGENUMBERS}       		    {  miniparserCharactersRead += yyleng; return SHOWMESSAGENUMBERSTOKEN; }
+{CANONICAL}       			    {  miniparserCharactersRead += yyleng; return CANONICALTOKEN; }
+{AUTOSIMPLIFY}    			    {  miniparserCharactersRead += yyleng; return AUTOSIMPLIFYTOKEN; }
+{TAYLORRECURSIONS}			    {  miniparserCharactersRead += yyleng; return TAYLORRECURSIONSTOKEN; }
+{TIMING}          			    {  miniparserCharactersRead += yyleng; return TIMINGTOKEN; }
+{TIME}          			    {  miniparserCharactersRead += yyleng; return TIMETOKEN; }
+{FULLPARENTHESES} 			    {  miniparserCharactersRead += yyleng; return FULLPARENTHESESTOKEN; }
+{MIDPOINTMODE}    			    {  miniparserCharactersRead += yyleng; return MIDPOINTMODETOKEN; }
+{DIEONERRORMODE}    			    {  miniparserCharactersRead += yyleng; return DIEONERRORMODETOKEN; }
+{SUPPRESSWARNINGS}			    {  miniparserCharactersRead += yyleng; return SUPPRESSWARNINGSTOKEN; }
+{RATIONALMODE}			            {  miniparserCharactersRead += yyleng; return RATIONALMODETOKEN; }
+{HOPITALRECURSIONS}			    {  miniparserCharactersRead += yyleng; return HOPITALRECURSIONSTOKEN; }
 
-{ON}              			    {  return ONTOKEN; }
-{OFF}             			    {  return OFFTOKEN; }
-{DYADIC}				    {  return DYADICTOKEN; }
-{POWERS}          			    {  return POWERSTOKEN; }
-{BINARY}          			    {  return BINARYTOKEN; }
-{HEXADECIMAL}          			    {  return HEXADECIMALTOKEN; }
-{FILE}            			    {  return FILETOKEN; }
-{POSTSCRIPT}      			    {  return POSTSCRIPTTOKEN; }
-{POSTSCRIPTFILE}  			    {  return POSTSCRIPTFILETOKEN; }
-{PERTURB}         			    {  return PERTURBTOKEN; }
-{MINUSWORD}       			    {  return MINUSWORDTOKEN; }
-{PLUSWORD}        			    {  return PLUSWORDTOKEN; }
-{ZEROWORD}        			    {  return ZEROWORDTOKEN; }
-{NEAREST}         			    {  return NEARESTTOKEN; }
-{HONORCOEFFPREC} 			    {  return HONORCOEFFPRECTOKEN; }
-{TRUE}					    {  return TRUETOKEN; }
-{FALSE}					    {  return FALSETOKEN; }
-{DEFAULT}				    {  return DEFAULTTOKEN; }
-{MATCH} 				    {  return MATCHTOKEN; }
-{WITH}  				    {  return WITHTOKEN; }
-{HEAD}   				    {  return HEADTOKEN; }
-{ROUNDCORRECTLY}   		       	    {  return ROUNDCORRECTLYTOKEN; }
-{REVERT}   				    {  return REVERTTOKEN; }
-{SORT}   				    {  return SORTTOKEN; }
-{MANTISSA}   				    {  return MANTISSATOKEN; }
-{EXPONENT}   				    {  return EXPONENTTOKEN; }
-{PRECISION}   				    {  return PRECISIONTOKEN; }
-{TAIL}   				    {  return TAILTOKEN; }
-{INF}   				    {  return INFTOKEN; }
-{MID}   				    {  return MIDTOKEN; }
-{SUP}   				    {  return SUPTOKEN; }
-{MIN}   				    {  return MINTOKEN; }
-{MAX}   				    {  return MAXTOKEN; }
-{READXML}   				    {  return READXMLTOKEN; }
-{LENGTH}   				    {  return LENGTHTOKEN; }
-{ABSOLUTE}   				    {  return ABSOLUTETOKEN; }
-{RELATIVE}   				    {  return RELATIVETOKEN; }
-{DECIMAL}   				    {  return DECIMALTOKEN; }
-{FIXED}   				    {  return FIXEDTOKEN; }
-{FLOATING}   				    {  return FLOATINGTOKEN; }
+{ON}              			    {  miniparserCharactersRead += yyleng; return ONTOKEN; }
+{OFF}             			    {  miniparserCharactersRead += yyleng; return OFFTOKEN; }
+{DYADIC}				    {  miniparserCharactersRead += yyleng; return DYADICTOKEN; }
+{POWERS}          			    {  miniparserCharactersRead += yyleng; return POWERSTOKEN; }
+{BINARY}          			    {  miniparserCharactersRead += yyleng; return BINARYTOKEN; }
+{HEXADECIMAL}          			    {  miniparserCharactersRead += yyleng; return HEXADECIMALTOKEN; }
+{FILE}            			    {  miniparserCharactersRead += yyleng; return FILETOKEN; }
+{POSTSCRIPT}      			    {  miniparserCharactersRead += yyleng; return POSTSCRIPTTOKEN; }
+{POSTSCRIPTFILE}  			    {  miniparserCharactersRead += yyleng; return POSTSCRIPTFILETOKEN; }
+{PERTURB}         			    {  miniparserCharactersRead += yyleng; return PERTURBTOKEN; }
+{MINUSWORD}       			    {  miniparserCharactersRead += yyleng; return MINUSWORDTOKEN; }
+{PLUSWORD}        			    {  miniparserCharactersRead += yyleng; return PLUSWORDTOKEN; }
+{ZEROWORD}        			    {  miniparserCharactersRead += yyleng; return ZEROWORDTOKEN; }
+{NEAREST}         			    {  miniparserCharactersRead += yyleng; return NEARESTTOKEN; }
+{HONORCOEFFPREC} 			    {  miniparserCharactersRead += yyleng; return HONORCOEFFPRECTOKEN; }
+{TRUE}					    {  miniparserCharactersRead += yyleng; return TRUETOKEN; }
+{FALSE}					    {  miniparserCharactersRead += yyleng; return FALSETOKEN; }
+{DEFAULT}				    {  miniparserCharactersRead += yyleng; return DEFAULTTOKEN; }
+{MATCH} 				    {  miniparserCharactersRead += yyleng; return MATCHTOKEN; }
+{WITH}  				    {  miniparserCharactersRead += yyleng; return WITHTOKEN; }
+{HEAD}   				    {  miniparserCharactersRead += yyleng; return HEADTOKEN; }
+{ROUNDCORRECTLY}   		       	    {  miniparserCharactersRead += yyleng; return ROUNDCORRECTLYTOKEN; }
+{REVERT}   				    {  miniparserCharactersRead += yyleng; return REVERTTOKEN; }
+{SORT}   				    {  miniparserCharactersRead += yyleng; return SORTTOKEN; }
+{MANTISSA}   				    {  miniparserCharactersRead += yyleng; return MANTISSATOKEN; }
+{EXPONENT}   				    {  miniparserCharactersRead += yyleng; return EXPONENTTOKEN; }
+{PRECISION}   				    {  miniparserCharactersRead += yyleng; return PRECISIONTOKEN; }
+{TAIL}   				    {  miniparserCharactersRead += yyleng; return TAILTOKEN; }
+{INF}   				    {  miniparserCharactersRead += yyleng; return INFTOKEN; }
+{MID}   				    {  miniparserCharactersRead += yyleng; return MIDTOKEN; }
+{SUP}   				    {  miniparserCharactersRead += yyleng; return SUPTOKEN; }
+{MIN}   				    {  miniparserCharactersRead += yyleng; return MINTOKEN; }
+{MAX}   				    {  miniparserCharactersRead += yyleng; return MAXTOKEN; }
+{READXML}   				    {  miniparserCharactersRead += yyleng; return READXMLTOKEN; }
+{LENGTH}   				    {  miniparserCharactersRead += yyleng; return LENGTHTOKEN; }
+{ABSOLUTE}   				    {  miniparserCharactersRead += yyleng; return ABSOLUTETOKEN; }
+{RELATIVE}   				    {  miniparserCharactersRead += yyleng; return RELATIVETOKEN; }
+{DECIMAL}   				    {  miniparserCharactersRead += yyleng; return DECIMALTOKEN; }
+{FIXED}   				    {  miniparserCharactersRead += yyleng; return FIXEDTOKEN; }
+{FLOATING}   				    {  miniparserCharactersRead += yyleng; return FLOATINGTOKEN; }
 
-{ERROR}   				    {  return ERRORTOKEN; }
-{READFILE}   				    {  return READFILETOKEN; }
-{ISBOUND}   				    {  return ISBOUNDTOKEN; }
+{ERROR}   				    {  miniparserCharactersRead += yyleng; return ERRORTOKEN; }
+{READFILE}   				    {  miniparserCharactersRead += yyleng; return READFILETOKEN; }
+{ISBOUND}   				    {  miniparserCharactersRead += yyleng; return ISBOUNDTOKEN; }
 
 {QUIT}             			    {
-			                        return FALSEQUITTOKEN;
+			                        miniparserCharactersRead += yyleng; return FALSEQUITTOKEN;
                                             }
-{RESTART}         			    { return FALSERESTARTTOKEN; }
+{RESTART}         			    { miniparserCharactersRead += yyleng; return FALSERESTARTTOKEN; }
 
-{LIBRARY}         			    {  return LIBRARYTOKEN; }
+{LIBRARY}         			    {  miniparserCharactersRead += yyleng; return LIBRARYTOKEN; }
+{LIBRARYCONSTANT}         		    {  miniparserCharactersRead += yyleng; return LIBRARYCONSTANTTOKEN; }
 
-{DIFF}            			    {  return DIFFTOKEN; }
-{SIMPLIFY}				    {  return SIMPLIFYTOKEN; }
-{REMEZ}           			    {  return REMEZTOKEN; }
-{FPMINIMAX}           			    {  return FPMINIMAXTOKEN; }
-{HORNER}          			    {  return HORNERTOKEN; }
-{EXPAND}          			    {  return EXPANDTOKEN; }
-{SIMPLIFYSAFE}				    {  return SIMPLIFYSAFETOKEN; }
-{TAYLOR}         			    {  return TAYLORTOKEN; }
-{TAYLORFORM}         			    {  return TAYLORFORMTOKEN; }
-{AUTODIFF}         			    {  return AUTODIFFTOKEN; }
-{DEGREE}          			    {  return DEGREETOKEN; }
-{NUMERATOR}       			    {  return NUMERATORTOKEN; }
-{DENOMINATOR}     			    {  return DENOMINATORTOKEN; }
-{SUBSTITUTE}      			    {  return SUBSTITUTETOKEN; }
-{COEFF}           			    {  return COEFFTOKEN; }
-{SUBPOLY}         			    {  return SUBPOLYTOKEN; }
-{ROUNDCOEFFICIENTS} 			    {  return ROUNDCOEFFICIENTSTOKEN; }
-{RATIONALAPPROX}  			    {  return RATIONALAPPROXTOKEN; }
-{APPROX}           			    {  return APPROXTOKEN; }
-{ACCURATEINFNORM}  			    {  return ACCURATEINFNORMTOKEN; }
-{ROUNDTOFORMAT}   			    {  return ROUNDTOFORMATTOKEN; }
-{EVALUATE}        			    {  return EVALUATETOKEN; }
+{DIFF}            			    {  miniparserCharactersRead += yyleng; return DIFFTOKEN; }
+{DIRTYSIMPLIFY}				    {  miniparserCharactersRead += yyleng; return DIRTYSIMPLIFYTOKEN; }
+{REMEZ}           			    {  miniparserCharactersRead += yyleng; return REMEZTOKEN; }
+{ANNOTATEFUNCTION}           		    {  miniparserCharactersRead += yyleng; return ANNOTATEFUNCTIONTOKEN; }
+{FPMINIMAX}           			    {  miniparserCharactersRead += yyleng; return FPMINIMAXTOKEN; }
+{HORNER}          			    {  miniparserCharactersRead += yyleng; return HORNERTOKEN; }
+{EXPAND}          			    {  miniparserCharactersRead += yyleng; return EXPANDTOKEN; }
+{SIMPLIFYSAFE}				    {  miniparserCharactersRead += yyleng; return SIMPLIFYSAFETOKEN; }
+{TAYLOR}         			    {  miniparserCharactersRead += yyleng; return TAYLORTOKEN; }
+{TAYLORFORM}         			    {  miniparserCharactersRead += yyleng; return TAYLORFORMTOKEN; }
+{CHEBYSHEVFORM}         		    {  miniparserCharactersRead += yyleng; return CHEBYSHEVFORMTOKEN; }
+{AUTODIFF}         			    {  miniparserCharactersRead += yyleng; return AUTODIFFTOKEN; }
+{DEGREE}          			    {  miniparserCharactersRead += yyleng; return DEGREETOKEN; }
+{NUMERATOR}       			    {  miniparserCharactersRead += yyleng; return NUMERATORTOKEN; }
+{DENOMINATOR}     			    {  miniparserCharactersRead += yyleng; return DENOMINATORTOKEN; }
+{SUBSTITUTE}      			    {  miniparserCharactersRead += yyleng; return SUBSTITUTETOKEN; }
+{COMPOSEPOLYNOMIALS}      		    {  miniparserCharactersRead += yyleng; return COMPOSEPOLYNOMIALSTOKEN; }
+{COEFF}           			    {  miniparserCharactersRead += yyleng; return COEFFTOKEN; }
+{SUBPOLY}         			    {  miniparserCharactersRead += yyleng; return SUBPOLYTOKEN; }
+{ROUNDCOEFFICIENTS} 			    {  miniparserCharactersRead += yyleng; return ROUNDCOEFFICIENTSTOKEN; }
+{RATIONALAPPROX}  			    {  miniparserCharactersRead += yyleng; return RATIONALAPPROXTOKEN; }
+{APPROX}           			    {  miniparserCharactersRead += yyleng; return APPROXTOKEN; }
+{ACCURATEINFNORM}  			    {  miniparserCharactersRead += yyleng; return ACCURATEINFNORMTOKEN; }
+{ROUNDTOFORMAT}   			    {  miniparserCharactersRead += yyleng; return ROUNDTOFORMATTOKEN; }
+{EVALUATE}        			    {  miniparserCharactersRead += yyleng; return EVALUATETOKEN; }
 
-{PARSE}           			    {  return PARSETOKEN; }
+{PARSE}           			    {  miniparserCharactersRead += yyleng; return PARSETOKEN; }
 
-{PRINT}           			    {  return PRINTTOKEN; }
-{PRINTXML}           			    {  return PRINTXMLTOKEN; }
-{EXECUTE}           			    {  return EXECUTETOKEN; }
-{PLOT}            			    {  return PLOTTOKEN; }
-{PRINTHEXA}       			    {  return PRINTHEXATOKEN; }
-{PRINTFLOAT}       			    {  return PRINTFLOATTOKEN; }
-{PRINTBINARY}     			    {  return PRINTBINARYTOKEN; }
-{PRINTEXPANSION}  			    {  return PRINTEXPANSIONTOKEN; }
-{BASHEXECUTE}     			    {  return BASHEXECUTETOKEN; }
-{BASHEVALUATE}     			    {  return BASHEVALUATETOKEN; }
-{EXTERNALPLOT}    			    {  return EXTERNALPLOTTOKEN; }
-{WRITE}           			    {  return WRITETOKEN; }
-{ASCIIPLOT}       			    {  return ASCIIPLOTTOKEN; }
-{RENAME}         			    {  return RENAMETOKEN; }
+{PRINT}           			    {  miniparserCharactersRead += yyleng; return PRINTTOKEN; }
+{SUPPRESSMESSAGE}           		    {  miniparserCharactersRead += yyleng; return SUPPRESSMESSAGETOKEN; }
+{UNSUPPRESSMESSAGE}           		    {  miniparserCharactersRead += yyleng; return UNSUPPRESSMESSAGETOKEN; }
+{PRINTXML}           			    {  miniparserCharactersRead += yyleng; return PRINTXMLTOKEN; }
+{EXECUTE}           			    {  miniparserCharactersRead += yyleng; return EXECUTETOKEN; }
+{PLOT}            			    {  miniparserCharactersRead += yyleng; return PLOTTOKEN; }
+{PRINTHEXA}       			    {  miniparserCharactersRead += yyleng; return PRINTHEXATOKEN; }
+{PRINTFLOAT}       			    {  miniparserCharactersRead += yyleng; return PRINTFLOATTOKEN; }
+{PRINTBINARY}     			    {  miniparserCharactersRead += yyleng; return PRINTBINARYTOKEN; }
+{PRINTEXPANSION}  			    {  miniparserCharactersRead += yyleng; return PRINTEXPANSIONTOKEN; }
+{BASHEXECUTE}     			    {  miniparserCharactersRead += yyleng; return BASHEXECUTETOKEN; }
+{BASHEVALUATE}     			    {  miniparserCharactersRead += yyleng; return BASHEVALUATETOKEN; }
+{GETSUPPRESSEDMESSAGES}     		    {  miniparserCharactersRead += yyleng; return GETSUPPRESSEDMESSAGESTOKEN; }
+{GETBACKTRACE}         		            {  miniparserCharactersRead += yyleng; return GETBACKTRACETOKEN; }
+{EXTERNALPLOT}    			    {  miniparserCharactersRead += yyleng; return EXTERNALPLOTTOKEN; }
+{WRITE}           			    {  miniparserCharactersRead += yyleng; return WRITETOKEN; }
+{ASCIIPLOT}       			    {  miniparserCharactersRead += yyleng; return ASCIIPLOTTOKEN; }
+{RENAME}         			    {  miniparserCharactersRead += yyleng; return RENAMETOKEN; }
+{OBJECTNAME}         			    {  miniparserCharactersRead += yyleng; return OBJECTNAMETOKEN; }
+{BIND}         			            {  miniparserCharactersRead += yyleng; return BINDTOKEN; }
 
 
-{INFNORM}         			    {  return INFNORMTOKEN; }
-{SUPNORM}         			    {  return SUPNORMTOKEN; }
-{FINDZEROS}       			    {  return FINDZEROSTOKEN; }
-{FPFINDZEROS}     			    {  return FPFINDZEROSTOKEN; }
-{DIRTYINFNORM}    			    {  return DIRTYINFNORMTOKEN; }
-{NUMBERROOTS}    			    {  return NUMBERROOTSTOKEN; }
-{INTEGRAL}        			    {  return INTEGRALTOKEN; }
-{DIRTYINTEGRAL}				    {  return DIRTYINTEGRALTOKEN; }
-{WORSTCASE}       			    {  return WORSTCASETOKEN; }
-{IMPLEMENTPOLY}				    {  return IMPLEMENTPOLYTOKEN; }
-{IMPLEMENTCONST}                            {  return IMPLEMENTCONSTTOKEN; }
-{CHECKINFNORM}    			    {  return CHECKINFNORMTOKEN; }
-{ZERODENOMINATORS}			    {  return ZERODENOMINATORSTOKEN; }
-{ISEVALUABLE}     			    {  return ISEVALUABLETOKEN; }
-{SEARCHGAL}       			    {  return SEARCHGALTOKEN; }
-{GUESSDEGREE}     			    {  return GUESSDEGREETOKEN; }
-{DIRTYFINDZEROS}  			    {  return DIRTYFINDZEROSTOKEN; }
+{INFNORM}         			    {  miniparserCharactersRead += yyleng; return INFNORMTOKEN; }
+{SUPNORM}         			    {  miniparserCharactersRead += yyleng; return SUPNORMTOKEN; }
+{FINDZEROS}       			    {  miniparserCharactersRead += yyleng; return FINDZEROSTOKEN; }
+{FPFINDZEROS}     			    {  miniparserCharactersRead += yyleng; return FPFINDZEROSTOKEN; }
+{DIRTYINFNORM}    			    {  miniparserCharactersRead += yyleng; return DIRTYINFNORMTOKEN; }
+{GCD}       			            {  miniparserCharactersRead += yyleng; return GCDTOKEN; }
+{EUCLDIV}       			    {  miniparserCharactersRead += yyleng; return EUCLDIVTOKEN; }
+{EUCLMOD}       			    {  miniparserCharactersRead += yyleng; return EUCLMODTOKEN; }
+{NUMBERROOTS}    			    {  miniparserCharactersRead += yyleng; return NUMBERROOTSTOKEN; }
+{INTEGRAL}        			    {  miniparserCharactersRead += yyleng; return INTEGRALTOKEN; }
+{DIRTYINTEGRAL}				    {  miniparserCharactersRead += yyleng; return DIRTYINTEGRALTOKEN; }
+{WORSTCASE}       			    {  miniparserCharactersRead += yyleng; return WORSTCASETOKEN; }
+{IMPLEMENTPOLY}				    {  miniparserCharactersRead += yyleng; return IMPLEMENTPOLYTOKEN; }
+{IMPLEMENTCONST}                            {  miniparserCharactersRead += yyleng; return IMPLEMENTCONSTTOKEN; }
+{CHECKINFNORM}    			    {  miniparserCharactersRead += yyleng; return CHECKINFNORMTOKEN; }
+{ZERODENOMINATORS}			    {  miniparserCharactersRead += yyleng; return ZERODENOMINATORSTOKEN; }
+{ISEVALUABLE}     			    {  miniparserCharactersRead += yyleng; return ISEVALUABLETOKEN; }
+{SEARCHGAL}       			    {  miniparserCharactersRead += yyleng; return SEARCHGALTOKEN; }
+{GUESSDEGREE}     			    {  miniparserCharactersRead += yyleng; return GUESSDEGREETOKEN; }
+{DIRTYFINDZEROS}  			    {  miniparserCharactersRead += yyleng; return DIRTYFINDZEROSTOKEN; }
 
-{IF}					    {  return IFTOKEN; }
-{THEN}					    {  return THENTOKEN; }
-{ELSE}					    {  return ELSETOKEN; }
-{FOR}					    {  return FORTOKEN; }
-{IN}					    {  return INTOKEN; }
-{FROM}					    {  return FROMTOKEN; }
-{TO}					    {  return TOTOKEN; }
-{BY}					    {  return BYTOKEN; }
-{DO}					    {  return DOTOKEN; }
-{BEGIN}					    {  return BEGINTOKEN; }
-{END}					    {  return ENDTOKEN; }
-{LBRACE}				    {  return LEFTCURLYBRACETOKEN; }
-{RBRACE}				    {  return RIGHTCURLYBRACETOKEN; }
-{WHILEDEF}				    {  return WHILETOKEN; }
+{IF}					    {  miniparserCharactersRead += yyleng; return IFTOKEN; }
+{THEN}					    {  miniparserCharactersRead += yyleng; return THENTOKEN; }
+{ELSE}					    {  miniparserCharactersRead += yyleng; return ELSETOKEN; }
+{FOR}					    {  miniparserCharactersRead += yyleng; return FORTOKEN; }
+{IN}					    {  miniparserCharactersRead += yyleng; return INTOKEN; }
+{FROM}					    {  miniparserCharactersRead += yyleng; return FROMTOKEN; }
+{TO}					    {  miniparserCharactersRead += yyleng; return TOTOKEN; }
+{BY}					    {  miniparserCharactersRead += yyleng; return BYTOKEN; }
+{DO}					    {  miniparserCharactersRead += yyleng; return DOTOKEN; }
+{BEGIN}					    {  miniparserCharactersRead += yyleng; return BEGINTOKEN; }
+{END}					    {  miniparserCharactersRead += yyleng; return ENDTOKEN; }
+{LBRACE}				    {  miniparserCharactersRead += yyleng; return LEFTCURLYBRACETOKEN; }
+{RBRACE}				    {  miniparserCharactersRead += yyleng; return RIGHTCURLYBRACETOKEN; }
+{WHILEDEF}				    {  miniparserCharactersRead += yyleng; return WHILETOKEN; }
 
-{EXTERNALPROC}                              {  return EXTERNALPROCTOKEN; }
-{VOID}                                      {  return VOIDTOKEN; }
-{CONSTANTTYPE}                              {  return CONSTANTTYPETOKEN; }
-{FUNCTION}                                  {  return FUNCTIONTOKEN; }
-{RANGE}                                     {  return RANGETOKEN; }
-{INTEGER}                                   {  return INTEGERTOKEN; }
-{STRINGTYPE}                                {  return STRINGTYPETOKEN; }
-{BOOLEAN}                                   {  return BOOLEANTOKEN; }
-{LIST}                                      {  return LISTTOKEN; }
-{OF}                                        {  return OFTOKEN; }
+{EXTERNALPROC}                              {  miniparserCharactersRead += yyleng; return EXTERNALPROCTOKEN; }
+{VOID}                                      {  miniparserCharactersRead += yyleng; return VOIDTOKEN; }
+{CONSTANTTYPE}                              {  miniparserCharactersRead += yyleng; return CONSTANTTYPETOKEN; }
+{FUNCTION}                                  {  miniparserCharactersRead += yyleng; return FUNCTIONTOKEN; }
+{OBJECT}                                    {  miniparserCharactersRead += yyleng; return OBJECTTOKEN; }
+{RANGE}                                     {  miniparserCharactersRead += yyleng; return RANGETOKEN; }
+{INTEGER}                                   {  miniparserCharactersRead += yyleng; return INTEGERTOKEN; }
+{STRINGTYPE}                                {  miniparserCharactersRead += yyleng; return STRINGTYPETOKEN; }
+{BOOLEAN}                                   {  miniparserCharactersRead += yyleng; return BOOLEANTOKEN; }
+{LIST}                                      {  miniparserCharactersRead += yyleng; return LISTTOKEN; }
+{OF}                                        {  miniparserCharactersRead += yyleng; return OFTOKEN; }
 
 
 
 [ \t]		{ /* Eat up spaces and tabulators */
+                  miniparserCharactersRead += yyleng;
 		}
+
+[\r]            { /* Eat up carriage return for compatibility with DOS-like systems */
+                  miniparserCharactersRead += yyleng;
+                }
 
 [\n]		{
-
+                  miniparserCharactersRead += yyleng;
 		}
 
-{IDENTIFIER}        			    { constBuffer = (char *) safeCalloc(yyleng+1,sizeof(char));
+{IDENTIFIER}        			    { miniparserCharactersRead += yyleng;
+                                              constBuffer = (char *) safeCalloc(yyleng+1,sizeof(char));
 					      strncpy(constBuffer,yytext,yyleng);
 					      yylval->value = constBuffer;
 					       return IDENTIFIERTOKEN; }
 
 
 .		{ /* otherwise */
-			printMessage(1,"The character \"%s\" cannot be recognized. Will ignore it.\n",
+                        miniparserCharactersRead += yyleng;
+			printMessage(1,SOLLYA_MSG_A_CHARACTER_COULD_NOT_BE_RECOGNIZED,"The character \"%s\" cannot be recognized. Will ignore it.\n",
 				yytext);
 }
 
@@ -749,6 +847,9 @@ NOP             "nop"
 void *startMiniparser(void *scanner, char *str) {
   YY_BUFFER_STATE buf;
 
+  miniparserSemicolonAtEnd = 0;
+  miniparserEofReached = 0;
+  miniparserCharactersRead = 0;
   buf = miniyy_scan_string(str, scanner);
   miniyy_switch_to_buffer(buf, scanner);
 
@@ -757,4 +858,29 @@ void *startMiniparser(void *scanner, char *str) {
 
 void endMiniparser(void *buf, void *scanner) {
   miniyy_delete_buffer(buf, scanner);
+}
+
+void *yyalloc (yy_size_t  size , yyscan_t yyscanner)
+{
+        UNUSED_PARAM(yyscanner);
+        return (void *) malloc( size );
+}
+
+void *yyrealloc  (void * ptr, yy_size_t  size , yyscan_t yyscanner)
+{
+        /* The cast to (char *) in the following accommodates both
+         * implementations that use char* generic pointers, and those
+         * that use void* generic pointers.  It works with the latter
+         * because both ANSI C and C++ allow castless assignment from
+         * any pointer type to void*, and deal with argument conversions
+         * as though doing an assignment.
+         */
+        UNUSED_PARAM(yyscanner);
+        return (void *) realloc( (char *) ptr, size );
+}
+
+void yyfree (void * ptr , yyscan_t yyscanner)
+{
+        UNUSED_PARAM(yyscanner);
+        free( (char *) ptr );   /* see yyrealloc() for (char *) cast */
 }

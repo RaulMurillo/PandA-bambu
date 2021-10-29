@@ -1,0 +1,102 @@
+#NAME $LIBRARYCONSTANT
+#QUICK_DESCRIPTION binds an external mathematical constant to a variable in $SOLLYA
+
+#LIBRARYNAME sollya_obj_t sollya_lib_libraryconstant(char *, void (*)(mpfr_t, mp_prec_t))
+#LIBRARYNAME sollya_obj_t sollya_lib_build_function_libraryconstant(char *,
+#LIBRARYNAME (CONTINUED)                                            void (*)(mpfr_t,
+#LIBRARYNAME (CONTINUED)                                                     mp_prec_t))
+#LIBRARYNAME sollya_obj_t sollya_lib_libraryconstant_with_data(char *,
+#LIBRARYNAME (CONTINUED)                                       void (*)(mpfr_t,
+#LIBRARYNAME (CONTINUED)                                                mp_prec_t,
+#LIBRARYNAME (CONTINUED)                                                void *),
+#LIBRARYNAME (CONTINUED)                                       void *,
+#LIBRARYNAME (CONTINUED)                                       void (*)(void *))
+#LIBRARYNAME sollya_obj_t sollya_lib_build_function_libraryconstant_with_data(
+#LIBRARYNAME (CONTINUED)                                       char *,
+#LIBRARYNAME (CONTINUED)                                       void (*)(mpfr_t,
+#LIBRARYNAME (CONTINUED)                                                mp_prec_t,
+#LIBRARYNAME (CONTINUED)                                                void *),
+#LIBRARYNAME (CONTINUED)                                       void *,
+#LIBRARYNAME (CONTINUED)                                       void (*)(void *))
+
+#CALLING $COMMAND(<path>)
+#TYPE $STRING_TYPE -> $FUNCTION_TYPE
+
+#DESCRIPTION 
+The command $COMMAND lets you extend the set of mathematical
+constants known to $SOLLYA.
+By default, the only mathematical constant known by $SOLLYA is $PI.
+For particular applications, one may want to
+manipulate other constants, such as Euler's gamma constant, for instance.
+
+#DESCRIPTION 
+$COMMAND makes it possible to let $SOLLYA know about new constants.
+In order to let it know, you have to provide an implementation of the
+constant you are interested in. This implementation is a C file containing
+a function of the form:
+§§             §\begin{verbatim}§§ void my_ident(mpfr_t result, mp_prec_t prec)§§ §\end{verbatim}§§
+
+The semantic of this function is the following: it is an implementation of
+the constant in arbitrary precision.
+§§my_ident(result, prec)§\verb|my_ident(result, prec)|§§ shall set the
+precision of the variable result to a suitable precision (the variable is
+assumed to be already initialized) and store in result an approximate value
+of the constant with a relative error not greater than §§2^(1-prec)§$2^{1-\mathrm{prec}}$§§.
+More precisely, if §§c§$c$§§ is the exact value of the constant, the value stored
+in result should satisfy §§|result-c| <= 2^(1-prec)*|c|.§$$|\mathrm{result}-c| \le |c|\,2^{1-\mathrm{prec}}.$$§§
+
+#DESCRIPTION
+You can include sollya.h in your implementation and use library 
+functionnalities of $SOLLYA for your implementation. However, this requires to
+have compiled $SOLLYA with §§-fPIC§\texttt{-fPIC}§§ in order to make the $SOLLYA executable
+code position independent and to use a system on with programs, using §§dlopen§\texttt{dlopen}§§
+to open dynamic routines can dynamically open themselves.
+
+#DESCRIPTION
+To bind your constant into $SOLLYA, you must use the same identifier as the
+function name used in your implementation file (§§my_ident§\verb|my_ident|§§ in the previous
+example). Once the function code has been bound to an identifier, you can use
+a simple assignment to assign the bound identifier to yet another identifier.
+This way, you may use convenient names inside $SOLLYA even if your
+implementation environment requires you to use a less convenient name.
+
+#DESCRIPTION
+Once your constant is bound, it is considered by $SOLLYA as an infinitely
+accurate constant (i.e. a 0-ary function, exactly like $PI).
+
+#DESCRIPTION
+The dynamic object file whose name is given to $COMMAND for binding of an
+external library constant may also define a destructor function §§int sollya_external_lib_close(void)§\verb|int sollya_external_lib_close(void)|§§.
+If $SOLLYA finds such a destructor function in the dynamic object file, it will call 
+that function when closing the dynamic object file again. This happens when $SOLLYA
+is terminated or when the current $SOLLYA session is restarted using $RESTART.
+The purpose of the destructor function is to allow the dynamically bound code
+to free any memory that it might have allocated before $SOLLYA is terminated 
+or restarted. 
+
+The dynamic object file is not necessarily needed to define a destructor
+function. This ensure backward compatibility with older $SOLLYA external 
+library function object files.
+
+When defined, the destructor function is supposed to return an integer
+value indicating if an error has happened. Upon success, the destructor
+functions is to return a zero value, upon error a non-zero value.
+
+#EXAMPLE
+bashexecute("gcc -fPIC -Wall -c libraryconstantexample.c -I$HOME/.local/include");
+bashexecute("gcc -shared -o libraryconstantexample libraryconstantexample.o -lgmp -lmpfr");
+euler_gamma = libraryconstant("./libraryconstantexample");
+prec = 20!;
+euler_gamma;
+prec = 100!;
+euler_gamma;
+midpointmode = on;
+[euler_gamma];
+
+#SEEALSO $BASHEXECUTE
+#SEEALSO $EXTERNALPROC
+#SEEALSO $EXTERNALPLOT
+#SEEALSO $PI
+#SEEALSO $LIBRARY
+#SEEALSO $EVALUATE
+#SEEALSO $IMPLEMENTCONSTANT

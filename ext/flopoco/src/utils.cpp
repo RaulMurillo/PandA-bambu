@@ -1,47 +1,50 @@
 /*
   utility functions for FloPoCo
- 
+
   Author: Florent de Dinechin
- 
+
 
   This file is part of the FloPoCo project
   developed by the Arenaire team at Ecole Normale Superieure de Lyon
-  
+
   Initial software.
-  Copyright © ENS-Lyon, INRIA, CNRS, UCBL,  
+  Copyright © ENS-Lyon, INRIA, CNRS, UCBL,
   2008-2010.
   All rights reserved.
 */
+#include "utils.hpp"
 
 #include <iostream>
 #include <sstream>
-#include "utils.hpp"
 #include <cstdlib>
 #include <iomanip>
-#include "math.h"
+#include <locale>         // std::locale, std::tolower
 #include <functional>
 #include <algorithm>
 #include <cctype>
 #include <gmp.h>
 #include <gmpxx.h>
+#include "math.h"
+#include "TestBenches/IEEENumber.hpp"
 using namespace std;
 
 
 namespace flopoco{
-        /** Initialization of FloPoCoRandomState state */
-        gmp_randstate_t FloPoCoRandomState::m_state;
-
-		bool FloPoCoRandomState::isInit_ = false;
-
-        void FloPoCoRandomState::init(int n, bool force) {
-			// if isInit_ is set, we do not initialize the random state again
+	/** Initialization of FloPoCoRandomState state */
+	gmp_randstate_t FloPoCoRandomState::m_state;
+	
+	bool FloPoCoRandomState::isInit_ = false;
+	
+	void FloPoCoRandomState::init(int n, bool force) {
+		// if isInit_ is set, we do not initialize the random state again
 			if (isInit_ && !force) return;
 			gmp_randinit_mt(m_state);
 			gmp_randseed_ui(m_state,n);
 			isInit_ = true;
-        };
+	};
+	
+	//gmp_randstate_t* FloPoCoRandomState::getState() { return m_state;};
 
-        //gmp_randstate_t* FloPoCoRandomState::getState() { return m_state;};
 	/** return a string representation of an mpz_class on a given number of bits */
 	string unsignedBinary(mpz_class x, int size){
 		string s;
@@ -49,12 +52,12 @@ namespace flopoco{
 		char bit;
 
 		if(x<0) {
-			cerr<<"unsigned_binary: Positive number expected, got x="<<x.get_d()<<endl;
+			cerr<<"Error: unsigned_binary: Positive number expected, got x=" << x.get_d() << endl;
 			exit(EXIT_FAILURE);
 		}
 		po2 = ((mpz_class) 1)<<size;
 		number=x;
-		
+
 		for (int i = 0; i < size ; i++) {
 			po2 = po2>>1;
 			if (number >= po2) {
@@ -69,8 +72,13 @@ namespace flopoco{
 		return s;
 	}
 
+
+
+
+
 	/** return the binary representation of a floating point number in the
 		 FPLibrary/FloPoCo format */
+	// TODO this code is probably redundant with code in FPNumber
 	string fp2bin(mpfr_t x, int wE, int wF){
 		mpfr_t mpx, one, two;
 		ostringstream s;
@@ -155,9 +163,9 @@ namespace flopoco{
 
 		// exponent
 		s << unsignedBinary(biased_exponent, wE);
-		
+
 		// significand
-	
+
 		mpfr_sub(mpx, mpx, one, GMP_RNDN);
 		for (int i=0; i<wF; i++) {
 			mpfr_mul(mpx, mpx, two, GMP_RNDN);
@@ -176,63 +184,87 @@ namespace flopoco{
 	}
 
 
-	//this function should not change it's parameter
-	std::string unsignedFixPointNumber(mpfr_t x, int msb, int lsb, int margins)
+
+		/** return the binary representation of a floating point number in the IEEE format */
+	string ieee2bin(mpfr_t x, int wE, int wF){
+		IEEENumber mpfx(wE, wF, x);
+		mpz_class mpzx = mpfx.getSignalValue();
+		return unsignedBinary(mpzx, wE+wF+1);
+	}
+
+
+	std::string unsignedFixPointNumber(mpfr_t xx, int msb, int lsb, int margins)
 	{
 		int size = msb-lsb+1;
 		mpz_class h;
-
-		//create a clone of x
-		mpfr_t xClone;
-		mpfr_prec_t xPrec;
-
-		xPrec = mpfr_get_prec(x);
-		mpfr_init2(xClone, xPrec);
-		mpfr_set(xClone, x, GMP_RNDN);
-				
-		//mpfr_mul_2si(x, x, -lsb, GMP_RNDN); // exact
-		mpfr_mul_2si(xClone, xClone, -lsb, GMP_RNDN); // exact
-		
-		mpfr_get_z(h.get_mpz_t(), xClone,  GMP_RNDN); // rounding takes place here
+		mpfr_t x;
+		// make a copy! The first version of this function was destructive, and this was a bug
+		mpfr_init2(x, mpfr_get_prec(xx));
+		mpfr_set(x,xx,GMP_RNDN);
+		mpfr_mul_2si(x, x, -lsb, GMP_RNDN); // exact
+		mpfr_get_z(h.get_mpz_t(), x,  GMP_RNDN); // rounding takes place here
 
 		if(h<0){
 			std::ostringstream o;
-			o <<  "Error, negative input to unsignedFixPointNumber :" << printMPFR(xClone, 40);
+			o <<  "Error, negative input to unsignedFixPointNumber :" << printMPFR(x);
 			throw o.str();
 		}
-
-		mpfr_clear(xClone);
-
+		mpfr_clear(x);
 		ostringstream result;
 		if(margins==0||margins==-1)
 			result<<"\"";
 		result << unsignedBinary(h, size);
 		if(margins==0||margins==1)
 			result<<"\"";
-		return result.str(); 
+		return result.str();
 	}
 
 
-	string printMPFR(mpfr_t x, int n){
-		ostringstream s;
-		s << setprecision(n) << mpfr_get_d(x, GMP_RNDN);
-		// TODO: sth like the following
-		//		mpfr_out_str (s.get_stream(), 10, n, x, GMP_RNDN);
+	std::string signedFixPointNumber(mpfr_t xx, int msb, int lsb, int margins)
+	{
+		int size = msb-lsb+1;
+		mpz_class h;
+		mpfr_t x;
+		// make a copy! The first version of this function was destructive, and this was a bug
+		mpfr_init2(x, mpfr_get_prec(xx));
+		mpfr_set(x, xx, GMP_RNDN);
+		mpfr_mul_2si(x, x, -lsb, GMP_RNDN); // exact
+		mpfr_get_z(h.get_mpz_t(), x,  GMP_RNDN); // rounding takes place here
 
+		if(h<0){
+			h+= (mpz_class(1)) << size;
+		}
+		mpfr_clear(x);
+		ostringstream result;
+		if(margins==0||margins==-1)
+			result<<"\"";
+		result << unsignedBinary(h, size);
+		if(margins==0||margins==1)
+			result<<"\"";
+
+		return result.str();
+	}
+
+
+	string printMPFR(mpfr_t x){
+		ostringstream s;
+		mpz_class sig;
+		int e;
+		e = mpfr_get_z_exp (sig.get_mpz_t(), x);
+		s << sig << "b" << e;
 		return s.str();
 	}
-
 
 	/** Print out binary writing of an integer on "size" bits */
 	// TODO remove this function
 	void printBinNum(ostream& o, uint64_t x, int size)
 	{
-		uint64_t po2 = ((uint64_t) 1)<<size; 
+		uint64_t po2 = ((uint64_t) 1)<<size;
 		char bit;
 
 		if(size>=64){
 			cerr << "\n printBinNum: size larger than 64" << endl;
-			exit(1);    
+			exit(1);
 		}
 
 		if ((x<0) || (x >= po2) ) {
@@ -253,7 +285,7 @@ namespace flopoco{
 	}
 
 	void printBinNumGMP(ostream& o, mpz_class x, int size){
-		mpz_class px;  
+		mpz_class px;
 		if(x<0) {
 			o<<"-";
 			px=-x;
@@ -287,12 +319,12 @@ namespace flopoco{
 	double intpow2(int power)
 	{
 		double x = 1.0;
-		if(power>0){ 
+		if(power>0){
 			for (int i = 0; i < power; i++)
-				x *= 2;
+				x *= 2.0;
 		} else if(power<0) {
 			for (int i = 0; i < -power; i++)
-				x /= 2;
+				x /= 2.0;
 		}
 		return x;
 	}
@@ -300,7 +332,7 @@ namespace flopoco{
 	mpz_class mpzpow2(unsigned int power)
 	{
 		mpz_class x = 1;
-		if(power>0){ 
+		if(power>0){
 			for (unsigned int i = 0; i < power; i++)
 				x *= 2;
 		}
@@ -332,7 +364,7 @@ namespace flopoco{
 
 	int intlog(mpz_class base, mpz_class number)
 	{
-		mpz_class poBase = 1; 
+		mpz_class poBase = 1;
 		int result = 0;
 		while (poBase <= number) {
 			poBase *= base;
@@ -343,7 +375,7 @@ namespace flopoco{
 
 	int intlog2(mpz_class number)
 	{
-		mpz_class po2 = 1; 
+		mpz_class po2 = 1;
 		int result = 0;
 		while (po2 <= number) {
 			po2 *= 2;
@@ -361,6 +393,78 @@ namespace flopoco{
 			x >>= 1;
 		}
 		return res;
+	}
+
+	double max(int count, ...)
+	{
+	    va_list ap;
+	    double currentMax;
+
+	    va_start(ap, count); 						//Requires the last fixed parameter (to get the address)
+	    currentMax = va_arg(ap, double);
+	    for(int i=1; i<count; i++)
+	    {
+	    	double currentVal = va_arg(ap, double);
+	        if(currentVal > currentMax)
+	        	currentMax = currentVal; 	//Requires the type to cast to. Increments ap to the next argument.
+	    }
+	    va_end(ap);
+
+	    return currentMax;
+	}
+
+	int maxInt(int count, ...)
+	{
+		va_list ap;
+		int currentMax;
+
+		va_start(ap, count); 						//Requires the last fixed parameter (to get the address)
+		currentMax = va_arg(ap, int);
+		for(int i=1; i<count; i++)
+		{
+			int currentVal = va_arg(ap, int);
+			if(currentVal > currentMax)
+				currentMax = currentVal; 	//Requires the type to cast to. Increments ap to the next argument.
+		}
+		va_end(ap);
+
+		return currentMax;
+	}
+
+	double min(int count, ...)
+	{
+		va_list ap;
+		double currentMin;
+
+		va_start(ap, count); 						//Requires the last fixed parameter (to get the address)
+		currentMin = va_arg(ap, double);
+		for(int i=1; i<count; i++)
+		{
+			double currentVal = va_arg(ap, double);
+			if(currentVal < currentMin)
+				currentMin = currentVal; 	//Requires the type to cast to. Increments ap to the next argument.
+		}
+		va_end(ap);
+
+		return currentMin;
+	}
+
+	int minInt(int count, ...)
+	{
+		va_list ap;
+		int currentMin;
+
+		va_start(ap, count); 						//Requires the last fixed parameter (to get the address)
+		currentMin = va_arg(ap, int);
+		for(int i=1; i<count; i++)
+		{
+			int currentVal = va_arg(ap, int);
+			if(currentVal < currentMin)
+				currentMin = currentVal; 	//Requires the type to cast to. Increments ap to the next argument.
+		}
+		va_end(ap);
+
+		return currentMin;
 	}
 
 	mpz_class maxExp(int wE){
@@ -396,7 +500,7 @@ namespace flopoco{
 			tmp = r;
 			o = o + (tmp<<(iterations*10));
 		}
-	
+
 		return o;
 	}
 #else
@@ -407,7 +511,7 @@ namespace flopoco{
 		return o;
 	}
 
-#endif 
+#endif
 
 	string zg(int n, int margins){
 		ostringstream left,full, right, zeros;
@@ -425,49 +529,49 @@ namespace flopoco{
 		case -1: return left.str();  break;
 		case  0: return full.str();  break;
 		case  1: return right.str(); break;
-		default: return full.str(); 
+		default: return full.str();
 		}
-	
+
 		//default (will not get here)
 		return "";
 	}
-	
+
 	string og(int n, int margins){
 		ostringstream left,full, right, ones;
 		int i;
-		
+
 		for (i=1; i<=n;i++)
 			ones<<"1";
-		
+
 		left<<"\""<<ones.str();
 		full<<left.str()<<"\"";
 		right<<ones.str()<<"\"";
-		
+
 		switch(margins){
 			case -2: return ones.str(); break;
 			case -1: return left.str();  break;
 			case  0: return full.str();  break;
 			case  1: return right.str(); break;
-			default: return full.str(); 
+			default: return full.str();
 		}
-		
+
 		//default (will not get here)
 		return "";
 	}
-	
+
 	int oneGenerator(int n)
 	{
 		int result;
-		
+
 		result = 0;
 		for(int i=0; i<n; i++)
 		{
 			result = (result<<1) + 1;
 		}
-		
+
 		return result;
 	}
-	
+
 
 	// Does not handle multi-byte encodings.
 	char vhdlizeChar(char c)
@@ -504,11 +608,11 @@ namespace flopoco{
 	string vhdlize(string const & expr)
 	{
 		string result(expr.size(), 0);
-		//transform(expr.begin(), expr.end(), result.begin(), std::ptr_fun<char,char>(vhdlizeChar));
-	
+		transform(expr.begin(), expr.end(), result.begin(), ptr_fun(vhdlizeChar));
+
 		// Multiple consecutive underscores are forbidden in VHDL identifiers!
 		string::iterator newend = unique(result.begin(), result.end(), bothUnderscore);
-	
+
 		// Leading underscores and numbers are forbidden in VHDL identifiers!
 		//	if(isdigit(*result.begin()) || *result.begin() == '_')
 		//		*result.begin() = 'x';
@@ -531,7 +635,7 @@ namespace flopoco{
 	string vhdlize(int num)
 	{
 		ostringstream oss;
-		if (num<0) 
+		if (num<0)
 		  oss << "M" << (-num);
 		else
 		  oss << num;
@@ -540,114 +644,99 @@ namespace flopoco{
 
 	string mpz2string(mpz_class x)
 	{
-		return x.get_str(10);	
+		return x.get_str(10);
 	}
 
-	double getMaxInputDelays( map<string, double> inputDelays )
-	{
-		double maxInputDelay = 0;
-		map<string, double>::iterator iter;
-		for (iter = inputDelays.begin(); iter!=inputDelays.end();++iter)
-			if (iter->second > maxInputDelay)
-				maxInputDelay = iter->second;
-			
-		return maxInputDelay;
-	}
-
-	string printInputDelays( map <string, double> inputDelays){
-		ostringstream o;
-		map<string, double>::iterator iter;
-		for (iter = inputDelays.begin(); iter!=inputDelays.end();++iter)
-			o << "The delay for " << iter->first << " is " << iter->second << ";   ";			
-		return o.str();
-	}
-
-	string printMapContent( map <string, int> inputDelays){
-		ostringstream o;
-		map<string, int>::iterator iter;
-		for (iter = inputDelays.begin(); iter!=inputDelays.end();++iter)
-			o  << endl << "   " << iter->first << " cycle " << iter->second;			
-		return o.str();
-	}
-	
 	string printVectorContent( vector< pair<string, int> > table){
 		ostringstream o;
 		vector< pair<string, int> >::iterator iter;
 		for (iter = table.begin(); iter!=table.end();++iter)
-			o  << endl <<"   " << (*iter).first << " cycle " << (*iter).second;			
+			o  << endl <<"   " << (*iter).first << " cycle " << (*iter).second;
 		return o.str();
 	}
 
 	string join( std::string id, int n)
 	{
-		ostringstream o;
-		o << id << n;
-		return o.str();
+		ostringstream stream;
+
+		stream << id << n;
+		return stream.str();
 	}
 
 	string join( std::string id, string sep, int n)
 	{
-		ostringstream o;
-		o << id << sep << n;
-		return o.str();
+		ostringstream stream;
+
+		stream << n;
+		return id + sep + stream.str();
 	}
 
 	string join( std::string id, int n1, int n2)
 	{
-		ostringstream o;
-		o << id << n1 << n2;
-		return o.str();
+		ostringstream stream;
+
+		stream << n1 << n2;
+		return id + stream.str();
 	}
 
 	string join( std::string id, int n1, int n2, int n3)
 	{
-		ostringstream o;
-		o << id << n1 << n2 << n3;
-		return o.str();
+		ostringstream stream;
+
+		stream << n1 << n2 << n3;
+		return id + stream.str();
 	}
 
 
 	string join( std::string id1, int n, std::string id2)
 	{
-		ostringstream o;
-		o << id1 << n << id2;
-		return o.str();
+		ostringstream stream;
+
+		stream << n;
+		return id1 + stream.str() + id2;
 	}
 
 
 	string join( std::string id, int n, std::string id2, int n2)
 	{
-		ostringstream o;
-		o << id << n << id2 << n2;
-		return o.str();
+		ostringstream stream;
+
+		stream << id << n << id2 << n2;
+		return stream.str();
 	}
-	
+
 	string join( std::string id, int n, std::string id2, int n2, std::string id3)
 	{
-		ostringstream o;
-		o << id << n << id2 << n2 << id3;
-		return o.str();
+		ostringstream stream;
+
+		stream << id << n << id2 << n2 << id3;
+		return stream.str();
 	}
-	
+
 	string join( std::string id, int n, std::string id2, int n2, std::string id3, int n3)
 	{
-		ostringstream o;
-		o << id << n << id2 << n2 << id3 << n3;
-		return o.str();
+		ostringstream stream;
+
+		stream << id << n << id2 << n2 << id3 << n3;
+		return stream.str();
 	}
 
 	string join( std::string id, std::string id2, int n2, std::string id3)
 	{
-		ostringstream o;
-		o << id << id2 << n2 << id3;
-		return o.str();
+		ostringstream stream;
+
+		stream << id << id2 << n2 << id3;
+		return stream.str();
 	}
-	
+
 	string join( std::string id, string n)
 	{
-		ostringstream o;
-		o << id << n;
-		return o.str();
+		return id+n;
+	}
+
+	string join( std::string id, string id2, string id3)
+	{
+		return id+id2+id3;
 	}
 
 
@@ -679,9 +768,8 @@ namespace flopoco{
 
 	string align( int left, string s, int right ){
 		ostringstream tmp;
-		
 		tmp << "(" << (left>0?zg(left,0) + " & ":"") << s << (right>0?" & " +zg(right, 0):"") << ")";
-		return tmp.str(); 
+		return tmp.str();
 	}
 
 	string to_lowercase(const std::string& s){
@@ -690,7 +778,7 @@ namespace flopoco{
 		t += tolower(*i);
 		return t;
 	}
-	
+
 	map<string, double> inDelayMap(string s, double d){
 		map<string, double> m;
 		m[s] = d;
@@ -732,4 +820,31 @@ namespace flopoco{
 			r = x;
 		return r;
 	}
+
+
+	string std_logic_vector(const string& s ){
+		ostringstream o;
+		o << "std_logic_vector(" << s << ")";
+		return o.str();
+	};
+
+
+	string center(const string& str, char padchar, int width) {
+    int len = str.length();
+    if(width < len)
+			return str;
+    int diff = width - len;
+    int pad1 = diff/2;
+    int pad2 = diff - pad1;
+    return string(pad1, padchar) + str + string(pad2, padchar);
+	}
+
+	string toLower(const string& str) {
+		ostringstream s;
+		std::locale loc; // direct from stack overflow
+		for(auto elem : str)
+		  s << std::tolower(elem,loc);
+		return s.str();
+	}
+	
 }

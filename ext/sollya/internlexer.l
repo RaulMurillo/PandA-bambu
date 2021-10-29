@@ -1,16 +1,25 @@
 /*
 
-Copyright 2007-2011 by
+Copyright 2007-2017 by
 
 Laboratoire de l'Informatique du Parallelisme,
 UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668,
 
 LORIA (CNRS, INPL, INRIA, UHP, U-Nancy 2)
 
+Laboratoire d'Informatique de Paris 6, equipe PEQUAN,
+UPMC Universite Paris 06 - CNRS - UMR 7606 - LIP6, Paris, France
+
 and by
 
-Laboratoire d'Informatique de Paris 6, equipe PEQUAN,
-UPMC Universite Paris 06 - CNRS - UMR 7606 - LIP6, Paris, France.
+Laboratoire d'Informatique de Paris 6 - Équipe PEQUAN
+Sorbonne Universités
+UPMC Univ Paris 06
+UMR 7606, LIP6
+Boîte Courrier 169
+4, place Jussieu
+F-75252 Paris Cedex 05
+France.
 
 Contributors Ch. Lauter, S. Chevillard
 
@@ -19,7 +28,7 @@ sylvain.chevillard@ens-lyon.org
 
 This software is a computer program whose purpose is to provide an
 environment for safe floating-point code development. It is
-particularily targeted to the automatized implementation of
+particularly targeted to the automated implementation of
 mathematical floating-point libraries (libm). Amongst other features,
 it offers a certified infinity norm, an automatic polynomial
 implementer and a fast Remez algorithm.
@@ -66,8 +75,50 @@ implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #include "chain.h"
 
 #define YY_NO_UNPUT 1
+#define YY_NO_INPUT 1
+
+/* Mess with the mallocs used by the lexer */
+extern void *parserCalloc(size_t, size_t);
+extern void *parserMalloc(size_t);
+extern void *parserRealloc(void *, size_t);
+extern void parserFree(void *);
+#undef malloc
+#undef realloc
+#undef calloc
+#undef free
+#define malloc parserMalloc
+#define realloc parserRealloc
+#define calloc parserCalloc
+#define free UNUSED_PARAM(yyscanner); parserFree
+/* End of the malloc mess */
+
+/* Mess with fprintf to use sollyaFprintf instead. */
+#undef  fprintf
+#define fprintf UNUSED_PARAM(yyscanner); sollyaFprintf
+/* End of fprintf mess */
+
+/* Mess with getc... and fread to use sollya_getc, sollya_feof, sollya_ferror, sollya_fwrite and sollya_fread instead. */
+#undef  getc
+#undef  fread
+#undef  feof
+#undef  ferror
+#undef  fwrite
+#define getc sollya_getc
+#define fread sollya_fread
+#define feof sollya_feof
+#define ferror sollya_ferror
+#define fwrite sollya_fwrite
+/* End of getc, feof, ferror, fwrite and fread mess */
+
+/* const mess */
+#if defined(const)
+#undef const
+#endif
+/* End of the const mess */
 
 %}
+
+%option noyyalloc noyyrealloc noyyfree
 
 %option noyywrap
 %option always-interactive
@@ -115,6 +166,7 @@ DIV             "/"
 POW             "^"
 SQRT            "sqrt"
 EXP             "exp"
+FREEVAR         "_x_"
 LOG             "log"
 LOG2            "log2"
 LOG10           "log10"
@@ -150,11 +202,14 @@ ASSIGNEQUAL     ":="
 SEMICOLON       ";"
 QUIT            "quit"
 PRINT           "print"
+SUPPRESSMESSAGE "suppressmessage"
+UNSUPPRESSMESSAGE "unsuppressmessage"
 DIFF            "diff"
-SIMPLIFY        "simplify"
+DIRTYSIMPLIFY   "dirtysimplify"
 CANONICAL       "canonical"
 PLOT            "plot"
 REMEZ           "remez"
+ANNOTATEFUNCTION "annotatefunction"
 FPMINIMAX       "fpminimax"
 INFNORM         "infnorm"
 SUPNORM         "supnorm"
@@ -190,18 +245,22 @@ HORNER          "horner"
 DEGREE          "degree"
 EXPAND          "expand"
 
-SIMPLIFYSAFE1   "safesimplify"
+SIMPLIFYSAFE1   "simplify"
 SIMPLIFYSAFE2   "simplifysafe"
 
 SIMPLIFYSAFE    ({SIMPLIFYSAFE1}|{SIMPLIFYSAFE2})
 
 TAYLOR          "taylor"
 TAYLORFORM      "taylorform"
+CHEBYSHEVFORM   "chebyshevform"
 AUTODIFF        "autodiff"
 
 FINDZEROS       "findzeros"
 FPFINDZEROS     "fpfindzeros"
 DIRTYINFNORM    "dirtyinfnorm"
+GCD             "gcd"
+EUCLDIV         "div"
+EUCLMOD         "mod"
 NUMBERROOTS     "numberroots"
 
 EVALUATE        "evaluate"
@@ -230,6 +289,7 @@ STRING          ({STRINGDELIMITER})((("\\\\")|(("\\")[\"\'\?ntabfrv])|(("\\")({O
 
 
 VERBOSITY       "verbosity"
+SHOWMESSAGENUMBERS "showmessagenumbers"
 
 WORSTCASE       "worstcase"
 
@@ -247,6 +307,7 @@ AND             "&&"
 OR              "||"
 
 SUBSTITUTE      "substitute"
+COMPOSEPOLYNOMIALS "composepolynomials"
 
 DOTS            "..."
 
@@ -282,6 +343,8 @@ PRINTEXPANSION  "printexpansion"
 
 BASHEXECUTE     "bashexecute"
 BASHEVALUATE    "bashevaluate"
+GETSUPPRESSEDMESSAGES "getsuppressedmessages"
+GETBACKTRACE    "getbacktrace"
 EXTERNALPLOT    "externalplot"
 PERTURB         "perturb"
 
@@ -371,6 +434,8 @@ MATCH           "match"
 WITH            "with"
 
 RENAME          "rename"
+OBJECTNAME      "objectname"
+BIND            "bind"
 
 LENGTH          "length"
 
@@ -412,6 +477,7 @@ EXTERNALPROC    "externalproc"
 VOID            "void"
 CONSTANTTYPE    "constant"
 FUNCTION        "function"
+OBJECT          "object"
 RANGE           "range"
 INTEGER         "integer"
 STRINGTYPE      "string"
@@ -440,17 +506,17 @@ NOP             "nop"
 
 <commentstate>{COMMENTEND} { BEGIN(INITIAL); }
 
-<commentstate>. { // Eat up comments
+<commentstate>. { /* Eat up comments */
 
                  }
 
-<commentstate>[\n] { // Eat up newlines in comments
+<commentstate>[\n] { /* Eat up newlines in comments */
 
 		}
 
 
 
-{ONELINECOMMENT} {  // Eat up comments
+{ONELINECOMMENT} {  /* Eat up comments */
 
                  }
 
@@ -460,14 +526,14 @@ NOP             "nop"
 {MIDPOINTCONSTANT}                          {
 					      constBuffer2 = (char *) safeCalloc(yyleng+1,sizeof(char));
 					      if (removeSpaces(constBuffer2,yytext)) {
-						printMessage(2,"Information: removed spaces in scientific notation constant \"%s\", it will be considered as \"%s\"\n",yytext,constBuffer2);
+						printMessage(2,SOLLYA_MSG_SPACES_REMOVED_FROM_CONSTANT_IN_SCIENTIF_NOTAT,"Information: removed spaces in scientific notation constant \"%s\", it will be considered as \"%s\"\n",yytext,constBuffer2);
 					      }
 					      yylval->value = constBuffer2;
                                               return MIDPOINTCONSTANTTOKEN; }
 {CONSTANT}                                  {
 					      constBuffer2 = (char *) safeCalloc(yyleng+1,sizeof(char));
 					      if (removeSpaces(constBuffer2,yytext)) {
-						printMessage(2,"Information: removed spaces in scientific notation constant \"%s\", it will be considered as \"%s\"\n",yytext,constBuffer2);
+						printMessage(2,SOLLYA_MSG_SPACES_REMOVED_FROM_CONSTANT_IN_SCIENTIF_NOTAT,"Information: removed spaces in scientific notation constant \"%s\", it will be considered as \"%s\"\n",yytext,constBuffer2);
 					      }
 					      yylval->value = constBuffer2;
                                                return CONSTANTTOKEN; }
@@ -496,7 +562,7 @@ NOP             "nop"
 					      constBuffer2 = (char *) safeCalloc(yyleng-1,sizeof(char));
 					      strncpy(constBuffer2,yytext+1,yyleng-2);
 					      demaskString(constBuffer,constBuffer2);
-					      free(constBuffer2);
+					      safeFree(constBuffer2);
 					      yylval->value = constBuffer;
                                                return STRINGTOKEN; }
 
@@ -543,6 +609,7 @@ NOP             "nop"
 
 {SQRT}            			    {  return SQRTTOKEN; }
 {EXP}             			    {  return EXPTOKEN; }
+{FREEVAR}             			    {  return FREEVARTOKEN; }
 {LOG}             			    {  return LOGTOKEN; }
 {LOG2}            			    {  return LOG2TOKEN; }
 {LOG10}           			    {  return LOG10TOKEN; }
@@ -579,6 +646,7 @@ NOP             "nop"
 {DIAM}            			    {  return DIAMTOKEN; }
 {DISPLAY}          			    {  return DISPLAYTOKEN; }
 {VERBOSITY}       			    {  return VERBOSITYTOKEN; }
+{SHOWMESSAGENUMBERS}       		    {  return SHOWMESSAGENUMBERSTOKEN; }
 {CANONICAL}       			    {  return CANONICALTOKEN; }
 {AUTOSIMPLIFY}    			    {  return AUTOSIMPLIFYTOKEN; }
 {TAYLORRECURSIONS}			    {  return TAYLORRECURSIONSTOKEN; }
@@ -643,19 +711,22 @@ NOP             "nop"
 {LIBRARY}         			    {  return LIBRARYTOKEN; }
 {LIBRARYCONSTANT}         		    {  return LIBRARYCONSTANTTOKEN; }
 {DIFF}            			    {  return DIFFTOKEN; }
-{SIMPLIFY}				    {  return SIMPLIFYTOKEN; }
+{DIRTYSIMPLIFY}				    {  return DIRTYSIMPLIFYTOKEN; }
 {REMEZ}           			    {  return REMEZTOKEN; }
+{ANNOTATEFUNCTION}           		    {  return ANNOTATEFUNCTIONTOKEN; }
 {FPMINIMAX}           			    {  return FPMINIMAXTOKEN; }
 {HORNER}          			    {  return HORNERTOKEN; }
 {EXPAND}          			    {  return EXPANDTOKEN; }
 {SIMPLIFYSAFE}				    {  return SIMPLIFYSAFETOKEN; }
 {TAYLOR}         			    {  return TAYLORTOKEN; }
 {TAYLORFORM}         			    {  return TAYLORFORMTOKEN; }
+{CHEBYSHEVFORM}         		    {  return CHEBYSHEVFORMTOKEN; }
 {AUTODIFF}         			    {  return AUTODIFFTOKEN; }
 {DEGREE}          			    {  return DEGREETOKEN; }
 {NUMERATOR}       			    {  return NUMERATORTOKEN; }
 {DENOMINATOR}     			    {  return DENOMINATORTOKEN; }
 {SUBSTITUTE}      			    {  return SUBSTITUTETOKEN; }
+{COMPOSEPOLYNOMIALS}      		    {  return COMPOSEPOLYNOMIALSTOKEN; }
 {COEFF}           			    {  return COEFFTOKEN; }
 {SUBPOLY}         			    {  return SUBPOLYTOKEN; }
 {ROUNDCOEFFICIENTS} 			    {  return ROUNDCOEFFICIENTSTOKEN; }
@@ -666,6 +737,8 @@ NOP             "nop"
 {EVALUATE}        			    {  return EVALUATETOKEN; }
 {PARSE}           			    {  return PARSETOKEN; }
 {PRINT}           			    {  return PRINTTOKEN; }
+{SUPPRESSMESSAGE}           		    {  return SUPPRESSMESSAGETOKEN; }
+{UNSUPPRESSMESSAGE}           		    {  return UNSUPPRESSMESSAGETOKEN; }
 {PRINTXML}           			    {  return PRINTXMLTOKEN; }
 {EXECUTE}           			    {  return EXECUTETOKEN; }
 {PLOT}            			    {  return PLOTTOKEN; }
@@ -675,10 +748,14 @@ NOP             "nop"
 {PRINTEXPANSION}  			    {  return PRINTEXPANSIONTOKEN; }
 {BASHEXECUTE}     			    {  return BASHEXECUTETOKEN; }
 {BASHEVALUATE}     			    {  return BASHEVALUATETOKEN; }
+{GETSUPPRESSEDMESSAGES}     		    {  return GETSUPPRESSEDMESSAGESTOKEN; }
+{GETBACKTRACE}     		            {  return GETBACKTRACETOKEN; }
 {EXTERNALPLOT}    			    {  return EXTERNALPLOTTOKEN; }
 {WRITE}           			    {  return WRITETOKEN; }
 {ASCIIPLOT}       			    {  return ASCIIPLOTTOKEN; }
 {RENAME}         			    {  return RENAMETOKEN; }
+{OBJECTNAME}         			    {  return OBJECTNAMETOKEN; }
+{BIND}         			            {  return BINDTOKEN; }
 
 
 {INFNORM}         			    {  return INFNORMTOKEN; }
@@ -686,6 +763,9 @@ NOP             "nop"
 {FINDZEROS}       			    {  return FINDZEROSTOKEN; }
 {FPFINDZEROS}     			    {  return FPFINDZEROSTOKEN; }
 {DIRTYINFNORM}    			    {  return DIRTYINFNORMTOKEN; }
+{GCD}                  			    {  return GCDTOKEN; }
+{EUCLDIV}                  		    {  return EUCLDIVTOKEN; }
+{EUCLMOD}                  		    {  return EUCLMODTOKEN; }
 {NUMBERROOTS}    			    {  return NUMBERROOTSTOKEN; }
 {INTEGRAL}        			    {  return INTEGRALTOKEN; }
 {DIRTYINTEGRAL}				    {  return DIRTYINTEGRALTOKEN; }
@@ -718,6 +798,7 @@ NOP             "nop"
 {VOID}                                      {  return VOIDTOKEN; }
 {CONSTANTTYPE}                              {  return CONSTANTTYPETOKEN; }
 {FUNCTION}                                  {  return FUNCTIONTOKEN; }
+{OBJECT}                                    {  return OBJECTTOKEN; }
 {RANGE}                                     {  return RANGETOKEN; }
 {INTEGER}                                   {  return INTEGERTOKEN; }
 {STRINGTYPE}                                {  return STRINGTYPETOKEN; }
@@ -730,6 +811,9 @@ NOP             "nop"
 [ \t]		{ /* Eat up spaces and tabulators */
 		}
 
+[\r]            { /* Eat up carriage return for compatibility with DOS-like systems */
+                }
+
 [\n]		{
 
 		}
@@ -741,10 +825,34 @@ NOP             "nop"
 
 
 .		{ /* otherwise */
-			printMessage(1,"The character \"%s\" cannot be recognized. Will ignore it.\n",
+			printMessage(1,SOLLYA_MSG_A_CHARACTER_COULD_NOT_BE_RECOGNIZED,"The character \"%s\" cannot be recognized. Will ignore it.\n",
 				yytext);
 }
 
 %%
 
 
+void *yyalloc (yy_size_t  size , yyscan_t yyscanner)
+{
+        UNUSED_PARAM(yyscanner);
+        return (void *) malloc( size );
+}
+
+void *yyrealloc  (void * ptr, yy_size_t  size , yyscan_t yyscanner)
+{
+        /* The cast to (char *) in the following accommodates both
+         * implementations that use char* generic pointers, and those
+         * that use void* generic pointers.  It works with the latter
+         * because both ANSI C and C++ allow castless assignment from
+         * any pointer type to void*, and deal with argument conversions
+         * as though doing an assignment.
+         */
+        UNUSED_PARAM(yyscanner);
+        return (void *) realloc( (char *) ptr, size );
+}
+
+void yyfree (void * ptr , yyscan_t yyscanner)
+{
+        UNUSED_PARAM(yyscanner);
+        free( (char *) ptr );   /* see yyrealloc() for (char *) cast */
+}

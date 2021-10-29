@@ -1,0 +1,63 @@
+* Naming of the output
+For all these functions, the output is called Y.
+In the ASA book it is called R.
+Both make sense, and the decisive argument was FixFunctionByTable: Table uses Y, and we have zillions of Operators using Table, I don't want to change them.
+
+* Stable stuff:
+
+
+** FixFunction
+    Centralizes Sollya parsing and evaluation to various formats, including an emulate() that works for all FixFunctionBy*
+		Also responsible for computing msbOut
+
+** FixFunctionByTable: a flopoco operator that is the most basic implementation of a FixFunction
+
+** BasicPolyApprox: mostly Sollya stuff to compute optimal coeff sizes, the machine-efficient polynomials.
+	 Important attributes can then be accessed by other classes as
+		int getDegree();
+		double getApproxErrorBound();
+		FixConstant* getCoeff(int i);
+
+
+
+* Stuff in progress
+** FixPolyEval: generic class for polynomial evaluation
+	 Mostly useless, holds various definitions and sanity checks.
+	 This is an evaluator that should work for a set of polynomials, passed as a vector of BasicPolyApprox.
+ 
+** FixHornerEval:FixPolyEval 
+	 Computes for each of the polynomials the error analysis, determining internal datapath sizes. Then takes the worst case and produces VHDL
+
+** FixParallelEval:FixPolyEval 
+	 TODO some day, with a nice bit heap and optimized Y^k
+
+** FixFunctionByPiecewisePoly
+** FixFunctionBySimplePoly: should disappear (it is a special case of FixFunctionByPiecewisePoly)
+
+
+TODO long term: manage non-uniform errors; manage non-uniform segmentation; something for sin(sqrt(x))
+
+
+
+
+FixPolynomialHornerEvaluator: 
+  constructor inputs alpha,  a table of 2^alpha vectors of coefficients, lsbY
+  and builds table + horner evaluator (operator inputting index and Y)
+
+			evaluates the corresponding polynomial(s) with truncated multipliers.
+								REM a trunc mult faithful to lsb will compute weights to LSB+g 
+
+
+
+FixFunctionBySimpleBitHeap: an Operator plugging BasicPolyApprox to a bit heap back-end.
+													 (with bit heaps you don't do piecewise polynomials, or you do it the HOTBM way)
+
+
+FixFunctionByPiecewisePoly:
+								the flopoco operator corresponding to the previous FunctionEvaluator
+								It plugs PiecewisePolyApprox to FixPolynomialHornerEvaluator
+
+
+								
+
+* TODOs

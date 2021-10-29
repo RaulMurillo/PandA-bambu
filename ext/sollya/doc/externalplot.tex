@@ -1,7 +1,12 @@
 \subsection{externalplot}
 \label{labexternalplot}
 \noindent Name: \textbf{externalplot}\\
-plots the error of an external code with regard to a function\\
+\phantom{aaa}plots the error of an external code with regard to a function\\[0.2cm]
+\noindent Library names:\\
+\verb|   void sollya_lib_externalplot(sollya_obj_t, sollya_obj_t, sollya_obj_t,|\\
+\verb|                                sollya_obj_t, sollya_obj_t, ...)|\\
+\verb|   void sollya_lib_v_externalplot(sollya_obj_t, sollya_obj_t, sollya_obj_t,|\\
+\verb|                                  sollya_obj_t, sollya_obj_t, va_list)|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{externalplot}(\emph{filename}, \emph{mode}, \emph{function}, \emph{range}, \emph{precision}) : (\textsf{string}, \textsf{absolute$|$relative}, \textsf{function}, \textsf{range}, \textsf{integer}) $\rightarrow$ \textsf{void}\\
@@ -34,7 +39,7 @@ plots the error of an external code with regard to a function\\
     
    The external function evaluation code given in the object file name
    \emph{filename} is supposed to define a function name \texttt{f} as
-   follows (here in C syntax): \texttt{void f(mpfr\_t rop, mpfr\_ op)}. 
+   follows (here in C syntax): \texttt{void f(mpfr\_t rop, mpfr\_t op)}. 
    This function is supposed to evaluate \texttt{op} with an accuracy corresponding
    to the precision of \texttt{rop} and assign this value to
    \texttt{rop}.

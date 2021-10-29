@@ -1,0 +1,16 @@
+TODO file for FloPoCo wrapper
+https://xkcd.com/844/
+* List of operators to port to the new pipeline framework
+	Remove an operator from the list below when it is done.
+THIS INCLUDES WRITING ITS AUTOTEST
+
+	InputIEEE
+	FPAssign
+	FPge_expr
+	FPgt_expr
+	FPle_expr
+	FPlt_expr
+	
+	The previous operators still need to:
+	1/ add the delays
+	2/ revise functionality within new FloPoCo version

@@ -169,7 +169,7 @@ Component::Component (flopoco::Target* t, TermROM tr, std::string name)
 	int wTable = tr.wTable;
 	TermROM::TableSign& signTable = tr.signTable;
 	long long int* table = tr.table;
-	setName (name);
+	setNameWithFreqAndUID(name);
 	Param& p = tr.p;
 	using namespace flopoco;
 

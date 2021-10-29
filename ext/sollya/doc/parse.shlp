@@ -1,0 +1,41 @@
+#NAME $PARSE
+#QUICK_DESCRIPTION parses an expression contained in a string
+#CALLING $COMMAND(<string>)
+#TYPE $STRING_TYPE -> $FUNCTION_TYPE §§|§$|$§§ $ERROR_TYPE
+#LIBRARYNAME sollya_obj_t sollya_lib_parse(sollya_obj_t)
+
+#PARAMETERS <string> represents a character sequence
+
+
+#DESCRIPTION 
+$COMMAND(<string>) parses the character sequence <string> containing
+an expression built on constants and base functions.
+§§ § §§
+If the character sequence does not contain a well-defined expression,
+a warning is displayed indicating a syntax error and $COMMAND returns
+a $ERROR of type $ERROR_TYPE.
+
+#DESCRIPTION
+The character sequence to be parsed by $COMMAND may contain commands that 
+return expressions, including $COMMAND itself. Those commands get executed after the string has been parsed.
+$COMMAND(<string>) will return the expression computed by the commands contained in the character 
+sequence <string>.
+
+#EXAMPLE
+parse("exp(x)");
+
+#EXAMPLE
+text = "remez(exp(x),5,[-1;1])";
+print("The string", text, "gives", parse(text));
+
+#EXAMPLE
+verbosity = 1!;
+parse("5 + * 3");
+
+#SEEALSO $EXECUTE
+#SEEALSO $READFILE
+#SEEALSO $PRINT
+#SEEALSO $ERROR
+#SEEALSO $DIEONERRORMODE
+
+

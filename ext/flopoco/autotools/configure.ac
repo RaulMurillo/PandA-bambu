@@ -4,7 +4,7 @@ AC_INIT([FloPoCo], [svn-trunk], [BUG_REPORT_ADDRESS])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
-m4_ifdef([AM_PROG_AR], [AM_PROG_AR])	
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 
 dnl Check for programs.
 AC_PROG_CXX
@@ -39,9 +39,14 @@ AC_ARG_ENABLE(	[exec],
 		[EXEC=$enableval])
 AM_CONDITIONAL(BUILD_FLOPOCO_EXEC, test "x$EXEC" = xyes)
 
+dnl Detect whether target OS is Windows
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <windows.h>]], [[HANDLE h; DWORD d;]])], [OS_WIN32="yes"], [OS_WIN32="no"])
+AM_CONDITIONAL(no_WIN32, test "x$OS_WIN32" = xno)
+
 dnl Check for libraries.
 AC_CHECK_LIB([gmpxx], [main], [], [AC_MSG_ERROR(libgmpxx is missing.)])
 AC_CHECK_LIB([gmp], [main], [], [AC_MSG_ERROR(libgmp is missing.)])
+AC_CHECK_LIB([mpfi], [main], [], [AC_MSG_ERROR(libmpfi is missing.)])
 AC_CHECK_LIB([mpfr], [main], [], [AC_MSG_ERROR(libmpfr is missing.)])
 AC_CHECK_LIB([sollya], [main], [], [AC_MSG_ERROR(libsollya is missing.)])
 AC_DEFINE(HAVE_SOLLYA, 1, "Found Sollya")
@@ -49,6 +54,7 @@ AC_DEFINE(HAVE_SOLLYA, 1, "Found Sollya")
 dnl Check for headers.
 AC_CHECK_HEADER([gmpxx.h], [], [AC_MSG_ERROR(gmpxx.h is missing.)])
 AC_CHECK_HEADER([gmp.h], [], [AC_MSG_ERROR(gmp.h is missing.)])
+AC_CHECK_HEADER([mpfi.h], [], [AC_MSG_ERROR(mpfi.h is missing.)])
 AC_CHECK_HEADER([mpfr.h], [], [AC_MSG_ERROR(mpfr.h is missing.)])
 dnl need to fix the sollya header test
 dnl AC_CHECK_HEADER([sollya.h], [], [AC_MSG_ERROR(sollya.h is missing.)])

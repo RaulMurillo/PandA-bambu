@@ -1,7 +1,22 @@
 \subsection{library}
 \label{lablibrary}
 \noindent Name: \textbf{library}\\
-binds an external mathematical function to a variable in \sollya\\
+\phantom{aaa}binds an external mathematical function to a variable in \sollya\\[0.2cm]
+\noindent Library names:\\
+\verb|   sollya_obj_t sollya_lib_libraryfunction(sollya_obj_t, char *,|\\
+\verb|                                           int (*)(mpfi_t, mpfi_t, int))|\\
+\verb|   sollya_obj_t sollya_lib_build_function_libraryfunction(sollya_obj_t, char *,|\\
+\verb|                                                          int (*)(mpfi_t,|\\
+\verb|                                                                  mpfi_t, int))|\\
+\verb|   sollya_obj_t sollya_lib_libraryfunction_with_data(|\\
+\verb|                                           sollya_obj_t, char *,|\\
+\verb|                                           int (*)(mpfi_t, mpfi_t, int, void *),|\\
+\verb|                                           void *, void (*)(void *))|\\
+\verb|   sollya_obj_t sollya_lib_build_function_libraryfunction_with_data(|\\
+\verb|                                           sollya_obj_t, char *,|\\
+\verb|                                           int (*)(mpfi_t,|\\
+\verb|                                                   mpfi_t, int, void *),|\\
+\verb|                                           void *, void (*)(void *))|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{library}(\emph{path}) : \textsf{string} $\rightarrow$ \textsf{function}\\
@@ -28,29 +43,51 @@ binds an external mathematical function to a variable in \sollya\\
    of the image set of the $n$-th derivative
    of the function f over \verb|I|: $f^{(n)}(I) \subseteq \mathrm{result}$.
 
-\item The integer value returned by the function implementation currently has no meaning.
+\item The integer value returned by the function implementation currently has no
+   meaning.
 
-\item You do not need to provide a working implementation for any \verb|n|. Most functions
-   of \sollya requires a relevant implementation only for $f$, $f'$ and $f''$. For higher 
-   derivatives, its is not so critical and the implementation may just store 
-   $[-\infty,\,+\infty]$ in result whenever $n>2$.
+\item You do not need to provide a working implementation for any \verb|n|. Most
+   functions of \sollya requires a relevant implementation only for $f$,
+   $f'$ and $f''$. For higher derivatives, its is not so critical and the
+   implementation may just store $[-\infty,\,+\infty]$ in result whenever $n>2$.
 
-\item Note that you should respect somehow interval-arithmetic standards in your implementation:
-   \verb|result| has its own precision and you should perform the 
+\item Note that you should respect somehow interval-arithmetic standards in your
+   implementation: \verb|result| has its own precision and you should perform the 
    intermediate computations so that \verb|result| is as tight as possible.
 
 \item You can include sollya.h in your implementation and use library 
-   functionnalities of \sollya for your implementation. However, this requires to have compiled
-   \sollya with \texttt{-fPIC} in order to make the \sollya executable code position 
-   independent and to use a system on with programs, using \texttt{dlopen} to open
-   dynamic routines can dynamically open themselves.
+   functionnalities of \sollya for your implementation. However, this requires to
+   have compiled \sollya with \texttt{-fPIC} in order to make the \sollya executable code
+   position independent and to use a system on with programs, using \texttt{dlopen} to
+   open dynamic routines can dynamically open themselves. \textbf{Important notice:} as
+   the code will be run in a context where a sollya session is already opened,
+   the library functions must be used directly, without calling \verb|sollya_lib_init|
+   and \verb|sollya_lib_close| (calling these functions would conflict with the
+   current session, leading to weird and hard to debug behaviors).
 
 \item To bind your function into \sollya, you must use the same identifier as the
    function name used in your implementation file (\verb|my_ident| in the previous
-   example). Once the function code has been bound to an identifier, you can use a simple assignment
-   to assign the bound identifier to yet another identifier. This way, you may use convenient
-   names inside \sollya even if your implementation environment requires you to use a less
-   convenient name.
+   example). Once the function code has been bound to an identifier, you can use
+   a simple assignment to assign the bound identifier to yet another identifier.
+   This way, you may use convenient names inside \sollya even if your
+   implementation environment requires you to use a less convenient name.
+
+\item The dynamic object file whose name is given to \textbf{library} for binding of an
+   external library function may also define a destructor function
+   \verb|int sollya_external_lib_close(void)|.
+   If \sollya finds such a destructor function in the dynamic object file, it
+   will call that function when closing the dynamic object file again.
+   This happens when \sollya is terminated or when the current \sollya session
+   is restarted using \textbf{restart}.
+   The purpose of the destructor function is to allow the dynamically bound code
+   to free any memory that it might have allocated before \sollya is terminated 
+   or restarted. 
+   The dynamic object file is not necessarily needed to define a destructor
+   function. This ensure backward compatibility with older \sollya external 
+   library function object files.
+   When defined, the destructor function is supposed to return an integer
+   value indicating if an error has happened. Upon success, the destructor
+   functions is to return a zero value, upon error a non-zero value.
 \end{itemize}
 \noindent Example 1: 
 \begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
@@ -58,9 +95,9 @@ binds an external mathematical function to a variable in \sollya\\
 > bashexecute("gcc -shared -o libraryexample libraryexample.o -lgmp -lmpfr");
 > myownlog = library("./libraryexample");
 > evaluate(log(x), 2);
-0.69314718055994530941723212145817656807550013436024
+0.69314718055994530941723212145817656807550013436025
 > evaluate(myownlog(x), 2);
-0.69314718055994530941723212145817656807550013436024
+0.69314718055994530941723212145817656807550013436025
 \end{Verbatim}
 \end{minipage}\end{center}
 See also: \textbf{function} (\ref{labfunction}), \textbf{bashexecute} (\ref{labbashexecute}), \textbf{externalproc} (\ref{labexternalproc}), \textbf{externalplot} (\ref{labexternalplot}), \textbf{diff} (\ref{labdiff}), \textbf{evaluate} (\ref{labevaluate}), \textbf{libraryconstant} (\ref{lablibraryconstant})

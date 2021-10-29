@@ -1,7 +1,9 @@
 \subsection{autodiff}
 \label{labautodiff}
 \noindent Name: \textbf{autodiff}\\
-Computes the first $n$ derivatives of a function at a point or over an interval.\\
+\phantom{aaa}Computes the first $n$ derivatives of a function at a point or over an interval.\\[0.2cm]
+\noindent Library name:\\
+\verb|   sollya_obj_t sollya_lib_autodiff(sollya_obj_t, sollya_obj_t, sollya_obj_t)|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{autodiff}(\emph{f}, \emph{n}, \emph{$x_0$}) : (\textsf{function}, \textsf{integer}, \textsf{constant}) $\rightarrow$ \textsf{list}\\
@@ -23,7 +25,7 @@ Parameters:
    for each $i$, $f_i$ is a small interval enclosing the exact value of $f^{(i)}(x_0)$.
 
 \item Since it does not perform any symbolic differentiation, \textbf{autodiff} is much 
-   more efficient than \textbf{diff} and should be prefered when only numerical values
+   more efficient than \textbf{diff} and should be preferred when only numerical values
    are necessary.
 
 \item If an interval $I$ is provided instead of a point $x_0$, the list returned by
@@ -34,7 +36,7 @@ Parameters:
 
 \item When $I$ is almost a point interval, the returned enclosures $f_i$ are also
    almost point intervals. However, when the interval $I$ begins to be fairly
-   large, the enclosures can be deeply overestimated due to the dependecy
+   large, the enclosures can be deeply overestimated due to the dependency
    phenomenon present with interval arithmetic.
 
 \item As a particular case, $f_0$ is an enclosure of the image of $f$ over $I$.
@@ -69,17 +71,17 @@ Parameters:
 > fprime = diff(f);
 > L[1];
 [2.53086745013099407167484456656211083053393118778677e-2;1.756802495307928251372
-63909451182909413591288733649]
+6390945118290941359128873365]
 > evaluate(fprime,[2,4]);
 [2.71048755415961996452136364304380881763456815673085e-2;1.109195306639432908373
-97225788623531405558431279949]
+9722578862353140555843127995]
 \end{Verbatim}
 \end{minipage}\end{center}
 \noindent Example 3: 
 \begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
 > L = autodiff(sin(x)/x, 0, [-1,1]);
 > L[0];
-[-@Inf@;@Inf@]
+[-infty;infty]
 > evaluate(sin(x)/x, [-1,1]);
 [0.5403023058681397174009366074429766037323104206179;1]
 \end{Verbatim}

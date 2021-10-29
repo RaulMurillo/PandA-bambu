@@ -1,0 +1,9 @@
+LIBSOLLYA_7.0.0 {
+global:
+sollya_lib_*;
+##
+## symbol added by hand: here to allow the interactive tool to use the library
+sollya_tool_main;
+
+local: *;
+};

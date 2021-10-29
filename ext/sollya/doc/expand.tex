@@ -1,7 +1,9 @@
 \subsection{expand}
 \label{labexpand}
 \noindent Name: \textbf{expand}\\
-expands polynomial subexpressions\\
+\phantom{aaa}expands polynomial subexpressions\\[0.2cm]
+\noindent Library name:\\
+\verb|   sollya_obj_t sollya_lib_expand(sollya_obj_t)|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{expand}(\emph{function}) : \textsf{function} $\rightarrow$ \textsf{function}\\
@@ -15,8 +17,7 @@ Parameters:
 \item \textbf{expand}(\emph{function}) expands all polynomial subexpressions in function
    \emph{function} as far as possible. Factors of sums are multiplied out,
    power operators with constant positive integer exponents are replaced
-   by multiplications and divisions are multiplied out, i.e. denomiators
-   are brought at the most interior point of expressions.
+   by multiplications.
 \end{itemize}
 \noindent Example 1: 
 \begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
@@ -41,4 +42,4 @@ x * x * x + x * 405 + 108 * x * 5 * x + 54 * x * x * 5 * x + 12 * x * x * x * 5
 x * x)
 \end{Verbatim}
 \end{minipage}\end{center}
-See also: \textbf{simplify} (\ref{labsimplify}), \textbf{simplifysafe} (\ref{labsimplifysafe}), \textbf{horner} (\ref{labhorner}), \textbf{coeff} (\ref{labcoeff}), \textbf{degree} (\ref{labdegree})
+See also: \textbf{dirtysimplify} (\ref{labdirtysimplify}), \textbf{simplify} (\ref{labsimplify}), \textbf{horner} (\ref{labhorner}), \textbf{coeff} (\ref{labcoeff}), \textbf{degree} (\ref{labdegree})

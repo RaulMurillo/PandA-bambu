@@ -1,7 +1,12 @@
 \subsection{pi}
 \label{labpi}
 \noindent Name: \textbf{pi}\\
-the constant $\pi$.\\
+\phantom{aaa}the constant $\pi$.\\[0.2cm]
+\noindent Library names:\\
+\verb|   sollya_obj_t sollya_lib_pi()|\\
+\verb|   int sollya_lib_is_pi(sollya_obj_t)|\\
+\verb|   sollya_obj_t sollya_lib_build_function_pi()|\\
+\verb|   #define SOLLYA_PI (sollya_lib_build_function_pi())|\\[0.2cm]
 \noindent Description: \begin{itemize}
 
 \item \textbf{pi} is the constant $\pi$, defined as half the period of sine and cosine.
@@ -22,14 +27,14 @@ the constant $\pi$.\\
 > verbosity=1!; prec=12!;
 > a = 2*pi;
 > a;
-Warning: rounding has happened. The value displayed is a faithful rounding of th
-e true result.
+Warning: rounding has happened. The value displayed is a faithful rounding to 12
+ bits of the true result.
 6.283
 > prec=20!;
 > a;
-Warning: rounding has happened. The value displayed is a faithful rounding of th
-e true result.
-6.283187
+Warning: rounding has happened. The value displayed is a faithful rounding to 20
+ bits of the true result.
+6.28319
 \end{Verbatim}
 \end{minipage}\end{center}
 \noindent Example 2: 

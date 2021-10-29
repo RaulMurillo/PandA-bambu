@@ -25,12 +25,14 @@
 
 using namespace std;
 
+		
 
 namespace flopoco{
 
 
 	ShiftAddOp::ShiftAddOp(ShiftAddDag* impl, ShiftAddOpType op, ShiftAddOp* i, int s, ShiftAddOp* j) :
-		impl(impl), op(op), i(i), j(j), s(s) {
+		impl(impl), op(op), i(i), j(j), s(s)
+	{
 		n=impl->computeConstant(op, i, s, j);
 		// now compute the size according to this constant, as the log2 of the max value the result can take
 		if (n >= 0)
@@ -40,15 +42,28 @@ namespace flopoco{
 		if(n==1)
 			size=impl->icm->xsize;
 
+		ostringstream rpag;
 		// compute the cost in terms of full adders of this node
 		switch(op) {
 		case X:
-			cost_in_full_adders = 0;   break;
+			cost_in_full_adders = 0;
+			rpagdesc="{'R',[1],1,[1],0}";
+			rpaglevel=0;
+			break;
 		case Add:      
 			if (s >= j->size) // no overlap of bits of Vi<<s and Vj
 				cost_in_full_adders = 0;
 			else
 				cost_in_full_adders = size - s - 1; // -1 because the cout bit is for free    
+			rpaglevel = 1+max(i->rpaglevel, j->rpaglevel);
+			rpag << "{'A',[" << n << "],"   << rpaglevel << ","
+				// left child
+					 <<  "[" << i->n << "]," << i->rpaglevel <<  "," << s << ",";
+			// right child
+			rpag <<  "[" << j->n << "]," << j->rpaglevel <<  ",0";
+			rpag <<  "}";
+			rpagdesc=rpag.str();
+			
 			break;
 		case Sub:      
 			cost_in_full_adders = size - 1; // -1 because the cout bit is for free    
@@ -80,5 +95,31 @@ namespace flopoco{
 
 	}
 
+	std::ostream& operator<<(std::ostream& o, const ShiftAddOp& sao ) // output
+	{    
+		o << sao.name << " <-  ";
+		switch(sao.op) {
+			case X:        o << " X"; break;
+			case Add:      o << sao.i->name << "<<" << sao.s << "  + " << sao.j->name;   break;
+			case Sub:      o << sao.i->name << "<<" << sao.s << "  - " << sao.j->name;   break;
+			case RSub:     o << sao.j->name << "  - " << sao.i->name << "<<" << sao.s ;   break;
+			case Shift:    o << " " << sao.i->name << "<<" << sao.s;                     break;
+			case Neg:      o << "-" << sao.i->name;   break;
+		}   
+		return o;
+	}
 
+	FlopocoStream& operator<<(FlopocoStream& o, const ShiftAddOp& sao ) // output
+	{    
+		o << sao.name << " <-  ";
+		switch(sao.op) {
+			case X:        o << " X"; break;
+			case Add:      o << sao.i->name << "<<" << sao.s << "  + " << sao.j->name;   break;
+			case Sub:      o << sao.i->name << "<<" << sao.s << "  - " << sao.j->name;   break;
+			case RSub:      o << sao.j->name << "  - " << sao.i->name << "<<" << sao.s ;   break;
+			case Shift:    o << " " << sao.i->name << "<<" << sao.s;                     break;
+			case Neg:      o << "-" << sao.i->name;   break;
+		}   
+		return o;
+	}
 }

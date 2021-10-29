@@ -1,50 +1,59 @@
 /*
 
-Copyright 2006-2009 by 
+  Copyright 2006-2013 by
 
-Laboratoire de l'Informatique du Parallelisme, 
-UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668
+  Laboratoire de l'Informatique du Parallelisme,
+  UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668,
 
-Contributors Ch. Lauter, S. Chevillard
+  Laboratoire d'Informatique de Paris 6, equipe PEQUAN,
+  UPMC Universite Paris 06 - CNRS - UMR 7606 - LIP6, Paris, France,
 
-christoph.lauter@ens-lyon.org
-sylvain.chevillard@ens-lyon.org
+  and by
 
-This software is a computer program whose purpose is to provide an
-environment for safe floating-point code development. It is
-particularily targeted to the automatized implementation of
-mathematical floating-point libraries (libm). Amongst other features,
-it offers a certified infinity norm, an automatic polynomial
-implementer and a fast Remez algorithm.
+  Centre de recherche INRIA Sophia Antipolis Mediterranee, equipe APICS,
+  Sophia Antipolis, France.
 
-This software is governed by the CeCILL-C license under French law and
-abiding by the rules of distribution of free software.  You can  use, 
-modify and/ or redistribute the software under the terms of the CeCILL-C
-license as circulated by CEA, CNRS and INRIA at the following URL
-"http://www.cecill.info". 
 
-As a counterpart to the access to the source code and  rights to copy,
-modify and redistribute granted by the license, users are provided only
-with a limited warranty  and the software's author,  the holder of the
-economic rights,  and the successive licensors  have only  limited
-liability. 
+  Contributors Ch. Lauter, S. Chevillard
 
-In this respect, the user's attention is drawn to the risks associated
-with loading,  using,  modifying and/or developing or reproducing the
-software by the user in light of its specific status of free software,
-that may mean  that it is complicated to manipulate,  and  that  also
-therefore means  that it is reserved for developers  and  experienced
-professionals having in-depth computer knowledge. Users are therefore
-encouraged to load and test the software's suitability as regards their
-requirements in conditions enabling the security of their systems and/or 
-data to be ensured and,  more generally, to use and operate it in the 
-same conditions as regards security. 
+  christoph.lauter@ens-lyon.org
+  sylvain.chevillard@ens-lyon.org
 
-The fact that you are presently reading this means that you have had
-knowledge of the CeCILL-C license and that you accept its terms.
+  This software is a computer program whose purpose is to provide an
+  environment for safe floating-point code development. It is
+  particularly targeted to the automated implementation of
+  mathematical floating-point libraries (libm). Amongst other features,
+  it offers a certified infinity norm, an automatic polynomial
+  implementer and a fast Remez algorithm.
 
-This program is distributed WITHOUT ANY WARRANTY; without even the
-implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  This software is governed by the CeCILL-C license under French law and
+  abiding by the rules of distribution of free software.  You can  use,
+  modify and/ or redistribute the software under the terms of the CeCILL-C
+  license as circulated by CEA, CNRS and INRIA at the following URL
+  "http://www.cecill.info".
+
+  As a counterpart to the access to the source code and  rights to copy,
+  modify and redistribute granted by the license, users are provided only
+  with a limited warranty  and the software's author,  the holder of the
+  economic rights,  and the successive licensors  have only  limited
+  liability.
+
+  In this respect, the user's attention is drawn to the risks associated
+  with loading,  using,  modifying and/or developing or reproducing the
+  software by the user in light of its specific status of free software,
+  that may mean  that it is complicated to manipulate,  and  that  also
+  therefore means  that it is reserved for developers  and  experienced
+  professionals having in-depth computer knowledge. Users are therefore
+  encouraged to load and test the software's suitability as regards their
+  requirements in conditions enabling the security of their systems and/or
+  data to be ensured and,  more generally, to use and operate it in the
+  same conditions as regards security.
+
+  The fact that you are presently reading this means that you have had
+  knowledge of the CeCILL-C license and that you accept its terms.
+
+  This program is distributed WITHOUT ANY WARRANTY; without even the
+  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 */
 
@@ -59,37 +68,40 @@ implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #include "integral.h"
 #include "general.h"
 
-
-#define DEBUG 0
-#define DEBUGMPFI 0
-
-
-
 rangetype integral(node *func, rangetype interval, mp_prec_t prec, mpfr_t diam) {
   node *deriv;
-
-  deriv = differentiate(func);
-  
   rangetype x,y;
   mpfr_t x1,x2,y1,y2,delta;
   sollya_mpfi_t temp, val;
-
   rangetype sum;
+
+  deriv = differentiate(func);
+
   sum.a = (mpfr_t*) safeMalloc(sizeof(mpfr_t));
   sum.b = (mpfr_t*) safeMalloc(sizeof(mpfr_t));
   mpfr_init2(*(sum.a),prec);
   mpfr_init2(*(sum.b),prec);
   mpfr_set_d(*(sum.a),0.,GMP_RNDD);
   mpfr_set_d(*(sum.b),0.,GMP_RNDU);
-  
-  
+
+
   if (mpfr_equal_p(*(interval.a),*(interval.b))) {
-    printMessage(1,"Warning: the given interval is reduced to one point.\n");
+    printMessage(1,SOLLYA_MSG_DOMAIN_IS_REDUCED_TO_A_POINT_TRIVIAL_RESULT,"Warning: the given interval is reduced to one point.\n");
+    free_memory(deriv);
     return sum;
   }
 
   if (mpfr_less_p(*(interval.b),*(interval.a))) {
-    printMessage(1,"Warning: the interval is empty.\n");
+    printMessage(1,SOLLYA_MSG_DOMAIN_IS_EMPTY,"Warning: the interval is empty.\n");
+    free_memory(deriv);
+    return sum;
+  }
+
+  if ( (!mpfr_number_p(*(interval.a))) || (!mpfr_number_p(*(interval.b))) ) {
+    printMessage(1, SOLLYA_MSG_DOMAIN_IS_NO_CLOSED_INTERVAL_ON_THE_REALS, "Warning: the given domain is not a closed interval on the reals.\n");
+    mpfr_set_inf(*(sum.a), -1);
+    mpfr_set_inf(*(sum.b), 1);
+    free_memory(deriv);
     return sum;
   }
 
@@ -106,7 +118,7 @@ rangetype integral(node *func, rangetype interval, mp_prec_t prec, mpfr_t diam) 
   mpfr_add(x2, x1, delta, GMP_RNDN);
   x.a = &x1;
   x.b = &x2;
-  
+
   mpfr_init2(y1,prec);
   mpfr_init2(y2,prec);
   y.a = &y1;
@@ -118,16 +130,16 @@ rangetype integral(node *func, rangetype interval, mp_prec_t prec, mpfr_t diam) 
     sollya_mpfi_set_fr(temp, x1);
     sollya_mpfi_set_fr(val, x2);
     sollya_mpfi_sub(temp, val, temp);
-    
+
     sollya_mpfi_interv_fr(val, *(y.a), *(y.b));
     sollya_mpfi_mul(temp, temp, val);
-    
+
     sollya_mpfi_get_left(y1, temp);
     sollya_mpfi_get_right(y2, temp);
     mpfr_add(*(sum.a), *(sum.a), y1, GMP_RNDD);
     mpfr_add(*(sum.b), *(sum.b), y2, GMP_RNDU);
-    
-    mpfr_set(x1,x2,GMP_RNDD); // exact
+
+    mpfr_set(x1,x2,GMP_RNDD); /* exact */
     mpfr_add(x2, x1, delta, GMP_RNDN);
   }
 
@@ -137,19 +149,19 @@ rangetype integral(node *func, rangetype interval, mp_prec_t prec, mpfr_t diam) 
   sollya_mpfi_set_fr(temp, x1);
   sollya_mpfi_set_fr(val, x2);
   sollya_mpfi_sub(temp, val, temp);
-    
+
   sollya_mpfi_interv_fr(val, *(y.a), *(y.b));
   sollya_mpfi_mul(temp, temp, val);
-    
+
   sollya_mpfi_get_left(y1, temp);
   sollya_mpfi_get_right(y2, temp);
   mpfr_add(*(sum.a), *(sum.a), y1, GMP_RNDD);
   mpfr_add(*(sum.b), *(sum.b), y2, GMP_RNDU);
-  
- 
+
+
   free_memory(deriv);
   sollya_mpfi_clear(val); sollya_mpfi_clear(temp);
-  mpfr_clear(x1); mpfr_clear(x2);  
+  mpfr_clear(x1); mpfr_clear(x2);
   mpfr_clear(y1); mpfr_clear(y2);
   mpfr_clear(delta);
 
@@ -163,17 +175,24 @@ void uncertifiedIntegral(mpfr_t result, node *tree, mpfr_t a, mpfr_t b, unsigned
 
   mpfr_sub(step, b, a, GMP_RNDN);
   mpfr_div_ui(step, step, points, GMP_RNDN);
- 
+
   if (mpfr_sgn(step) == 0) {
-    printMessage(1,"Warning: the given interval is reduced to one point.\n");
+    printMessage(1,SOLLYA_MSG_DOMAIN_IS_REDUCED_TO_A_POINT_WILL_SIMPLY_EVAL,"Warning: the given interval is reduced to one point.\n");
     mpfr_set_d(result,0.,GMP_RNDN);
     mpfr_clear(step);
     return;
   }
 
   if (mpfr_sgn(step) < 0) {
-    printMessage(1,"Warning: the interval is empty.\n");
+    printMessage(1,SOLLYA_MSG_DOMAIN_IS_EMPTY,"Warning: the interval is empty.\n");
     mpfr_set_d(result,0.,GMP_RNDN);
+    mpfr_clear(step);
+    return;
+  }
+
+  if (!mpfr_number_p(step)) {
+    printMessage(1, SOLLYA_MSG_DOMAIN_IS_NO_CLOSED_INTERVAL_ON_THE_REALS, "Warning: the given domain is not a closed interval on the reals.\n");
+    mpfr_set_nan(result);
     mpfr_clear(step);
     return;
   }
@@ -219,6 +238,6 @@ void uncertifiedIntegral(mpfr_t result, node *tree, mpfr_t a, mpfr_t b, unsigned
   mpfr_set(result,sum,GMP_RNDU);
 
   mpfr_clear(x); mpfr_clear(y1); mpfr_clear(y2); mpfr_clear(step);
-  mpfr_clear(sum); mpfr_clear(temp); 
+  mpfr_clear(sum); mpfr_clear(temp);
   return;
 }

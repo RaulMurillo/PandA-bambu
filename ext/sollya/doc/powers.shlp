@@ -1,0 +1,21 @@
+#NAME $POWERS
+#QUICK_DESCRIPTION special value for global state $DISPLAY
+
+#LIBRARYNAME sollya_obj_t sollya_lib_powers()
+#LIBRARYNAME int sollya_lib_is_powers(sollya_obj_t)
+
+#DESCRIPTION 
+$COMMAND is a special value used for the global state $DISPLAY.  If
+the global state $DISPLAY is equal to $COMMAND, all data will be
+output in dyadic notation with numbers displayed in a Maple and
+PARI/GP compatible format.
+§§ § §§
+As any value it can be affected to a variable and stored in lists.
+
+#SEEALSO $DECIMAL
+#SEEALSO $DYADIC
+#SEEALSO $HEXADECIMAL
+#SEEALSO $BINARY
+#SEEALSO $DISPLAY
+
+

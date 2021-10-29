@@ -1,87 +1,113 @@
 /*
 
-Copyright 2006-2010 by 
+  Copyright 2006-2018 by
 
-Laboratoire de l'Informatique du Parallelisme, 
-UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668
+  Laboratoire de l'Informatique du Parallelisme,
+  UMR CNRS - ENS Lyon - UCB Lyon 1 - INRIA 5668,
 
-and by
+  Laboratoire d'Informatique de Paris 6, equipe PEQUAN,
+  UPMC Universite Paris 06 - CNRS - UMR 7606 - LIP6, Paris, France,
 
-LORIA (CNRS, INPL, INRIA, UHP, U-Nancy 2)
+  Laboratoire d'Informatique de Paris 6 - Équipe PEQUAN
+  Sorbonne Universités
+  UPMC Univ Paris 06
+  UMR 7606, LIP6
+  Boîte Courrier 169
+  4, place Jussieu
+  F-75252 Paris Cedex 05
+  France,
 
-Contributors Ch. Lauter, S. Chevillard
+  Sorbonne Université
+  CNRS, Laboratoire d'Informatique de Paris 6, LIP6
+  F - 75005 Paris
+  France,
 
-christoph.lauter@ens-lyon.org
-sylvain.chevillard@ens-lyon.org
+  LORIA (CNRS, INPL, INRIA, UHP, U-Nancy 2)
 
-This software is a computer program whose purpose is to provide an
-environment for safe floating-point code development. It is
-particularily targeted to the automatized implementation of
-mathematical floating-point libraries (libm). Amongst other features,
-it offers a certified infinity norm, an automatic polynomial
-implementer and a fast Remez algorithm.
+  and by
 
-This software is governed by the CeCILL-C license under French law and
-abiding by the rules of distribution of free software.  You can  use, 
-modify and/ or redistribute the software under the terms of the CeCILL-C
-license as circulated by CEA, CNRS and INRIA at the following URL
-"http://www.cecill.info". 
+  Centre de recherche INRIA Sophia Antipolis Mediterranee, equipe APICS,
+  Sophia Antipolis, France.
 
-As a counterpart to the access to the source code and  rights to copy,
-modify and redistribute granted by the license, users are provided only
-with a limited warranty  and the software's author,  the holder of the
-economic rights,  and the successive licensors  have only  limited
-liability. 
+  Contributors Ch. Lauter, S. Chevillard
 
-In this respect, the user's attention is drawn to the risks associated
-with loading,  using,  modifying and/or developing or reproducing the
-software by the user in light of its specific status of free software,
-that may mean  that it is complicated to manipulate,  and  that  also
-therefore means  that it is reserved for developers  and  experienced
-professionals having in-depth computer knowledge. Users are therefore
-encouraged to load and test the software's suitability as regards their
-requirements in conditions enabling the security of their systems and/or 
-data to be ensured and,  more generally, to use and operate it in the 
-same conditions as regards security. 
+  christoph.lauter@ens-lyon.org
+  sylvain.chevillard@ens-lyon.org
 
-The fact that you are presently reading this means that you have had
-knowledge of the CeCILL-C license and that you accept its terms.
+  This software is a computer program whose purpose is to provide an
+  environment for safe floating-point code development. It is
+  particularly targeted to the automated implementation of
+  mathematical floating-point libraries (libm). Amongst other features,
+  it offers a certified infinity norm, an automatic polynomial
+  implementer and a fast Remez algorithm.
 
-This program is distributed WITHOUT ANY WARRANTY; without even the
-implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  This software is governed by the CeCILL-C license under French law and
+  abiding by the rules of distribution of free software.  You can  use,
+  modify and/ or redistribute the software under the terms of the CeCILL-C
+  license as circulated by CEA, CNRS and INRIA at the following URL
+  "http://www.cecill.info".
+
+  As a counterpart to the access to the source code and  rights to copy,
+  modify and redistribute granted by the license, users are provided only
+  with a limited warranty  and the software's author,  the holder of the
+  economic rights,  and the successive licensors  have only  limited
+  liability.
+
+  In this respect, the user's attention is drawn to the risks associated
+  with loading,  using,  modifying and/or developing or reproducing the
+  software by the user in light of its specific status of free software,
+  that may mean  that it is complicated to manipulate,  and  that  also
+  therefore means  that it is reserved for developers  and  experienced
+  professionals having in-depth computer knowledge. Users are therefore
+  encouraged to load and test the software's suitability as regards their
+  requirements in conditions enabling the security of their systems and/or
+  data to be ensured and,  more generally, to use and operate it in the
+  same conditions as regards security.
+
+  The fact that you are presently reading this means that you have had
+  knowledge of the CeCILL-C license and that you accept its terms.
+
+  This program is distributed WITHOUT ANY WARRANTY; without even the
+  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 */
+
+#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 
 #include <gmp.h>
 #include <mpfr.h>
 #include <stdio.h> /* fprintf, fopen, fclose, */
-#include <sys/types.h> /* pid_t */
 #include <sys/wait.h> /* wait */
 #include <unistd.h> /* execve, fork, daemon */
 #include <stdlib.h> /* exit, free, mktemp */
 #include <errno.h>
 #include <string.h>
-#include <sys/ioctl.h>
 #include "plot.h"
 #include "expression.h"
 #include "general.h"
 #include "infnorm.h"
 #include "chain.h"
+#include "printf.h"
+#include "signalhandling.h"
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
+#ifdef HAVE_SYS_IOCTL_H
+#include <sys/ioctl.h>
+#endif
+
 extern int fileNumber;
 
-void checkFileDescriptor(FILE *fd, char *s) {
+int checkFileDescriptor(FILE *fd, char *s) {
   if (fd == NULL) {
-    sollyaFprintf(stderr,"Error: the file %s requested by plot could not be opened for writing: ",s);
-    sollyaFprintf(stderr,"\"%s\".\n",strerror(errno));
-    recoverFromError();
-
+    printMessage(1,SOLLYA_MSG_PLOT_COULD_NOT_OPEN_FILE,"Error: the file %s requested by plot could not be opened for writing: ",s);
+    printMessage(1,SOLLYA_MSG_CONTINUATION,"\"%s\".\n",strerror(errno));
+    return 0;
   }
-  return;
+  return 1;
 }
 
 void plotTree(chain *treeList, mpfr_t a, mpfr_t b, unsigned long int points, mp_prec_t prec, char *name, int type) {
@@ -98,6 +124,13 @@ void plotTree(chain *treeList, mpfr_t a, mpfr_t b, unsigned long int points, mp_
   int tern;
   mp_prec_t p, pp;
   int overflow;
+  int plotPossible;
+  int n;
+  char *gnuplotname;
+
+  gnuplotname = getGnuplotName();
+
+  plotPossible = 0;
 
   pp = prec;
   if (prec < 64) pp = 64;
@@ -105,10 +138,10 @@ void plotTree(chain *treeList, mpfr_t a, mpfr_t b, unsigned long int points, mp_
   mpfr_init2(x, pp);
   mpfr_init2(step, pp);
   mpfr_init2(y, 64);
- 
+
   mpfr_sub(step, b, a, GMP_RNDN);
   mpfr_div_ui(step, step, points, GMP_RNDN);
- 
+
   if (mpfr_sgn(step) == 0) {
     list = treeList;
     mpfr_set_prec(y,prec);
@@ -116,8 +149,8 @@ void plotTree(chain *treeList, mpfr_t a, mpfr_t b, unsigned long int points, mp_
       tree = (node *)(list->value);
       evaluateFaithful(y,tree,a,prec);
       if (!mpfr_number_p(y)) {
-	printMessage(1,"Warning: this constant function is not evaluable by this tool.\n");
-      } 
+	printMessage(1,SOLLYA_MSG_CONSTANT_EXPR_CANNOT_BE_EVALUATED_AT_ALL,"Warning: this constant function is not evaluable by this tool.\n");
+      }
       outputMode();
       printValue(&y);
       sollyaPrintf("\n");
@@ -128,7 +161,7 @@ void plotTree(chain *treeList, mpfr_t a, mpfr_t b, unsigned long int points, mp_
   }
 
   if (mpfr_sgn(step) < 0) {
-    printMessage(1,"Warning: the interval is empty\n");
+    printMessage(1,SOLLYA_MSG_DOMAIN_IS_EMPTY,"Warning: the interval is empty\n");
     mpfr_clear(x); mpfr_clear(y); mpfr_clear(step);
     return;
   }
@@ -140,7 +173,7 @@ void plotTree(chain *treeList, mpfr_t a, mpfr_t b, unsigned long int points, mp_
     if(!isConstant(tree)) test=0;
     list = list->next;
   }
- 
+
   if (test) {
     mpfr_set_prec(y,prec);
     mpfr_set_d(x,1.0,GMP_RNDN);
@@ -149,8 +182,8 @@ void plotTree(chain *treeList, mpfr_t a, mpfr_t b, unsigned long int points, mp_
       tree = (node *)(list->value);
       evaluateFaithful(y,tree,x,prec);
       if (!mpfr_number_p(y)) {
-	printMessage(1,"Warning: this constant function is not evaluable by this tool.\n");
-      } 
+	printMessage(1,SOLLYA_MSG_CONSTANT_EXPR_CANNOT_BE_EVALUATED_AT_ALL,"Warning: this constant function is not evaluable by this tool.\n");
+      }
       outputMode();
       printValue(&y);
       sollyaPrintf("\n");
@@ -161,10 +194,11 @@ void plotTree(chain *treeList, mpfr_t a, mpfr_t b, unsigned long int points, mp_
   }
 
   if(name==NULL) {
-    gplotname = (char *)safeCalloc(13 + strlen(PACKAGE_NAME), sizeof(char));
-    sprintf(gplotname,"/tmp/%s-%04d.p",PACKAGE_NAME,fileNumber);
-    dataname = (char *)safeCalloc(15 + strlen(PACKAGE_NAME), sizeof(char));
-    sprintf(dataname,"/tmp/%s-%04d.dat",PACKAGE_NAME,fileNumber);
+    n = sollya_snprintf(NULL, 0, "%s/%s%s-%04d", getTempDir(), PACKAGE_NAME, getUniqueId(), fileNumber);
+    gplotname = (char *)safeCalloc(n+3, sizeof(char));
+    sollya_snprintf(gplotname, n+3, "%s/%s%s-%04d.p",getTempDir(), PACKAGE_NAME, getUniqueId(), fileNumber);
+    dataname = (char *)safeCalloc(n+5, sizeof(char));
+    sollya_snprintf(dataname, n+5, "%s/%s%s-%04d.dat",getTempDir(),PACKAGE_NAME,getUniqueId(), fileNumber);
     outputname = (char *)safeCalloc(1, sizeof(char));
     fileNumber++;
     if (fileNumber >= NUMBEROFFILES) fileNumber=0;
@@ -174,185 +208,222 @@ void plotTree(chain *treeList, mpfr_t a, mpfr_t b, unsigned long int points, mp_
     sprintf(gplotname,"%s.p",name);
     dataname = (char *)safeCalloc(strlen(name)+5,sizeof(char));
     sprintf(dataname,"%s.dat",name);
-    outputname = (char *)safeCalloc(strlen(name)+5,sizeof(char));   
+    outputname = (char *)safeCalloc(strlen(name)+5,sizeof(char));
     if ((type==PLOTPOSTSCRIPT) || (type==PLOTPOSTSCRIPTFILE)) sprintf(outputname,"%s.eps",name);
   }
 
   file = fopen(gplotname, "w");
-  checkFileDescriptor(file, gplotname);
-  sollyaFprintf(file, "# Gnuplot script generated by %s\n",PACKAGE_NAME);
-  ad = mpfr_get_d(a, GMP_RNDD);
-  bd = mpfr_get_d(b, GMP_RNDU);
-  if ((!(ad-ad == 0.0)) || (!(bd-bd == 0.0)))
-    printMessage(1, "Warning: an overflow occurred in a conversion mpfr to double while plotting.\n");
-  if (!(ad-ad == 0.0))
-    ad = -MAX_VALUE_GNUPLOT;
-  if (!(bd-bd == 0.0))
-    bd = MAX_VALUE_GNUPLOT;
-  if ((type==PLOTPOSTSCRIPT) || (type==PLOTPOSTSCRIPTFILE)) sollyaFprintf(file,"set terminal postscript eps color\nset out \"%s\"\n",outputname);
-  sollyaFprintf(file, "set xrange [%1.50e:%1.50e]\n",  ad, bd);
+  if (checkFileDescriptor(file, gplotname)) {
+    sollyaFprintf(file, "# Gnuplot script generated by %s\n",PACKAGE_NAME);
+    ad = sollya_mpfr_get_d(a, GMP_RNDD);
+    bd = sollya_mpfr_get_d(b, GMP_RNDU);
+    if ((!(ad-ad == 0.0)) || (!(bd-bd == 0.0)))
+      printMessage(1, SOLLYA_MSG_PLOT_OVERFLOW_OCCURRED_ON_CONVERSION_TO_DOUBLE, "Warning: an overflow occurred in a conversion mpfr to double while plotting.\n");
+    if (!(ad-ad == 0.0))
+      ad = -MAX_VALUE_GNUPLOT;
+    if (!(bd-bd == 0.0))
+      bd = MAX_VALUE_GNUPLOT;
+    if ((type==PLOTPOSTSCRIPT) || (type==PLOTPOSTSCRIPTFILE)) sollyaFprintf(file,"set terminal postscript eps color\nset out \"%s\"\n",outputname);
+    sollyaFprintf(file, "set format x \"%%g\"\n");
+    sollyaFprintf(file, "set format y \"%%g\"\n");
+    sollyaFprintf(file, "set xrange [%1.50e:%1.50e]\n",  ad, bd);
 
-  sollyaFprintf(file, "plot ");
-  i=2;
-  list = treeList;
-  while(list != NULL) {
-    sollyaFprintf(file,"\"%s\" using 1:%d with lines t \"\"",dataname,i);
-    if(list->next != NULL) sollyaFprintf(file,",");
-    i++;
-    list = list->next;
-  }
-  sollyaFprintf(file,"\n");
-  fclose(file);
-
-  file = fopen(dataname, "w");
-  checkFileDescriptor(file, dataname);
-
-  mpfr_init2(cutoff, pp);
-  mpfr_set_d(cutoff,1.0,GMP_RNDN);
-  p = prec;
-  if (p < 64) p = 64;
-  mpfr_div_2ui(cutoff,cutoff,4*p,GMP_RNDN);
- 
-  overflow = 0;
-  flush = 0;
-
-  mpfr_init2(current_x, pp);
-  gmp_randinit_default(random_state);
-  gmp_randseed_ui(random_state, 65845285);
-  mpfr_init2(perturb, pp);
-  
-  mpfr_set(current_x,a,GMP_RNDN);
-  mpfr_set(x, current_x, GMP_RNDN);
-  while(mpfr_lessequal_p(x,b)) {
-    xd =  mpfr_get_d(x, GMP_RNDN);
-    if (xd >= MAX_VALUE_GNUPLOT) xd = MAX_VALUE_GNUPLOT;
-    if (xd <= -MAX_VALUE_GNUPLOT) xd = -MAX_VALUE_GNUPLOT;
-    sollyaFprintf(file, "%1.50e",xd);
-
+    sollyaFprintf(file, "plot ");
+    i=2;
     list = treeList;
     while(list != NULL) {
-      tree = (node *)(list->value);
-      tern = evaluateFaithfulWithCutOff(y, tree, x, cutoff, prec);
-      if (tern == 2) {
-	flush = 1;
-	if (verbosity >= 2) { 	
-	  changeToWarningMode(); 
-	  sollyaPrintf("Information: function image proven to be less than 2^(-%d) on point %s = ",(int)p,variablename);
-	  printValue(&x);
-	  sollyaPrintf("\nThis point will be plotted as the midpoint of the proof interval.\n");
-	  restoreMode();
-	}
-      }
-      if (!mpfr_number_p(y)) {
-	if (verbosity >= 2) {
-	  changeToWarningMode();
-	  sollyaPrintf("Information: function undefined or not evaluable in point %s = ",variablename);
-	  printValue(&x);
-	  sollyaPrintf("\nThis point will not be plotted.\n");
-	  restoreMode();
-	}
-      }
-      yd = mpfr_get_d(y, GMP_RNDN);
-      if (!(yd-yd == 0.0)) overflow = 1;
-      if (yd >= MAX_VALUE_GNUPLOT) {
-	yd = MAX_VALUE_GNUPLOT;
-	overflow = 1;
-      }
-      if (yd <= -MAX_VALUE_GNUPLOT) {
-	yd = -MAX_VALUE_GNUPLOT;
-	overflow = 1;
-      }
-      sollyaFprintf(file, "\t%1.50e", yd);
-      
+      sollyaFprintf(file,"\"%s\" using 1:%d with lines t \"\"",dataname,i);
+      if(list->next != NULL) sollyaFprintf(file,",");
+      i++;
       list = list->next;
     }
     sollyaFprintf(file,"\n");
+    if ((name==NULL) || (type==PLOTFILE)) {
+      sollyaFprintf(file,"pause mouse close\n");
+    }
+    fclose(file);
 
-    mpfr_add(current_x, current_x,step,GMP_RNDN);
-    mpfr_urandomb(perturb, random_state); mpfr_mul_2ui(perturb, perturb, 1, GMP_RNDN);
-    mpfr_sub_ui(perturb, perturb, 1, GMP_RNDN); mpfr_div_2ui(perturb, perturb, 2, GMP_RNDN);
-    mpfr_mul(perturb, perturb, step, GMP_RNDN); // perturb \in [-step/4; step/4]
-    mpfr_add(x, current_x, perturb, GMP_RNDU);
+    file = fopen(dataname, "w");
+    if (checkFileDescriptor(file, dataname)) {
+      plotPossible = 1;
+
+      mpfr_init2(cutoff, pp);
+      mpfr_set_d(cutoff,1.0,GMP_RNDN);
+      p = prec;
+      if (p < 64) p = 64;
+      mpfr_div_2ui(cutoff,cutoff,4*p,GMP_RNDN);
+
+      overflow = 0;
+      flush = 0;
+
+      mpfr_init2(current_x, pp);
+      gmp_randinit_default(random_state);
+      gmp_randseed_ui(random_state, 65845285);
+      mpfr_init2(perturb, pp);
+
+      mpfr_set(current_x,a,GMP_RNDN);
+      mpfr_set(x, current_x, GMP_RNDN);
+      while(mpfr_lessequal_p(x,b)) {
+	xd =  sollya_mpfr_get_d(x, GMP_RNDN);
+	if (xd >= MAX_VALUE_GNUPLOT) xd = MAX_VALUE_GNUPLOT;
+	if (xd <= -MAX_VALUE_GNUPLOT) xd = -MAX_VALUE_GNUPLOT;
+	sollyaFprintf(file, "%1.50e",xd);
+
+	list = treeList;
+	while(list != NULL) {
+	  tree = (node *)(list->value);
+	  tern = evaluateFaithfulWithCutOff(y, tree, x, cutoff, prec);
+	  if (tern == 2) {
+	    flush = 1;
+	    printMessage(2,SOLLYA_MSG_PLOT_FUNC_PROVEN_LESS_THAN_2_TO_MINUS_PREC,"Information: function image proven to be less than 2^(-%d) on point %s = %v\nThis point will be plotted as the midpoint of the proof interval.\n",(int)p,((variablename == NULL) ? "_x_" : variablename),x);
+	  }
+	  if (!mpfr_number_p(y)) {
+	    printMessage(2,SOLLYA_MSG_PLOT_FUNC_UNDEFINED_OR_UNSTABLE_AT_POINT,"Information: function undefined or not evaluable in point %s = %v\nThis point will not be plotted.\n",((variablename == NULL) ? "_x_" : variablename),x);
+	  }
+	  yd = sollya_mpfr_get_d(y, GMP_RNDN);
+	  if (!(yd-yd == 0.0)) overflow = 1;
+	  if (yd >= MAX_VALUE_GNUPLOT) {
+	    yd = MAX_VALUE_GNUPLOT;
+	    overflow = 1;
+	  }
+	  if (yd <= -MAX_VALUE_GNUPLOT) {
+	    yd = -MAX_VALUE_GNUPLOT;
+	    overflow = 1;
+	  }
+	  sollyaFprintf(file, "\t%1.50e", yd);
+
+	  list = list->next;
+	}
+	sollyaFprintf(file,"\n");
+
+	mpfr_add(current_x, current_x,step,GMP_RNDU);
+	mpfr_urandomb(perturb, random_state); mpfr_mul_2ui(perturb, perturb, 1, GMP_RNDN);
+	mpfr_sub_ui(perturb, perturb, 1, GMP_RNDN); mpfr_div_2ui(perturb, perturb, 2, GMP_RNDN);
+	mpfr_mul(perturb, perturb, step, GMP_RNDN); /* perturb \in [-step/4; step/4] */
+	mpfr_add(x, current_x, perturb, GMP_RNDU);
+      }
+
+      mpfr_clear(cutoff);
+      mpfr_clear(perturb);
+      mpfr_clear(current_x);
+      gmp_randclear(random_state);
+
+      fclose(file);
+
+      if (overflow)
+	printMessage(1, SOLLYA_MSG_PLOT_OVERFLOW_OCCURRED_ON_CONVERSION_TO_DOUBLE, "Warning: an overflow occurred in a conversion mpfr to double while plotting.\n");
+
+      if (flush) {
+	printMessage(1,SOLLYA_MSG_PLOT_NOT_FAITHFULLY_EVALUATED_AT_SOME_POINT,"Warning: the evaluation of the image on at least one point of at least one function has not been faithfully accurate.\n");
+      }
+    }
   }
-
-  mpfr_clear(cutoff);
-  mpfr_clear(perturb);
-  mpfr_clear(current_x);
-  gmp_randclear(random_state);
- 
-  fclose(file);
-
-  if (overflow)
-    printMessage(1, "Warning: an overflow occurred in a conversion mpfr to double while plotting.\n");
 
   mpfr_clear(x); mpfr_clear(y); mpfr_clear(step);
 
-  if (flush) {
-    printMessage(1,"Warning: the evaluation of the image on at least one point of at least one function has not been faithfully accurate.\n");
-  }
-
-  if ((name==NULL) || (type==PLOTFILE)) {
-    if (fork()==0) {
-      daemon(1,1);
-      execlp("gnuplot", "gnuplot", "-persist", gplotname, NULL);
-      perror("An error occurred when calling gnuplot ");
-      exit(1);
+  deferSignalHandling();
+  fflush(NULL);
+  parserFlushInput();
+  resumeSignalHandling();
+  if (plotPossible) {
+    if ((name==NULL) || (type==PLOTFILE)) {
+      if (fork()==0) { /* The daemon call could fail (and will on certain Cygwin), in which case a double fork yields (almost (mod HUP etc.)) the same result. If daemon works, the fork has no effect */
+	if (daemon(1,0) == 0) { /* We want the prompt to return, so we need a daemon. We need to connect that daemon to /dev/null, which we do by setting the 2nd arg to zero */
+	  if (fork() == 0) { /* We need a child of the daemon that waits for gnuplot to remove the file */
+	    execlp(gnuplotname, gnuplotname, gplotname, NULL);
+	    perror("An error occurred when calling gnuplot ");
+	    exit(1);
+	  } else {
+	    wait(NULL);
+	    sleep(1);
+	    if (name == NULL) {
+	      remove(gplotname);
+	      remove(dataname);
+	    }
+	    sleep(1);
+	    exit(0);
+	  }
+	} else {
+	  fprintf(stderr, "Could not create a daemon for gnuplot\n");
+	  if (fork() == 0) { /* We could not create a daemon but we still want a child to wait for us */
+	    execlp(gnuplotname, gnuplotname, gplotname, NULL);
+	    perror("An error occurred when calling gnuplot ");
+	    exit(1);
+	  } else {
+	    wait(NULL);
+	    sleep(2);
+	    exit(0);
+	  }	  
+	}
+      }
+      else {
+	wait(NULL);
+	sleep(1);
+      }
     }
-    else wait(NULL);
-  }
-  else { /* Case we have an output: no daemon */
-    if (fork()==0) {
-      execlp("gnuplot", "gnuplot", "-persist", gplotname, NULL);
-      perror("An error occurred when calling gnuplot ");
-      exit(1);
-    }
-    else {
-      wait(NULL);
-      if((type==PLOTPOSTSCRIPT)) {
-	remove(gplotname);
-	remove(dataname);
+    else { /* Case we have an output: no daemon */
+      if (fork()==0) { /* We do not need no daemon so no stupid double/triple fork. This fork is necessary just to spawn the new process */
+	execlp(gnuplotname, gnuplotname, gplotname, NULL);
+	perror("An error occurred when calling gnuplot ");
+	exit(1);
+      }
+      else {
+	wait(NULL);
+	if(type==PLOTPOSTSCRIPT) {
+	  remove(gplotname);
+	  remove(dataname);
+	}
+	sleep(1);
       }
     }
   }
   
-  free(gplotname);
-  free(dataname);
-  free(outputname);
-  return;
+  deferSignalHandling();
+  fflush(NULL);
+  parserFlushInput();
+  resumeSignalHandling();
 
+
+  safeFree(gplotname);
+  safeFree(dataname);
+  safeFree(outputname);
+  return;
 }
 
 void removePlotFiles(void) {
   int i;
   char *name;
-  name = (char *)safeCalloc(40 + strlen(PACKAGE_NAME), sizeof(char));
+  int n;
+
+  n = sollya_snprintf(NULL, 0, "%s/%s%s-%04d", getTempDir(), PACKAGE_NAME, getUniqueId(), NUMBEROFFILES);
+  name = (char *)safeCalloc(n+5, sizeof(char));
 
   for(i=0;i<NUMBEROFFILES;i++) {
-    sprintf(name,"/tmp/%s-%04d.p",PACKAGE_NAME,i);
+    sollya_snprintf(name, n+3, "%s/%s%s-%04d.p",getTempDir(), PACKAGE_NAME, getUniqueId(), i);
     remove(name);
-    sprintf(name,"/tmp/%s-%04d.dat",PACKAGE_NAME,i);
+    sollya_snprintf(name, n+5, "%s/%s%s-%04d.dat",getTempDir(),PACKAGE_NAME,getUniqueId(), i);
     remove(name);
   }
 
-  free(name);
+  safeFree(name);
   return;
 }
 
 
 void asciiPlotTree(node *tree, mpfr_t a, mpfr_t b, mp_prec_t prec) {
   mpfr_t y, x, step, minValue, maxValue;
-  mpfr_t perturb;
-  gmp_randstate_t random_state;
   int sizeX, sizeY, i, k, drawXAxis, drawYAxis, xAxis, yAxis;
+#if defined(TIOCGWINSZ) && defined(STDOUT_FILENO) && defined(HAVE_SYS_IOCTL_H)
 #if defined(__CYGWIN__)
   struct winsize {
-        unsigned short  ws_row;     /* rows in characters */
-        unsigned short  ws_col;     /* columns in characters */
-        unsigned short  ws_xpixel;  /* horizontal size in pixels (not used) */
-        unsigned short  ws_ypixel;  /* vertical size in pixels (not used) */
+    unsigned short  ws_row;     /* rows in characters */
+    unsigned short  ws_col;     /* columns in characters */
+    unsigned short  ws_xpixel;  /* horizontal size in pixels (not used) */
+    unsigned short  ws_ypixel;  /* vertical size in pixels (not used) */
   } size;
-#else 
+#else
   struct winsize size;
+#endif
 #endif
   mpfr_t *values;
   char **lines;
@@ -363,8 +434,8 @@ void asciiPlotTree(node *tree, mpfr_t a, mpfr_t b, mp_prec_t prec) {
   if ((mpfr_cmp(a,b) == 0) || isConstant(tree)) {
     evaluateFaithful(y,tree,a,prec);
     if (!mpfr_number_p(y)) {
-      printMessage(1,"Warning: this constant function is not evaluable by this tool.\n");
-    } 
+      printMessage(1,SOLLYA_MSG_CONSTANT_EXPR_CANNOT_BE_EVALUATED_AT_ALL,"Warning: this constant function is not evaluable by this tool.\n");
+    }
     printValue(&y);
     sollyaPrintf("\n");
     mpfr_clear(y);
@@ -372,16 +443,24 @@ void asciiPlotTree(node *tree, mpfr_t a, mpfr_t b, mp_prec_t prec) {
   }
 
 
-#if defined(TIOCGWINSZ) && defined(STDIN_FILENO)
-  if (eliminatePromptBackup == 1) {
+#if defined(TIOCGWINSZ) && defined(STDOUT_FILENO) && defined(HAVE_SYS_IOCTL_H)
+  if ((eliminatePromptBackup == 1) && (!libraryMode)) {
     sizeX = 77;
     sizeY = 25;
   } else {
-    ioctl(STDIN_FILENO, TIOCGWINSZ, (char *) &size);
-    sizeX = size.ws_col;
-    sizeY = size.ws_row;
-    if (sizeX > 5000) sizeX = 5000;
-    if (sizeY > 5000) sizeY = 5000;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, (char *) &size) >= 0) {
+      sizeX = size.ws_col;
+      sizeY = size.ws_row;
+      if ((sizeX < 2) || (sizeY < 2)) {
+	sizeX = 77;
+	sizeY = 25;
+      }
+      if (sizeX > 500) sizeX = 500;
+      if (sizeY > 500) sizeY = 500;
+    } else {
+      sizeX = 77;
+      sizeY = 25;
+    }
   }
 #else
   sizeX = 77;
@@ -399,27 +478,17 @@ void asciiPlotTree(node *tree, mpfr_t a, mpfr_t b, mp_prec_t prec) {
   mpfr_set_si(x,sizeX-2,GMP_RNDN);
   mpfr_div(step,step,x,GMP_RNDN);
 
-  mpfr_init2(perturb, prec);
-  gmp_randinit_default(random_state);
-  gmp_randseed_ui(random_state, 65845285);
 
   for (i=0;i<sizeX-1;i++) {
     mpfr_set_si(x,i,GMP_RNDN);
     mpfr_mul(x,x,step,GMP_RNDN);
     mpfr_add(x,x,a,GMP_RNDN);
 
-    mpfr_urandomb(perturb, random_state); mpfr_mul_2ui(perturb, perturb, 1, GMP_RNDN);
-    mpfr_sub_ui(perturb, perturb, 1, GMP_RNDN); mpfr_div_2ui(perturb, perturb, 2, GMP_RNDN);
-    mpfr_mul(perturb, perturb, step, GMP_RNDN); // perturb \in [-step/4; step/4]
-    mpfr_add(x, x, perturb, GMP_RNDN);
     evaluateFaithful(values[i],tree,x,prec);
     if (!mpfr_number_p(values[i])) {
       mpfr_set_d(values[i],0.0,GMP_RNDN);
     }
   }
-
-  mpfr_clear(perturb);
-  gmp_randclear(random_state);
 
   mpfr_init2(minValue,prec);
   mpfr_init2(maxValue,prec);
@@ -467,17 +536,17 @@ void asciiPlotTree(node *tree, mpfr_t a, mpfr_t b, mp_prec_t prec) {
   lines = (char **) safeCalloc(sizeY,sizeof(char *));
   for (k=0;k<sizeY-1;k++) {
     lines[k] = (char *) safeCalloc(sizeX,sizeof(char));
-    for (i=0;i<sizeX-1;i++) 
+    for (i=0;i<sizeX-1;i++)
       lines[k][i] = ' ';
   }
 
   if (drawXAxis) {
-    for (i=0;i<sizeX-1;i++) 
+    for (i=0;i<sizeX-1;i++)
       lines[(sizeY - 2) - xAxis][i] = '-';
   }
 
   if (drawYAxis) {
-    for (k=0;k<sizeY-1;k++) 
+    for (k=0;k<sizeY-1;k++)
       lines[k][yAxis] = '|';
   }
 
@@ -489,11 +558,11 @@ void asciiPlotTree(node *tree, mpfr_t a, mpfr_t b, mp_prec_t prec) {
     k = mpfr_get_si(values[i],GMP_RNDN);
     if (k < 0) k = 0;
     if (k > (sizeY - 2)) k = sizeY - 2;
-    lines[(sizeY - 2) - k][i] = 'x'; 
+    lines[(sizeY - 2) - k][i] = 'x';
   }
 
   saveMode();
-  for (k=0;k<sizeY-1;k++) { 
+  for (k=0;k<sizeY-1;k++) {
     curr = lines[k];
     while (*curr != '\0') {
       if (*curr != 'x')
@@ -510,8 +579,8 @@ void asciiPlotTree(node *tree, mpfr_t a, mpfr_t b, mp_prec_t prec) {
 
   restoreMode();
 
-  for (k=0;k<sizeY-1;k++) free(lines[k]);
-  free(lines);
+  for (k=0;k<sizeY-1;k++) safeFree(lines[k]);
+  safeFree(lines);
   mpfr_clear(minValue);
   mpfr_clear(maxValue);
   mpfr_clear(y);
@@ -520,6 +589,6 @@ void asciiPlotTree(node *tree, mpfr_t a, mpfr_t b, mp_prec_t prec) {
   for (i=0;i<sizeX-1;i++) {
     mpfr_clear(values[i]);
   }
-  free(values);
+  safeFree(values);
   return;
 }

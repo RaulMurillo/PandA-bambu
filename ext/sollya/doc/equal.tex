@@ -1,7 +1,9 @@
 \subsection{$==$}
 \label{labequal}
 \noindent Name: \textbf{$==$}\\
-equality test operator\\
+\phantom{aaa}equality test operator\\[0.2cm]
+\noindent Library name:\\
+\verb|   sollya_obj_t sollya_lib_cmp_equal(sollya_obj_t, sollya_obj_t)|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \emph{expr1} \textbf{$==$} \emph{expr2} : (\textsf{any type}, \textsf{any type}) $\rightarrow$ \textsf{boolean}\\
@@ -12,15 +14,52 @@ Parameters:
 \end{itemize}
 \noindent Description: \begin{itemize}
 
-\item The operator \textbf{$==$} evaluates to true iff its operands \emph{expr1} and
-   \emph{expr2} are syntactically equal and different from \textbf{error} or constant
-   expressions that are not constants and that evaluate to the same
-   floating-point number with the global precision \textbf{prec}. The user should
-   be aware of the fact that because of floating-point evaluation, the
-   operator \textbf{$==$} is not exactly the same as the mathematical
-   equality. Further remark that according to IEEE 754-2008 floating-point
-   rules, which \sollya emulates, floating-point data which are NaN do not
-   compare equal to any other floating-point datum, including NaN. 
+\item The test \emph{expr1} \textbf{$==$} \emph{expr2} returns \textbf{true} when \emph{expr1} and \emph{expr2} are
+   syntactically equal and different from \textbf{error}, @NaN@ and [@NaN@, @NaN].
+   Conversely if \emph{expr1} and \emph{expr2} are objects that are mathematically
+   different and \sollya manages to figure it out, the test returns \textbf{false}.
+   In between these two cases, there is the grey zone of expressions that are
+   not syntactically equal but are mathematically equal. In such a case,
+   \sollya normally tries to determine if the expressions are mathematically
+   equal and if it manages to prove it, it returns \textbf{true}, without a warning. In
+   the case when \emph{expr1} and \emph{expr2} are two constant expressions, \sollya will
+   in particular try to evaluate their difference: in the case when the
+   difference is 0 or is so small that \sollya does not manage to obtain a
+   faithful rounding of the real value, it will return \textbf{true} (with a warning if
+   it has not been possible to actually prove that the real value is 0). In any
+   other case, when both expressions are not syntactically equal and \sollya
+   has not been able to prove that they are mathematically equal, it
+   returns \textbf{false}.
+
+\item The level of simplifications performed by \sollya to determine if
+   expressions are mathematically equal depends on the value of \textbf{autosimplify}.
+   If it is \textbf{off}, no formal simplification is performed, hence expression trees
+   as simple as x+1 and 1+x will be considered not equal. Conversely, if
+   \textbf{autosimplify} is set to \textbf{on}, polynomial subexpressions that are
+   mathematically equal will in general be recognized as being equal.
+
+\item The user should always keep in mind that a litteral constant written in
+   decimal arithmetic (such as 0.1 for instance) is not considered as an exact
+   constant by \sollya (unless it is exactly representable in binary without
+   requiring too much precision) and is first correctly rounded at precision
+   \textbf{prec}, prior to any other operation. Of course, this leads to a rounding
+   warning, but it is important to remember that this is done before the
+   expression trees are compared, possibly leading to two expressions comparing
+   equal, while they are obviously mathematically different, just because they
+   contain different constants that have been rounded to the same value at
+   precision \textbf{prec}. As a general rule, to avoid this behavior, the user should
+   represent constants in an exact format such as hexadecimal or represent
+   decimal constants as integer fractions (e.g., 0.1 represented by the constant
+   expression 1/10).
+
+\item Notice that @NaN@, [@NaN, @NaN@] and \textbf{error} share the property that they
+   compare not equal to anything, including themselves. This means if a variable
+   \emph{a} contains @NaN@, [@NaN, @NaN@] or \textbf{error} and whatever the content of
+   variable \emph{b} is, the test \emph{a} \textbf{$==$} \emph{b} returns \textbf{false}. The standard way of
+   testing if \emph{a} contains @NaN@, [@NaN@, @NaN@] or \textbf{error} is indeed to check if
+   \emph{a} \textbf{$==$} \emph{a} returns false. \textbf{error} can be distinguished from @NaN@ and
+   [@NaN@, @NaN@] using the \textbf{!$=$} operator. In order to distinguish @NaN@ from
+   [@NaN@, @NaN@], a match ... with ... construct must be used.
 \end{itemize}
 \noindent Example 1: 
 \begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
@@ -36,9 +75,13 @@ true
 \end{minipage}\end{center}
 \noindent Example 2: 
 \begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
-> 1 == exp(0);
-true
+> verbosity = 1!;
 > asin(1) * 2 == pi;
+true
+> cos(3)^2 == 1 - sin(3)^2;
+Warning: the tool is unable to decide an equality test by evaluation even though
+ faithful evaluation of the terms has been possible. The terms will be considere
+d to be equal.
 true
 > exp(5) == log(4);
 false
@@ -46,7 +89,17 @@ false
 \end{minipage}\end{center}
 \noindent Example 3: 
 \begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
-> sin(pi/6) == 1/2 * sqrt(3);
+> autosimplify=off;
+Automatic pure tree simplification has been deactivated.
+> exp(1+x) == exp(x+1);
+false
+> autosimplify=on;
+Automatic pure tree simplification has been activated.
+> exp(1+x) == exp(x+1);
+false
+> (1/3+x)^2 == x^2 + 1/9 + (5-3)*x/3;
+true
+> log(x)/log(10) == log10(x);
 false
 \end{Verbatim}
 \end{minipage}\end{center}
@@ -54,7 +107,26 @@ false
 \begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
 > prec = 12;
 The precision has been set to 12 bits.
+> verbosity = 1!;
 > 16384.1 == 16385.1;
+Warning: Rounding occurred when converting the constant "16384.1" to floating-po
+int with 12 bits.
+If safe computation is needed, try to increase the precision.
+Warning: Rounding occurred when converting the constant "16385.1" to floating-po
+int with 12 bits.
+If safe computation is needed, try to increase the precision.
+true
+> 16384 == 16384.25;
+false
+> 0.1 == 1/10;
+Warning: Rounding occurred when converting the constant "0.1" to floating-point 
+with 12 bits.
+If safe computation is needed, try to increase the precision.
+false
+> 0.1 == round(1/10, prec, RN);
+Warning: Rounding occurred when converting the constant "0.1" to floating-point 
+with 12 bits.
+If safe computation is needed, try to increase the precision.
 true
 \end{Verbatim}
 \end{minipage}\end{center}
@@ -62,16 +134,38 @@ true
 \begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
 > error == error;
 false
-\end{Verbatim}
-\end{minipage}\end{center}
-\noindent Example 6: 
-\begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
-> a = "Biba";
-> b = NaN;
-> a == a;
-true
-> b == b;
+> error != error;
 false
+> @NaN@ == @NaN@;
+false
+> @NaN@ != @NaN@;
+true
+> [@NaN@,@NaN@] == [@NaN@,@NaN@];
+false
+> [@NaN@,@NaN@] != [@NaN@,@NaN@];
+true
+> error == @NaN@;
+false
+> error != @NaN@;
+false
+> a = error;
+> match a with
+   @NaN@ : ("a contains @NaN@")
+   [@NaN@, @NaN@] : ("a contains [@NaN@, @NaN@]")
+   default:("a contains something else");
+error
+> a = @NaN@;
+> match a with
+   @NaN@ : ("a contains @NaN@")
+   [@NaN@, @NaN@] : ("a contains [@NaN@, @NaN@]")
+   default:("a contains something else");
+a contains @NaN@
+> a = [@NaN@, @NaN@];
+> match a with
+   @NaN@ : ("a contains @NaN@")
+   [@NaN@, @NaN@] : ("a contains [@NaN@, @NaN@]")
+   default:("a contains something else");
+a contains [@NaN@, @NaN@]
 \end{Verbatim}
 \end{minipage}\end{center}
-See also: \textbf{!$=$} (\ref{labneq}), \textbf{$>$} (\ref{labgt}), \textbf{$>=$} (\ref{labge}), \textbf{$<=$} (\ref{lable}), \textbf{$<$} (\ref{lablt}), \textbf{in} (\ref{labin}), \textbf{!} (\ref{labnot}), \textbf{$\&\&$} (\ref{laband}), \textbf{$||$} (\ref{labor}), \textbf{error} (\ref{laberror}), \textbf{prec} (\ref{labprec})
+See also: \textbf{!$=$} (\ref{labneq}), \textbf{$>$} (\ref{labgt}), \textbf{$>=$} (\ref{labge}), \textbf{$<=$} (\ref{lable}), \textbf{$<$} (\ref{lablt}), \textbf{in} (\ref{labin}), \textbf{!} (\ref{labnot}), \textbf{$\&\&$} (\ref{laband}), \textbf{$||$} (\ref{labor}), \textbf{error} (\ref{laberror}), \textbf{prec} (\ref{labprec}), \textbf{autosimplify} (\ref{labautosimplify})

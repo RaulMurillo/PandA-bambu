@@ -1,7 +1,9 @@
 \subsection{dirtyfindzeros}
 \label{labdirtyfindzeros}
 \noindent Name: \textbf{dirtyfindzeros}\\
-gives a list of numerical values listing the zeros of a function on an interval.\\
+\phantom{aaa}gives a list of numerical values listing the zeros of a function on an interval.\\[0.2cm]
+\noindent Library name:\\
+\verb|   sollya_obj_t sollya_lib_dirtyfindzeros(sollya_obj_t, sollya_obj_t)|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{dirtyfindzeros}(\emph{f},\emph{I}) : (\textsf{function}, \textsf{range}) $\rightarrow$ \textsf{list}\\
@@ -34,12 +36,20 @@ Parameters:
      the precision of the approximation is supposed to be doubled at each step.
    \item Add this value to the list.
    \end{itemize}
+
+\item The user should be aware that the list returned by \textbf{dirtyfindzeros} may
+   contain a certain floating-point number twice. These repetitions
+   reflect the existence of different zeros of the function the value of
+   which rounds to the same floating-point number in the current working
+   precision. In this case, increasing the working precision will end up
+   making the two zeros distinguishable even in rounded floating-point
+   arithmetic.
 \end{itemize}
 \noindent Example 1: 
 \begin{center}\begin{minipage}{15cm}\begin{Verbatim}[frame=single]
 > dirtyfindzeros(sin(x),[-5;5]);
-[|-3.14159265358979323846264338327950288419716939937508, 0, 3.141592653589793238
-46264338327950288419716939937508|]
+[|-3.1415926535897932384626433832795028841971693993751, 0, 3.1415926535897932384
+626433832795028841971693993751|]
 \end{Verbatim}
 \end{minipage}\end{center}
 \noindent Example 2: 

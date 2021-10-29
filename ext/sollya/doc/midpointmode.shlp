@@ -1,0 +1,41 @@
+#NAME $MIDPOINTMODE
+#QUICK_DESCRIPTION global variable controlling the way intervals are displayed.
+
+#CALLING $COMMAND = <activation value>
+#TYPE $ONOFF_TYPE -> $VOID_TYPE
+#CALLING $COMMAND = <activation value> !
+#TYPE $ONOFF_TYPE -> $VOID_TYPE
+#CALLING $COMMAND
+#TYPE $ONOFF_TYPE
+
+#LIBRARYNAME void sollya_lib_set_midpointmode_and_print(sollya_obj_t)
+#LIBRARYNAME void sollya_lib_set_midpointmode(sollya_obj_t)
+#LIBRARYNAME sollya_obj_t sollya_lib_get_midpointmode()
+
+#PARAMETERS <activation value> enables or disables the mode.
+
+#DESCRIPTION 
+$COMMAND is a global variable. When its value is $OFF, intervals are displayed
+as usual (in the form §§[a;b]§$\left[ a;b\right]$§§).
+When its value is $ON, and if §§a§$a$§§ and §§b§$b$§§ have the same first significant digits,
+the interval in displayed in a way that lets one immediately see the common
+digits of the two bounds.
+
+#DESCRIPTION
+This mode is supported only with $DISPLAY set to $DECIMAL. In other modes of 
+display, $COMMAND value is simply ignored.
+
+#EXAMPLE
+a = round(Pi,30,RD);
+b = round(Pi,30,RU);
+d = [a,b];
+d;
+midpointmode=on!;
+d;
+
+#SEEALSO $ON
+#SEEALSO $OFF
+#SEEALSO $ROUNDINGWARNINGS
+#SEEALSO $DISPLAY
+#SEEALSO $DECIMAL
+

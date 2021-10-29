@@ -1,7 +1,10 @@
 \subsection{supnorm}
 \label{labsupnorm}
 \noindent Name: \textbf{supnorm}\\
-computes an interval bounding the supremum norm of an approximation error (absolute or relative) between a given polynomial and a function.\\
+\phantom{aaa}computes an interval bounding the supremum norm of an approximation error (absolute or relative) between a given polynomial and a function.\\[0.2cm]
+\noindent Library name:\\
+\verb|   sollya_obj_t sollya_lib_supnorm(sollya_obj_t, sollya_obj_t, sollya_obj_t,|\\
+\verb|                                   sollya_obj_t, sollya_obj_t)|\\[0.2cm]
 \noindent Usage: 
 \begin{center}
 \textbf{supnorm}(\emph{p}, \emph{f}, \emph{I}, \emph{errorType}, \emph{accuracy}) : (\textsf{function}, \textsf{function}, \textsf{range}, \textsf{absolute$|$relative}, \textsf{constant}) $\rightarrow$ \textsf{range}\\
@@ -64,7 +67,7 @@ Parameters:
 > p = remez(exp(x), 5, [-1;1]);
 > midpointmode=on!;
 > supnorm(p, exp(x), [-1;1], absolute, 2^(-40));
-0.452055210438~2/7~e-4
+0.45205513967~0/2~e-4
 \end{Verbatim}
 \end{minipage}\end{center}
 \noindent Example 2: 
