@@ -794,8 +794,10 @@ void BambuParameter::PrintHelp(std::ostream& os) const
       << "        Bambu uses as default a faithfully rounded version of softfloat with rounding mode equal to round to nearest even.\n\n"
       << "        This is the default for bambu.\n\n"
 #if HAVE_FLOPOCO
-      << "    --flopoco\n"
-      << "        Enable the flopoco-based implementation of floating-point operations.\n\n"
+      << "    --flopoco=<datatype>\n"
+      << "        Enable the flopoco-based implementation of floating-point or posit arithmetic operations.\n"
+      << "             float - use the floating-point format (default)\n"
+      << "             posit - use the posit arithmetic format\n\n"
 #endif
       << "    --softfloat-subnormal\n"
       << "        Enable the soft-based implementation of floating-point operations with subnormals support.\n\n"
@@ -1179,7 +1181,7 @@ int BambuParameter::Exec()
       {"disable-reg-init-value", no_argument, nullptr, OPT_DISABLE_REG_INIT_VALUE},
       {"soft-float", no_argument, nullptr, OPT_SOFT_FLOAT},
 #if HAVE_FLOPOCO
-      {"flopoco", no_argument, nullptr, OPT_FLOPOCO},
+      {"flopoco", optional_argument, nullptr, OPT_FLOPOCO},
 #endif
       {"softfloat-subnormal", no_argument, nullptr, OPT_SOFTFLOAT_SUBNORMAL},
       {"softfloat-norounding", no_argument, nullptr, OPT_SOFTFLOAT_NOROUNDING},
@@ -1990,6 +1992,9 @@ int BambuParameter::Exec()
          case OPT_FLOPOCO:
          {
             setOption(OPT_soft_float, false);
+            setOption(OPT_flopoco, "float");
+            if(optarg && std::string(optarg) == "posit")
+               setOption(OPT_flopoco, optarg);
             break;
          }
 #endif
@@ -4161,6 +4166,9 @@ void BambuParameter::SetDefaults()
    setOption(OPT_gcc_defines, defines);
 
    setOption(OPT_soft_float, true);
+#if HAVE_FLOPOCO
+   setOption(OPT_flopoco, "float");
+#endif
    setOption(OPT_hls_div, "nr1");
    setOption(OPT_hls_fpdiv, "SRT4");
    setOption(OPT_max_ulp, 1.0);

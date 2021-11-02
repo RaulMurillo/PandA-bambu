@@ -173,7 +173,7 @@ class flopoco_wrapper
     * Constructor
     * @param debug is the current debug level
     */
-   flopoco_wrapper(int _debug_level, const std::string& FU_target);
+   flopoco_wrapper(int _debug_level, const std::string& FU_target, const std::string& datatype);
 
    /**
     * Destructor

@@ -155,7 +155,8 @@ flopoco_wrapper::flopoco_wrapper(int
                                  _debug_level
 #endif
                                  , 
-                                 const std::string& FU_target)
+                                 const std::string& FU_target,
+                                 const std::string& datatype)
     :
 #ifndef NDEBUG
       debug_level(_debug_level),
