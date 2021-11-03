@@ -51,7 +51,6 @@ FixHalfSine
 FixRootRaisedCosine
 FixIIR
 FixIIRShiftAdd
-Posit2FP
 
 FixSinCos
 FixAtan2
@@ -82,12 +81,31 @@ IntConstMultShiftAddRPAG
 
 PIF2Posit
 Posit2PIF
+FP2Posit
+Posit2FP
+Posit2Int
+Posit2UInt
+Int2Posit
+UInt2Posit
+Posit2Quire
+Quire2Posit
 PIFAdd
 PositAdd
+PositAddSub
 PIF2Fix
 PositExp
 PositFunctionByTable
 Posit2Posit
+PositDecoder
+PositFastDecoder
+PositEncoder
+PositFastEncoder
+PositMult
+PositMAC
+PositApproxDiv
+PositLAM
+PositComparator
+PositAssign
 
 #FixFunctionByVaryingPiecewisePoly # to revive soon
 #SRTDivNbBitsMin

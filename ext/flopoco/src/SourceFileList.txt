@@ -99,7 +99,6 @@ Complex/FixComplexKCM
 Complex/FixComplexAdder
 Complex/FixComplexR2Butterfly
 Complex/FixFFTFullyPA
-Conversions/Posit2FP
 Conversions/FP2Fix
 Conversions/Fix2FP
 Conversions/OutputIEEE
@@ -169,13 +168,32 @@ Complex/FixFFT
 
 Conversions/PIF2Posit
 Conversions/Posit2PIF
+Conversions/FP2Posit
+Conversions/Posit2FP
+Conversions/Posit2Int
+Conversions/Posit2UInt
+Conversions/Int2Posit
+Conversions/UInt2Posit
+Conversions/Posit2Quire
+Conversions/Quire2Posit
 Posit/Add/PIFAdd
 Posit/Add/PositAdd
+Posit/Add/PositAddSub
 Posit/Exp/PIF2Fix
 Posit/Exp/PositExp
 Posit/Fun/PositFunction
 Posit/Fun/PositFunctionByTable
 Posit/Posit2Posit
+Posit/Decoder/PositDecoder
+Posit/Decoder/PositFastDecoder
+Posit/Encoder/PositEncoder
+Posit/Encoder/PositFastEncoder
+Posit/Mult/PositMult
+Posit/MAC/PositMAC
+Posit/ApproxDiv/PositApproxDiv
+Posit/LogApproxMult/PositLAM
+Posit/Cmp/PositComparator
+Posit/PositAssign
 
 #FixFunctions/VaryingPiecewisePolyApprox
 #FixFunctions/FixFunctionByVaryingPiecewisePoly

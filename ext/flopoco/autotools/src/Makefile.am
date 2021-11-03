@@ -149,10 +149,17 @@ noinst_HEADERS = \
 		Conversions/InputIEEE.hpp \
 		Conversions/OutputIEEE.hpp \
 		Conversions/FP2Fix.hpp \
+		Conversions/Fix2FP.hpp \
 		Conversions/PIF2Posit.hpp \
 		Conversions/Posit2PIF.hpp \
-		Conversions/Fix2FP.hpp \
+		Conversions/FP2Posit.hpp \
 		Conversions/Posit2FP.hpp \
+		Conversions/Posit2Int.hpp \
+		Conversions/Posit2UInt.hpp \
+		Conversions/Int2Posit.hpp \
+		Conversions/UInt2Posit.hpp \
+		Conversions/Posit2Quire.hpp \
+		Conversions/Quire2Posit.hpp \
 		Table.hpp \
 		main.hpp \
 		ShiftersEtc/Shifters.hpp \
@@ -311,10 +318,21 @@ noinst_HEADERS = \
 		Posit/Posit2Posit.hpp \
 		Posit/Add/PIFAdd.hpp \
 		Posit/Add/PositAdd.hpp \
+		Posit/Add/PositAddSub.hpp \
+		Posit/Exp/PIF2Fix.hpp \
+		Posit/Exp/PositExp.hpp \
 		Posit/Fun/PositFunction.hpp \
 		Posit/Fun/PositFunctionByTable.hpp \
-		Posit/Exp/PositExp.hpp \
-		Posit/Exp/PIF2Fix.hpp \
+		Posit/Decoder/PositDecoder.hpp \
+		Posit/Decoder/PositFastDecoder.hpp \
+		Posit/Encoder/PositEncoder.hpp \
+		Posit/Encoder/PositFastEncoder.hpp \
+		Posit/Mult/PositMult.hpp \
+		Posit/MAC/PositMAC.hpp \
+		Posit/ApproxDiv/PositApproxDiv.hpp \
+		Posit/LogApproxMult/PositLAM.hpp \
+		Posit/Cmp/PositComparator.hpp \
+		Posit/PositAssign.hpp \
 		DualTable.hpp \
 		TestBenches/Wrapper.hpp \
 		TestBenches/IEEENumber.hpp \
@@ -430,7 +448,6 @@ libflopoco_la_SOURCES = \
 		Complex/FixComplexAdder.cpp \
 		Complex/FixComplexR2Butterfly.cpp \
 		Complex/FixFFTFullyPA.cpp \
-		Conversions/Posit2FP.cpp \
 		Conversions/FP2Fix.cpp \
 		Conversions/Fix2FP.cpp \
 		Conversions/InputIEEE.cpp \
@@ -499,13 +516,32 @@ libflopoco_la_SOURCES = \
 		Complex/FixFFT.cpp \
 		Conversions/PIF2Posit.cpp \
 		Conversions/Posit2PIF.cpp \
+		Conversions/FP2Posit.cpp \
+		Conversions/Posit2FP.cpp \
+		Conversions/Posit2Int.cpp \
+		Conversions/Posit2UInt.cpp \
+		Conversions/Int2Posit.cpp \
+		Conversions/UInt2Posit.cpp \
+		Conversions/Posit2Quire.cpp \
+		Conversions/Quire2Posit.cpp \
 		Posit/Add/PIFAdd.cpp \
 		Posit/Add/PositAdd.cpp \
+		Posit/Add/PositAddSub.cpp \
 		Posit/Exp/PIF2Fix.cpp \
 		Posit/Exp/PositExp.cpp \
 		Posit/Fun/PositFunction.cpp \
 		Posit/Fun/PositFunctionByTable.cpp \
-		Posit/Posit2Posit.cpp
+		Posit/Posit2Posit.cpp \
+		Posit/Decoder/PositDecoder.cpp \
+		Posit/Decoder/PositFastDecoder.cpp \
+		Posit/Encoder/PositEncoder.cpp \
+		Posit/Encoder/PositFastEncoder.cpp \
+		Posit/Mult/PositMult.cpp \
+		Posit/MAC/PositMAC.cpp \
+		Posit/ApproxDiv/PositApproxDiv.cpp \
+		Posit/LogApproxMult/PositLAM.cpp \
+		Posit/Cmp/PositComparator.cpp \
+		Posit/PositAssign
 
 libflopoco_la_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/src/FPExpressions
 
