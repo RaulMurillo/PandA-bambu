@@ -95,13 +95,13 @@ namespace flopoco
  */
 class flopoco_wrapper
 {
- private:
+private:
 #ifndef NDEBUG
    /// Current debug level
    int debug_level;
 #endif
    /// Generated Functional Units
-   CustomUnorderedMap<std::string, flopoco::Operator*> FUs;
+   CustomUnorderedMap<std::string, flopoco::Operator *> FUs;
    /// Set of Functional Units written to a .vhdl file
    CustomUnorderedSet<std::string> FU_files;
    /// Maps a Functional Unit to its precision
@@ -109,25 +109,51 @@ class flopoco_wrapper
    /// Pretty print functor object used to indent the generated code
    simple_indent PP;
    /// Port types
-   using port_type = enum { port_in, port_out, clk, rst };
+   using port_type = enum { port_in,
+                            port_out,
+                            clk,
+                            rst };
    /// Component types
-   using component_type = enum { top, wrapped, in_wrap, out_wrap };
+   using component_type = enum { top,
+                                 wrapped,
+                                 in_wrap,
+                                 out_wrap };
    /// unit type
-   using unit_type = enum { UT_ADD, UT_SUB, UT_MULT, UT_DIV, UT_FF_CONV, UT_ADDSUB, UT_UFIX2FP, UT_IFIX2FP, UT_FP2UFIX, UT_FP2IFIX, UT_EXP, UT_SQRT, UT_compare_expr, UT_LOG, UT_POW, UT_UNKNOWN };
+   using unit_type = enum { UT_ADD,
+                            UT_SUB,
+                            UT_MULT,
+                            UT_DIV,
+                            UT_FF_CONV,
+                            UT_ADDSUB,
+                            UT_UFIX2FP,
+                            UT_IFIX2FP,
+                            UT_FP2UFIX,
+                            UT_FP2IFIX,
+                            UT_EXP,
+                            UT_SQRT,
+                            UT_compare_expr,
+                            UT_LOG,
+                            UT_POW,
+                            UT_UNKNOWN };
+   /// format type
+   using format_type = enum { FT_FLOAT,
+                              FT_POSIT };
 
    unit_type type;
 
    bool signed_p;
 
-   std::vector<flopoco::Operator*> oplist;
+   std::vector<flopoco::Operator *> oplist;
 
-   flopoco::Target* target;
+   flopoco::Target *target;
+
+   format_type format;
 
    /**
     * Returns one of the generated Functional Units
     * @param FU_name_stored is a string representing the stored FU name
     */
-   flopoco::Operator* get_FU(std::string FU_name_stored) const;
+   flopoco::Operator *get_FU(std::string FU_name_stored) const;
 
    /**
     * Returns the names of ports, according to the needed port type (port_in or port_out)
@@ -136,7 +162,7 @@ class flopoco_wrapper
     * @param expected_ports is the number of expected ports to be returned
     * @param type is the type of the required ports
     */
-   const std::vector<std::string> get_ports(const std::string& FU_name_stored, unsigned int expected_ports, port_type type, bool check_ports = true) const;
+   const std::vector<std::string> get_ports(const std::string &FU_name_stored, unsigned int expected_ports, port_type type, bool check_ports = true) const;
 
    /**
     * Returns the name of a port, according to the needed port type (clock or reset)
@@ -153,7 +179,7 @@ class flopoco_wrapper
     * @param FU_file is the name of the file, without extension, where the VHDL code should be put (i.e. "FPAdder", not "FPAdder.vhdl")
     * @param pipe_parameter is a string defining the design frequency, in case is not empty
     */
-   int InternalWriteVHDL(const std::string& FU_name, const unsigned int FU_prec_in, const unsigned int FU_prec_out, const std::string& filename, const std::string& pipe_parameter);
+   int InternalWriteVHDL(const std::string &FU_name, const unsigned int FU_prec_in, const unsigned int FU_prec_out, const std::string &filename, const std::string &pipe_parameter);
 
    /**
     * Helper methods for automatic VHDL code generation:
@@ -162,18 +188,18 @@ class flopoco_wrapper
     * @param os is the stream where the VHDL code should be put
     * @param type is the type of component under examination
     */
-   void outputHeaderVHDL(const std::string& FU_name_stored, std::ostream& os) const;
-   void outputWrapVHDL(const std::string& FU_name_stored, std::ostream& os, const std::string& pipe_parameter);
-   void outputPortDeclaration(const std::string& FU_prefix, const std::string& FU_name_stored, std::ostream& os, component_type type, const std::string& pipe_parameter);
-   void outputSignals(const std::string& FU_name_stored, std::ostream& os);
-   void outputPortMap(const std::string& FU_name_stored, std::ostream& os, const std::string& pipe_parameter);
+   void outputHeaderVHDL(const std::string &FU_name_stored, std::ostream &os) const;
+   void outputWrapVHDL(const std::string &FU_name_stored, std::ostream &os, const std::string &pipe_parameter);
+   void outputPortDeclaration(const std::string &FU_prefix, const std::string &FU_name_stored, std::ostream &os, component_type type, const std::string &pipe_parameter);
+   void outputSignals(const std::string &FU_name_stored, std::ostream &os);
+   void outputPortMap(const std::string &FU_name_stored, std::ostream &os, const std::string &pipe_parameter);
 
- public:
+public:
    /**
     * Constructor
     * @param debug is the current debug level
     */
-   flopoco_wrapper(int _debug_level, const std::string& FU_target, const std::string& datatype);
+   flopoco_wrapper(int _debug_level, const std::string &FU_target, const std::string &FU_format);
 
    /**
     * Destructor
@@ -181,7 +207,7 @@ class flopoco_wrapper
    ~flopoco_wrapper();
 
    // no copy constructor
-   flopoco_wrapper(const flopoco_wrapper& inst) = delete;
+   flopoco_wrapper(const flopoco_wrapper &inst) = delete;
 
    /**
     * Adds a Functional Unit to the wrapper
@@ -191,7 +217,7 @@ class flopoco_wrapper
     * @param FU_name is a string representing the FU name
     * @param pipe_parameter is a string defining the design frequency, in case is not empty
     */
-   void add_FU(const std::string& FU_type, unsigned int FU_prec_in, unsigned int FU_prec_out, const std::string& FU_name, const std::string& pipe_parameter);
+   void add_FU(const std::string &FU_type, unsigned int FU_prec_in, unsigned int FU_prec_out, const std::string &FU_name, const std::string &pipe_parameter);
 
    /**
     * Returns the Functional Unit's Pipeline Depth
@@ -199,7 +225,7 @@ class flopoco_wrapper
     * @param FU_prec_in is a number representing the FU input precision
     * @param FU_prec_out is a number representing the FU output precision
     */
-   unsigned int get_FUPipelineDepth(const std::string& FU_name, const unsigned int FU_prec_in, const unsigned int FU_prec_out, const std::string& pipe_parameter) const;
+   unsigned int get_FUPipelineDepth(const std::string &FU_name, const unsigned int FU_prec_in, const unsigned int FU_prec_out, const std::string &pipe_parameter) const;
 
    /**
     * Writes the VHDL for a Functional Unit to the default file name, which is "FU_name.vhdl"
@@ -210,7 +236,7 @@ class flopoco_wrapper
     * @param pipe_parameter is a string defining the design frequency, in case is not empty
     * @param filename is where the name of the produced file will be stored
     */
-   int writeVHDL(const std::string& FU_name, const unsigned int FU_prec_in, const unsigned int FU_prec_out, std::string pipe_parameter, std::string& filename);
+   int writeVHDL(const std::string &FU_name, const unsigned int FU_prec_in, const unsigned int FU_prec_out, std::string pipe_parameter, std::string &filename);
 
    /**
     * write the common components
@@ -221,7 +247,7 @@ class flopoco_wrapper
    /**
     * Returns the Functional Units that have been written to a VHDL file
     */
-   const CustomUnorderedSet<std::string>& get_files_written()
+   const CustomUnorderedSet<std::string> &get_files_written()
    {
       return this->FU_files;
    }
@@ -230,7 +256,7 @@ class flopoco_wrapper
     * Checks if a Functional Unit have been written to a VHDL file
     * @param FU_name is the Functional Unit whose existence must be checked
     */
-   bool is_unit_written(const std::string& FU_name, const unsigned int FU_prec_in, const unsigned int FU_prec_out, const std::string& pipe_parameter) const
+   bool is_unit_written(const std::string &FU_name, const unsigned int FU_prec_in, const unsigned int FU_prec_out, const std::string &pipe_parameter) const
    {
       return this->FU_files.find(ENCODE_NAME(FU_name, FU_prec_in, FU_prec_out, pipe_parameter) + FILE_EXT) != this->FU_files.end();
    }
@@ -240,11 +266,11 @@ class flopoco_wrapper
     * @param FU_name is a string representing the FU name
     * @param expected_ports is the number of expected ports to be returned
     */
-   const std::vector<std::string> get_in_ports(const std::string& FU_name, const unsigned int FU_prec_in, const unsigned int FU_prec_out, const unsigned int expected_ports, const std::string& pipe_parameter) const
+   const std::vector<std::string> get_in_ports(const std::string &FU_name, const unsigned int FU_prec_in, const unsigned int FU_prec_out, const unsigned int expected_ports, const std::string &pipe_parameter) const
    {
       return get_ports(ENCODE_NAME(WRAPPED_PREFIX + FU_name, FU_prec_in, FU_prec_out, pipe_parameter), expected_ports, port_in);
    }
-   const std::vector<std::string> get_out_ports(const std::string& FU_name, const unsigned int FU_prec_in, const unsigned int FU_prec_out, const unsigned int expected_ports, const std::string& pipe_parameter) const
+   const std::vector<std::string> get_out_ports(const std::string &FU_name, const unsigned int FU_prec_in, const unsigned int FU_prec_out, const unsigned int expected_ports, const std::string &pipe_parameter) const
    {
       return get_ports(ENCODE_NAME(WRAPPED_PREFIX + FU_name, FU_prec_in, FU_prec_out, pipe_parameter), expected_ports, port_out);
    }
@@ -255,7 +281,7 @@ class flopoco_wrapper
     * @param n_mant is the number of bits for the mantissa
     * @param n_exp is the number of bits for the exponent
     */
-   static void DECODE_BITS(unsigned int FU_prec, unsigned int& n_mant, unsigned int& n_exp);
+   static void DECODE_BITS(unsigned int FU_prec, unsigned int &n_mant, unsigned int &n_exp);
 
 #if HAVE_STDCXX_11 || HAVE_STDCXX_0X
    static constexpr double DEFAULT_TARGET_FREQUENCY = 100.0;
