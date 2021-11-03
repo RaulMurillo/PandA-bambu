@@ -411,6 +411,7 @@ libflopoco_la_SOURCES = \
 		ConstMult/IntConstDiv.cpp \
 		ConstMult/IntConstMultShiftAdd.cpp \
 		ConstMult/IntConstMultShiftAddTypes.cpp \
+		ConstMult/IntConstMultShiftAddOptTernary.cpp \
 		ConstMult/IntConstMultShiftAddOpt.cpp \
 		ConstMult/IntConstMultShiftAddRPAG.cpp \
 		ConstMult/adder_cost.cpp \
@@ -541,7 +542,7 @@ libflopoco_la_SOURCES = \
 		Posit/ApproxDiv/PositApproxDiv.cpp \
 		Posit/LogApproxMult/PositLAM.cpp \
 		Posit/Cmp/PositComparator.cpp \
-		Posit/PositAssign
+		Posit/PositAssign.cpp
 
 libflopoco_la_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/src/FPExpressions
 
