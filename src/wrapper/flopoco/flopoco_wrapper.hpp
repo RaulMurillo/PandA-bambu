@@ -40,6 +40,7 @@
  *
  * @author Daniele Mastrandrea <daniele.mastrandrea@mail.polimi.it>
  * @author Fabrizio Ferrandi <fabrizio.ferrandi@polimi.it>
+ * @author Raul Murillo <ramuri01@ucm.es>
  * $Date$
  * Last modified by $Author$
  *

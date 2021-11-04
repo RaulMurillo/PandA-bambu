@@ -40,6 +40,7 @@
  *
  * @author Daniele Mastrandrea <daniele.mastrandrea@mail.polimi.it>
  * @author Fabrizio Ferrandi <fabrizio.ferrandi@polimi.it>
+ * @author Raul Murillo <ramuri01@ucm.es>
  * $Date$
  * Last modified by $Author$
  *
@@ -160,7 +161,7 @@ namespace flopoco
 
 flopoco_wrapper::flopoco_wrapper(int
 #ifndef NDEBUG
-                                 _debug_level
+                                     _debug_level
 #endif
                                  ,
                                  const std::string &FU_target,
@@ -259,7 +260,6 @@ flopoco_wrapper::flopoco_wrapper(int
    else if ("posit" == FU_format)
    {
       format = flopoco_wrapper::FT_POSIT;
-      ;
    }
    else
    {
@@ -574,17 +574,18 @@ void flopoco_wrapper::add_FU(const std::string &FU_type, unsigned int FU_prec_in
       if ("FPAdder" == FU_type)
       {
          type = flopoco_wrapper::UT_ADD;
-         op = new flopoco::PositAddSub(nullptr, target, static_cast<int>(width), static_cast<int>(wES));
+         op = new flopoco::PositAddSub(nullptr, target, static_cast<int>(width), static_cast<int>(wES), 0);
       }
       else if ("FPSub" == FU_type)
       {
          type = flopoco_wrapper::UT_SUB;
-         op = new flopoco::PositAddSub(nullptr, target, static_cast<int>(width), static_cast<int>(wES));
+         op = new flopoco::PositAddSub(nullptr, target, static_cast<int>(width), static_cast<int>(wES), 1);
       }
       else if ("FPAddSub" == FU_type)
       {
+         // TODO: Currently using Posit subtraction;
          type = flopoco_wrapper::UT_ADDSUB;
-         op = new flopoco::PositAddSub(nullptr, target, static_cast<int>(width), static_cast<int>(wES));
+         op = new flopoco::PositAddSub(nullptr, target, static_cast<int>(width), static_cast<int>(wES), 1);
       }
       else if ("FPMultiplier" == FU_type)
       {
@@ -1021,10 +1022,10 @@ void flopoco_wrapper::outputPortMap(const std::string &FU_name_stored, std::ostr
       {
          mapping += p_wrapped_in.at(i) + " => wire_SUB, ";
       }
-      else if (i == 2 && format == flopoco_wrapper::FT_POSIT && (type == flopoco_wrapper::UT_ADD || type == flopoco_wrapper::UT_SUB || type == flopoco_wrapper::UT_ADDSUB))
-      {
-         mapping += p_wrapped_in.at(i) + " => wire_OP, ";
-      }
+      // else if (i == 2 && format == flopoco_wrapper::FT_POSIT && (type == flopoco_wrapper::UT_ADD || type == flopoco_wrapper::UT_SUB || type == flopoco_wrapper::UT_ADDSUB))
+      // {
+      //    mapping += p_wrapped_in.at(i) + " => wire_OP, ";
+      // }
       else if (type == flopoco_wrapper::UT_IFIX2FP)
       {
          mapping += p_wrapped_in.at(i) + " => std_logic_vector(" + p_wrapped_in.at(i) + "), ";
@@ -1065,18 +1066,18 @@ void flopoco_wrapper::outputPortMap(const std::string &FU_name_stored, std::ostr
    {
       PP(os, "wire_SUB <= wireIn2(" + STR(n_bits_in + 1) + " downto " + STR(n_bits_in) + ") & (wireIn2(" + STR(n_bits_in - 1) + ") xor '1') & wireIn2(" + STR(n_bits_in - 2) + " downto 0);\n");
    }
-   else if (type == flopoco_wrapper::UT_ADD && format == flopoco_wrapper::FT_POSIT)
-   {
-      PP(os, "wire_OP <= '0';\n");
-   }
-   else if (type == flopoco_wrapper::UT_SUB && format == flopoco_wrapper::FT_POSIT)
-   {
-      PP(os, "wire_OP <= '1';\n");
-   }
-   else if (type == flopoco_wrapper::UT_ADDSUB && format == flopoco_wrapper::FT_POSIT)
-   {
-      PP(os, "wire_OP <= sel_minus_expr;\n");
-   }
+   // else if (type == flopoco_wrapper::UT_ADD && format == flopoco_wrapper::FT_POSIT)
+   // {
+   //    PP(os, "wire_OP <= '0';\n");
+   // }
+   // else if (type == flopoco_wrapper::UT_SUB && format == flopoco_wrapper::FT_POSIT)
+   // {
+   //    PP(os, "wire_OP <= '1';\n");
+   // }
+   // else if (type == flopoco_wrapper::UT_ADDSUB && format == flopoco_wrapper::FT_POSIT)
+   // {
+   //    PP(os, "wire_OP <= sel_minus_expr;\n");
+   // }
    else if (type == flopoco_wrapper::UT_EXP || type == flopoco_wrapper::UT_SQRT || type == flopoco_wrapper::UT_LOG || type == flopoco_wrapper::UT_POW)
    {
       PP(os, std::string(DONE_PORT_NAME) + " <= '0';\n");
@@ -1133,21 +1134,26 @@ void flopoco_wrapper::outputSignals(const std::string &FU_name_stored, std::ostr
    n_bits_in = prec_in;
    n_bits_out = prec_out;
 
-   if (type == flopoco_wrapper::UT_ADDSUB && format == flopoco_wrapper::FT_FLOAT)
+   if (format == flopoco_wrapper::FT_FLOAT)
    {
-      Signals += "wire_ADDSUB, ";
-   }
-   else if (type == flopoco_wrapper::UT_SUB && format == flopoco_wrapper::FT_FLOAT)
-   {
-      Signals += "wire_SUB, ";
-   }
-   else if (format == flopoco_wrapper::FT_POSIT && (type == flopoco_wrapper::UT_ADD || type == flopoco_wrapper::UT_SUB || type == flopoco_wrapper::UT_ADDSUB))
-   {
-      PP(os, "signal wire_OP : std_logic;\n");
-   }
-   else if (type == flopoco_wrapper::UT_FF_CONV)
-   {
-      n_bits_in = prec_out;
+      if (type == flopoco_wrapper::UT_ADDSUB && format == flopoco_wrapper::FT_FLOAT)
+      {
+         Signals += "wire_ADDSUB, ";
+      }
+      else if (type == flopoco_wrapper::UT_SUB && format == flopoco_wrapper::FT_FLOAT)
+      {
+         Signals += "wire_SUB, ";
+      }
+      // else if (format == flopoco_wrapper::FT_POSIT && (type == flopoco_wrapper::UT_ADD || type == flopoco_wrapper::UT_SUB || type == flopoco_wrapper::UT_ADDSUB))
+      // {
+      //    PP(os, "signal wire_OP : std_logic;\n");
+      // }
+      else if (type == flopoco_wrapper::UT_FF_CONV)
+      {
+         n_bits_in = prec_out;
+      }
+      n_bits_in += FLOPOCO_ADDITIONAL_BITS;
+      n_bits_out += FLOPOCO_ADDITIONAL_BITS;
    }
 
    if (type == flopoco_wrapper::UT_IFIX2FP or type == flopoco_wrapper::UT_UFIX2FP)
@@ -1164,7 +1170,7 @@ void flopoco_wrapper::outputSignals(const std::string &FU_name_stored, std::ostr
       {
          Signals += "wireIn" + STR(i + 1) + (i + 1 != n_in_elements ? ", " : "");
       }
-      PP(os, "signal " + Signals + " : std_logic_vector(" + STR(n_bits_in + 1) + " downto 0);\n");
+      PP(os, "signal " + Signals + " : std_logic_vector(" + STR(n_bits_in - 1) + " downto 0);\n");
    }
    if (type == flopoco_wrapper::UT_FP2UFIX or type == flopoco_wrapper::UT_FP2IFIX)
    {
@@ -1182,7 +1188,7 @@ void flopoco_wrapper::outputSignals(const std::string &FU_name_stored, std::ostr
       {
          Signals += "wireOut" + STR(j + 1) + (j + 1 != p_out.size() ? ", " : "");
       }
-      PP(os, "signal " + Signals + " : std_logic_vector(" + STR(n_bits_out + 1) + " downto 0);\n");
+      PP(os, "signal " + Signals + " : std_logic_vector(" + STR(n_bits_out - 1) + " downto 0);\n");
    }
 }
 
@@ -1199,11 +1205,11 @@ void flopoco_wrapper::outputPortDeclaration(const std::string &FU_prefix, const 
    prec_out = FU_to_prec_it->second.second;
    if (wrapped == c_type)
    {
-      if (type != flopoco_wrapper::UT_IFIX2FP and type != flopoco_wrapper::UT_UFIX2FP)
+      if (type != flopoco_wrapper::UT_IFIX2FP and type != flopoco_wrapper::UT_UFIX2FP && format == flopoco_wrapper::FT_FLOAT)
       {
          in_offset += FLOPOCO_ADDITIONAL_BITS;
       }
-      if (type != flopoco_wrapper::UT_FP2UFIX and type != flopoco_wrapper::UT_FP2IFIX and type != flopoco_wrapper::UT_compare_expr)
+      if (type != flopoco_wrapper::UT_FP2UFIX and type != flopoco_wrapper::UT_FP2IFIX and type != flopoco_wrapper::UT_compare_expr && format == flopoco_wrapper::FT_FLOAT)
       {
          out_offset += FLOPOCO_ADDITIONAL_BITS;
       }
@@ -1224,21 +1230,37 @@ void flopoco_wrapper::outputPortDeclaration(const std::string &FU_prefix, const 
    }
    else if (in_wrap == c_type)
    {
-      out_offset += FLOPOCO_ADDITIONAL_BITS;
-      if (type == flopoco_wrapper::UT_FF_CONV)
+      if (format == flopoco_wrapper::FT_FLOAT)
+      {
+         out_offset += FLOPOCO_ADDITIONAL_BITS;
+         if (type == flopoco_wrapper::UT_FF_CONV)
+         {
+            n_bits_in = prec_in;
+            n_bits_out = prec_out;
+         }
+         else
+         {
+            n_bits_in = n_bits_out = prec_in;
+         }
+      }
+      else //(format == flopoco_wrapper::FT_POSIT)
       {
          n_bits_in = prec_in;
          n_bits_out = prec_out;
       }
-      else
-      {
-         n_bits_in = n_bits_out = prec_in;
-      }
    }
    else if (out_wrap == c_type)
    {
-      in_offset += FLOPOCO_ADDITIONAL_BITS;
-      n_bits_in = n_bits_out = prec_out;
+      if (format == flopoco_wrapper::FT_FLOAT)
+      {
+         in_offset += FLOPOCO_ADDITIONAL_BITS;
+         n_bits_in = n_bits_out = prec_out;
+      }
+      else //(format == flopoco_wrapper::FT_POSIT)
+      {
+         n_bits_in = prec_in;
+         n_bits_out = prec_out;
+      }
    }
    if (pipe_parameter != "" && pipe_parameter != "0")
    {
