@@ -35,7 +35,7 @@ namespace flopoco
 
 #define DEBUGVHDL 0
 
-	PositAddSub::PositAddSub(OperatorPtr parentOp, Target *target, int width, int wES) : Operator(parentOp, target), width_(width), wES_(wES)
+	PositAddSub::PositAddSub(OperatorPtr parentOp, Target *target, int width, int wES, int Sub) : Operator(parentOp, target), width_(width), wES_(wES)
 	{
 		setCopyrightString("Raul Murillo (2021)");
 		ostringstream name;
@@ -63,7 +63,6 @@ namespace flopoco
 
 		addInput("X", width_);
 		addInput("Y", width_);
-		addInput("Sub");
 		addOutput("R", width_);
 
 		addFullComment("Start of vhdl generation");
@@ -90,7 +89,15 @@ namespace flopoco
 		//=========================================================================|
 		addFullComment("Sign and Special cases computation");
 		// ========================================================================|
-		vhdl << tab << declare(getTarget()->logicDelay(3), "OP", 1, false) << " <= (sign_X XOR sign_Y) XOR Sub;" << endl;
+		if(Sub)
+		{
+			vhdl << tab << declare(getTarget()->logicDelay(3), "OP", 1, false) << " <= NOT(sign_X XOR sign_Y);" << endl;
+		}
+		else
+		{
+			vhdl << tab << declare(getTarget()->logicDelay(2), "OP", 1, false) << " <= (sign_X XOR sign_Y);" << endl;
+		}
+
 		vhdl << tab << declare(getTarget()->logicDelay(2), "inf", 1, false) << " <= inf_X OR inf_Y;" << endl;
 		// No need to check if any zero operand
 
@@ -223,10 +230,11 @@ namespace flopoco
 
 	OperatorPtr PositAddSub::parseArguments(OperatorPtr parentOp, Target *target, vector<string> &args)
 	{
-		int width, wES;
+		int width, wES, Sub;
 		UserInterface::parseStrictlyPositiveInt(args, "width", &width);
 		UserInterface::parsePositiveInt(args, "wES", &wES);
-		return new PositAddSub(parentOp, target, width, wES);
+		UserInterface::parsePositiveInt(args, "Sub", &Sub);
+		return new PositAddSub(parentOp, target, width, wES, Sub);
 	}
 
 	void PositAddSub::registerFactory()
@@ -236,7 +244,8 @@ namespace flopoco
 						   "Posit",
 						   "", //seeAlso
 						   "width(int): posit size in bits;\
-                            wES(int): posit exponent size in bits",
+						   wES(int): posit exponent size in bits;\
+						   Sub(int): indicates if perform addition (0) or subtraction (1)",
 						   "", // htmldoc
 						   PositAddSub::parseArguments);
 	}

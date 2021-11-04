@@ -22,7 +22,7 @@ namespace flopoco
 		 * @param[in]	width		the total width of the input posits
 		 * @param[in]	wES			the exponent field size of the input posits
 		 */
-		PositAddSub(OperatorPtr parentOp, Target *target, int width, int wES);
+		PositAddSub(OperatorPtr parentOp, Target *target, int width, int wES, int Sub);
 
 		/**
 		 * PositAddSub destructor
