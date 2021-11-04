@@ -63,7 +63,7 @@ if test "x$ac_mentor_visualizer_exe" != "x"; then
 fi
 
 if test "x$enable_mentor_optimizer" = "xyes"; then
-   AC_DEFINE(MODELSIM_OPTIMIZER_FLAGS, "-O5", "Define the mentor modelsim optimizer flags")
+   AC_DEFINE(MODELSIM_OPTIMIZER_FLAGS, "-O1", "Define the mentor modelsim optimizer flags")
 else
    AC_DEFINE(MODELSIM_OPTIMIZER_FLAGS, "", "No mentor modelsim optimizer flags defined")
 fi
