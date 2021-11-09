@@ -129,7 +129,7 @@ enum class DiopsisInstrumentWriter_Type;
        testbench_extra_gcc_flags)(timing_violation_abort)(top_design_name)(visualizer)(serialize_output)(use_ALUs)(range_analysis_mode)(mask)(softfloat_norounding)
 
 #if HAVE_FLOPOCO
-#define FLOPOCO_OPTIONS (flopoco)
+#define FLOPOCO_OPTIONS (flopoco)(width)(wES)(from_float)
 #endif
 
 #define FRAMEWORK_OPTIONS                                                                                                                                                                                                                                     \

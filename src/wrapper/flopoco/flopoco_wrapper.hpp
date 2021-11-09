@@ -149,6 +149,9 @@ private:
    flopoco::Target *target;
 
    format_type format;
+   unsigned int width_;
+   unsigned int wES_;
+   bool from_float_;
 
    /**
     * Returns one of the generated Functional Units
@@ -200,7 +203,7 @@ public:
     * Constructor
     * @param debug is the current debug level
     */
-   flopoco_wrapper(int _debug_level, const std::string &FU_target, const std::string &FU_format);
+   flopoco_wrapper(int _debug_level, const std::string &FU_target, const std::string &FU_format, const unsigned int width, const unsigned int wES, const bool from_float);
 
    /**
     * Destructor

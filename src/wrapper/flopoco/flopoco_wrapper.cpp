@@ -165,7 +165,10 @@ flopoco_wrapper::flopoco_wrapper(int
 #endif
                                  ,
                                  const std::string &FU_target,
-                                 const std::string &FU_format)
+                                 const std::string &FU_format,
+                                 const unsigned int width,
+                                 const unsigned int wES,
+                                 const bool from_float)
     :
 #ifndef NDEBUG
       debug_level(_debug_level),
@@ -265,6 +268,11 @@ flopoco_wrapper::flopoco_wrapper(int
    {
       THROW_UNREACHABLE("Non supported arithmetic format: " + FU_format);
    }
+
+   // Get the number of bits for the posit number representation
+   width_ = width;
+   wES_ = wES;
+   from_float_ = from_float;
 
    // Initialize target parameters
    // Default values
@@ -559,10 +567,8 @@ void flopoco_wrapper::add_FU(const std::string &FU_type, unsigned int FU_prec_in
    }
    else if (format == FT_POSIT)
    {
-      /** TODO: Parameterize this **/
-      width = 32;
-      wES = 2;
-      /****/
+      width = width_;
+      wES = wES_;
 
       PRINT_DBG_MEX(DEBUG_LEVEL_PEDANTIC, debug_level, "Creating FloPoCo operator for Posit unit " + FU_type + "(" + STR(width) + "-" + STR(wES) + "-" + pipe_parameter + ")");
       // THROW_ASSERT(n_mant_in > 0 && n_exp_in > 0, "Unsupported significand and exponent values.");
@@ -830,14 +836,22 @@ void flopoco_wrapper::add_FU(const std::string &FU_type, unsigned int FU_prec_in
       // This is a temporal solution to pass testbenches
       if (type != flopoco_wrapper::UT_IFIX2FP and type != flopoco_wrapper::UT_UFIX2FP)
       {
-         if (type == flopoco_wrapper::UT_FF_CONV)
+         if (from_float_)
          {
-            // Currently there is no module to cast from a posit format to another with different width/exponent size
-            op = new flopoco::FP2Posit(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), static_cast<int>(width), static_cast<int>(wES));
+            if (type == flopoco_wrapper::UT_FF_CONV)
+            {
+               // Currently there is no module to cast from a posit format to another with different width/exponent size
+               op = new flopoco::FP2Posit(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), static_cast<int>(width), static_cast<int>(wES));
+            }
+            else
+            {
+               op = new flopoco::FP2Posit(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), static_cast<int>(width), static_cast<int>(wES));
+            }
          }
          else
          {
-            op = new flopoco::FP2Posit(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), static_cast<int>(width), static_cast<int>(wES));
+            // Dummy identity operator
+            op = new flopoco::PositAssign(nullptr, target, static_cast<int>(width), static_cast<int>(wES));
          }
          OPLIST.push_back(op);
          op->changeName(IN_WRAP_PREFIX + FU_name_stored);
@@ -847,7 +861,15 @@ void flopoco_wrapper::add_FU(const std::string &FU_type, unsigned int FU_prec_in
       }
       if (type != flopoco_wrapper::UT_FP2UFIX and type != flopoco_wrapper::UT_FP2IFIX and type != flopoco_wrapper::UT_compare_expr)
       {
-         op = new flopoco::Posit2FP(nullptr, target, static_cast<int>(width), static_cast<int>(wES), static_cast<int>(n_exp_out), static_cast<int>(n_mant_out));
+         if (from_float_)
+         {
+            op = new flopoco::Posit2FP(nullptr, target, static_cast<int>(width), static_cast<int>(wES), static_cast<int>(n_exp_out), static_cast<int>(n_mant_out));
+         }
+         else
+         {
+            // Dummy identity operator
+            op = new flopoco::PositAssign(nullptr, target, static_cast<int>(width), static_cast<int>(wES));
+         }
          OPLIST.push_back(op);
          op->changeName(OUT_WRAP_PREFIX + FU_name_stored);
          op->schedule();

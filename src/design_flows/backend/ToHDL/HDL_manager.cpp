@@ -101,7 +101,7 @@ HDL_manager::HDL_manager(const HLS_managerRef _HLSMgr, const target_deviceRef _d
       device(_device),
       TM(_device->get_technology_manager()),
 #if HAVE_FLOPOCO
-      flopo_wrap(new flopoco_wrapper(_parameters->getOption<int>(OPT_debug_level), _device->get_parameter<std::string>("family"), _parameters->getOption<std::string>(OPT_flopoco))),
+      flopo_wrap(new flopoco_wrapper(_parameters->getOption<int>(OPT_debug_level), _device->get_parameter<std::string>("family"), _parameters->getOption<std::string>(OPT_flopoco), _parameters->getOption<int>(OPT_width), _parameters->getOption<int>(OPT_wES), _parameters->getOption<bool>(OPT_from_float))),
 #endif
       SM(_SM),
       parameters(_parameters),
@@ -114,7 +114,7 @@ HDL_manager::HDL_manager(const HLS_managerRef _HLSMgr, const target_deviceRef _d
       device(_device),
       TM(_device->get_technology_manager()),
 #if HAVE_FLOPOCO
-      flopo_wrap(new flopoco_wrapper(_parameters->getOption<int>(OPT_debug_level), _device->get_parameter<std::string>("family"), _parameters->getOption<std::string>(OPT_flopoco))),
+      flopo_wrap(new flopoco_wrapper(_parameters->getOption<int>(OPT_debug_level), _device->get_parameter<std::string>("family"), _parameters->getOption<std::string>(OPT_flopoco), _parameters->getOption<int>(OPT_width), _parameters->getOption<int>(OPT_wES), _parameters->getOption<bool>(OPT_from_float))),
 #endif
       parameters(_parameters),
       debug_level(_parameters->get_class_debug_level(GET_CLASS(*this)))
