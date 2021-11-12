@@ -34,7 +34,7 @@
  * @file eSSA.cpp
  * @brief
  *
- * @author Michele Fiorito <michele2.fiorito@mail.polimi.it>
+ * @author Michele Fiorito <michele.fiorito@polimi.it>
  * $Revision$
  * $Date$
  * Last modified by $Author$
@@ -128,7 +128,7 @@ class OrderedBasicBlock
    }
 
  public:
-   OrderedBasicBlock(const blocRef BasicB) : LastInstFound(BasicB->CGetStmtList().end()), NextInstPos(0), BBInst(BasicB->CGetStmtList()), BB(BasicB)
+   explicit OrderedBasicBlock(const blocRef& BasicB) : LastInstFound(BasicB->CGetStmtList().end()), NextInstPos(0), BBInst(BasicB->CGetStmtList()), BB(BasicB)
    {
       unsigned int phiPos = 0U;
       for(const auto& gp : BasicB->CGetPhiList())
@@ -193,7 +193,7 @@ class OrderedInstructions
 
  public:
    /// Constructor.
-   OrderedInstructions(BBGraphConstRef _DT) : DT(_DT)
+   explicit OrderedInstructions(BBGraphConstRef _DT) : DT(_DT)
    {
    }
 
@@ -445,8 +445,7 @@ void addInfoFor(OperandRef Op, PredicateBase* PB, CustomSet<OperandRef>& OpsToRe
 bool isCompare(const struct binary_expr* condition)
 {
    auto c_type = condition->get_kind();
-   return c_type == eq_expr_K || c_type == ne_expr_K || c_type == ltgt_expr_K || c_type == uneq_expr_K || c_type == gt_expr_K || c_type == lt_expr_K || c_type == ge_expr_K || c_type == le_expr_K || c_type == unlt_expr_K || c_type == ungt_expr_K ||
-          c_type == unle_expr_K || c_type == unge_expr_K;
+   return c_type == eq_expr_K || c_type == ne_expr_K || c_type == ltgt_expr_K || c_type == gt_expr_K || c_type == lt_expr_K || c_type == ge_expr_K || c_type == le_expr_K;
 }
 
 tree_nodeRef branchOpRecurse(tree_nodeRef op, tree_nodeRef stmt = nullptr)
@@ -488,7 +487,7 @@ tree_nodeRef branchOpRecurse(tree_nodeRef op, tree_nodeRef stmt = nullptr)
 }
 
 void processBranch(tree_nodeConstRef bi, CustomSet<OperandRef>& OpsToRename, eSSA::ValueInfoLookup& ValueInfoNums, std::vector<ValueInfo>& ValueInfos, CustomSet<std::pair<unsigned int, unsigned int>>& EdgeUsesOnly,
-                   const std::map<unsigned int, blocRef> BBs,
+                   const std::map<unsigned int, blocRef>& BBs,
                    int
 #ifndef NDEBUG
                        debug_level
@@ -499,8 +498,8 @@ void processBranch(tree_nodeConstRef bi, CustomSet<OperandRef>& OpsToRename, eSS
    THROW_ASSERT(BI, "Branch instruction should be gimple_cond");
    THROW_ASSERT(BBs.count(BI->bb_index), "Branch BB should be a valid BB");
    const auto BranchBB = BBs.at(BI->bb_index);
-   THROW_ASSERT(BBs.count(BranchBB->true_edge), "True BB should be a valid BB");
-   THROW_ASSERT(BBs.count(BranchBB->false_edge), "False BB should be a valid BB");
+   THROW_ASSERT(BBs.count(BranchBB->true_edge), "True BB should be a valid BB (BB" + STR(BranchBB->true_edge) + " from BB" + STR(BranchBB->number) + ")");
+   THROW_ASSERT(BBs.count(BranchBB->false_edge), "False BB should be a valid BB (BB" + STR(BranchBB->true_edge) + " from BB" + STR(BranchBB->number) + ")");
    const auto TrueBB = BBs.at(BranchBB->true_edge);
    const auto FalseBB = BBs.at(BranchBB->false_edge);
    const std::vector<blocRef> SuccsToProcess = {TrueBB, FalseBB};
@@ -591,7 +590,7 @@ void processBranch(tree_nodeConstRef bi, CustomSet<OperandRef>& OpsToRename, eSS
 // Process a block terminating switch, and place relevant operations to be
 // renamed into OpsToRename.
 void processMultiWayIf(tree_nodeConstRef mwii, CustomSet<OperandRef>& OpsToRename, eSSA::ValueInfoLookup& ValueInfoNums, std::vector<ValueInfo>& ValueInfos, CustomSet<std::pair<unsigned int, unsigned int>>& EdgeUsesOnly,
-                       const std::map<unsigned int, blocRef> BBs,
+                       const std::map<unsigned int, blocRef>& BBs,
                        int
 #ifndef NDEBUG
                            debug_level
@@ -737,7 +736,7 @@ struct ValueDFS
 struct ValueDFS_Compare
 {
    OrderedInstructions& OI;
-   ValueDFS_Compare(OrderedInstructions& _OI) : OI(_OI)
+   explicit ValueDFS_Compare(OrderedInstructions& _OI) : OI(_OI)
    {
    }
 
@@ -758,8 +757,8 @@ struct ValueDFS_Compare
    // For two phi related values, return the ordering.
    bool comparePHIRelated(const ValueDFS& A, const ValueDFS& B) const
    {
-      auto& ABlockEdge = getBlockEdge_local(A);
-      auto& BBlockEdge = getBlockEdge_local(B);
+      const auto ABlockEdge = getBlockEdge_local(A);
+      const auto BBlockEdge = getBlockEdge_local(B);
       // Now sort by block edge and then defs before uses.
       return std::tie(ABlockEdge, A.Def, A.U) < std::tie(BBlockEdge, B.Def, B.U);
    }
@@ -901,7 +900,7 @@ void convertUsesToDFSOrdered(tree_nodeRef Op, std::vector<ValueDFS>& DFSOrderedS
          }
       }
 
-      auto& U = Usize.first;
+      const auto& U = Usize.first;
       const auto* I = GetPointer<const gimple_node>(GET_CONST_NODE(U));
       THROW_ASSERT(I, "Use statement should be a gimple_node");
       if(I->bb_index == defBBI)
@@ -909,37 +908,55 @@ void convertUsesToDFSOrdered(tree_nodeRef Op, std::vector<ValueDFS>& DFSOrderedS
          // Uses within the same basic block not intresting (they are casts or the actual branch eveluating the condition)
          continue;
       }
-      ValueDFS VD;
 
-      unsigned int IBlock;
+      const auto dfs_gen = [&](unsigned int IBlock) {
+         ValueDFS VD;
+         if(gp)
+         {
+            VD.LocalNum = LN_Last;
+         }
+         else
+         {
+            VD.LocalNum = LN_Middle;
+         }
+         const auto& BBmap = DT->CGetBBGraphInfo()->bb_index_map;
+         auto DomNode_vertex = BBmap.find(IBlock);
+         THROW_ASSERT(DomNode_vertex != BBmap.end(), "BB" + STR(IBlock) + " not found in DT");
+         // It's possible our use is in an unreachable block. Skip it if so.
+         if(!DT->IsReachable(BBmap.at(bloc::ENTRY_BLOCK_ID), DomNode_vertex->second))
+         {
+            INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "---BB" + STR(IBlock) + " is unreachable from DT root");
+            return;
+         }
+         const auto& DomNode_DFSInfo = DFSInfos.at(IBlock);
+         VD.DFSIn = DomNode_DFSInfo.DFSIn;
+         VD.DFSOut = DomNode_DFSInfo.DFSOut;
+         VD.U = OperandRef(new Operand(Op, U));
+         DFSOrderedSet.push_back(VD);
+         INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "---Pushed on renaming stack");
+      };
+
       if(gp)
       {
-         const auto EdgePredIt = std::find_if(gp->CGetDefEdgesList().begin(), gp->CGetDefEdgesList().end(), [&](const gimple_phi::DefEdge& de) { return GET_INDEX_CONST_NODE(de.first) == GET_INDEX_CONST_NODE(Op); });
-         THROW_ASSERT(EdgePredIt != gp->CGetDefEdgesList().end(), "");
-         IBlock = EdgePredIt->second;
-         VD.LocalNum = LN_Last;
+         // #if HAVE_ASSERTS
+         //          bool found = false;
+         // #endif
+         for(const auto& def_edge : gp->CGetDefEdgesList())
+         {
+            if(GET_INDEX_CONST_NODE(def_edge.first) == GET_INDEX_CONST_NODE(Op))
+            {
+               // #if HAVE_ASSERTS
+               //                found = true;
+               // #endif
+               dfs_gen(def_edge.second);
+            }
+         }
+         // THROW_ASSERT(found, "");
       }
       else
       {
-         IBlock = I->bb_index;
-         VD.LocalNum = LN_Middle;
+         dfs_gen(I->bb_index);
       }
-
-      const auto& BBmap = DT->CGetBBGraphInfo()->bb_index_map;
-      auto DomNode_vertex = BBmap.find(IBlock);
-      THROW_ASSERT(DomNode_vertex != BBmap.end(), "BB" + STR(IBlock) + " not found in DT");
-      // It's possible our use is in an unreachable block. Skip it if so.
-      if(!DT->IsReachable(BBmap.at(bloc::ENTRY_BLOCK_ID), DomNode_vertex->second))
-      {
-         INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "---BB" + STR(IBlock) + " is unreachable from DT root");
-         continue;
-      }
-      const auto& DomNode_DFSInfo = DFSInfos.at(IBlock);
-      VD.DFSIn = DomNode_DFSInfo.DFSIn;
-      VD.DFSOut = DomNode_DFSInfo.DFSOut;
-      VD.U = OperandRef(new Operand(Op, U));
-      DFSOrderedSet.push_back(VD);
-      INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "---Pushed on renaming stack");
    }
    INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "<--");
 }
@@ -1011,23 +1028,22 @@ tree_nodeRef materializeStack(ValueDFSStack& RenameStack, unsigned int function_
             }
             else // When intermediate branch BB isn't present, create a new one
             {
-               THROW_ASSERT(static_cast<bool>(BBmap.count(pwe->From)), "UOT??? ");
+               THROW_ASSERT(static_cast<bool>(BBmap.count(pwe->From)), "");
                const auto& FromBB = DT->CGetBBNodeInfo(BBmap.at(pwe->From))->block;
 
                // Create new intermediate BB
                const auto interBBI = (sl->list_of_bloc.rbegin())->first + 1;
-               interBB = blocRef(new bloc(interBBI));
-               sl->list_of_bloc[interBBI] = interBB;
+               interBB = sl->list_of_bloc[interBBI] = blocRef(new bloc(interBBI));
                interBB->loop_id = FromBB->loop_id;
                interBB->SetSSAUsesComputed();
                interBB->schedule = FromBB->schedule;
 
                // Fix BB connections
-               interBB->list_of_pred.push_back(FromBB->number);
-               FromBB->list_of_succ.erase(std::find(FromBB->list_of_succ.begin(), FromBB->list_of_succ.end(), ToBB->number));
+               FromBB->list_of_succ.erase(std::remove(FromBB->list_of_succ.begin(), FromBB->list_of_succ.end(), ToBB->number), FromBB->list_of_succ.end());
+               ToBB->list_of_pred.erase(std::remove(ToBB->list_of_pred.begin(), ToBB->list_of_pred.end(), FromBB->number), ToBB->list_of_pred.end());
                FromBB->list_of_succ.push_back(interBBI);
+               interBB->list_of_pred.push_back(FromBB->number);
                interBB->list_of_succ.push_back(ToBB->number);
-               ToBB->list_of_pred.erase(std::find(ToBB->list_of_pred.begin(), ToBB->list_of_pred.end(), FromBB->number));
                ToBB->list_of_pred.push_back(interBBI);
 
                // Add new BB to intermediate branch block lookup list
@@ -1072,7 +1088,7 @@ tree_nodeRef materializeStack(ValueDFSStack& RenameStack, unsigned int function_
             }
 
             // Insert required sigma operation into the intermediate basic block
-            PIC = tree_man->create_phi_node(new_ssa_var, list_of_def_edge, TM->GetTreeReindex(function_id), interBB->number);
+            PIC = tree_man->create_phi_node(new_ssa_var, list_of_def_edge, function_id, interBB->number);
             const auto gp = GetPointer<gimple_phi>(GET_NODE(PIC));
             gp->SetSSAUsesComputed();
             gp->artificial = true;
@@ -1082,7 +1098,7 @@ tree_nodeRef materializeStack(ValueDFSStack& RenameStack, unsigned int function_
          else
          {
             // Insert required sigma operation into the destination basic block
-            PIC = tree_man->create_phi_node(new_ssa_var, list_of_def_edge, TM->GetTreeReindex(function_id), pwe->To);
+            PIC = tree_man->create_phi_node(new_ssa_var, list_of_def_edge, function_id, pwe->To);
             const auto gp = GetPointer<gimple_phi>(GET_NODE(PIC));
             gp->SetSSAUsesComputed();
             gp->artificial = true;
@@ -1131,7 +1147,7 @@ tree_nodeRef materializeStack(ValueDFSStack& RenameStack, unsigned int function_
 bool eSSA::renameUses(CustomSet<OperandRef>& OpSet, eSSA::ValueInfoLookup& ValueInfoNums, std::vector<ValueInfo>& ValueInfos, CustomMap<unsigned int, DFSInfo>& DFSInfos, CustomSet<std::pair<unsigned int, unsigned int>>& EdgeUsesOnly, statement_list* sl)
 {
    const auto TM = AppM->get_tree_manager();
-   const auto tree_man = tree_manipulationRef(new tree_manipulation(TM, parameters));
+   const auto tree_man = tree_manipulationRef(new tree_manipulation(TM, parameters, AppM));
    CustomMap<std::pair<unsigned int, unsigned int>, blocRef> interBranchBBs;
    bool modified = false;
    // This maps from copy operands to Predicate Info. Note that it does not own
@@ -1299,6 +1315,12 @@ bool eSSA::renameUses(CustomSet<OperandRef>& OpSet, eSSA::ValueInfoLookup& Value
             INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "---New definition not dominating use in DT, but in CFG only");
          }
 #endif
+         if(not AppM->ApplyNewTransformation())
+         {
+            INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "<--");
+            INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "<--");
+            return modified;
+         }
          AppM->RegisterTransformation(GetName(), VD.U->getUser());
          VD.U->set(phi->res, TM);
          modified = true;
@@ -1331,11 +1353,8 @@ const CustomUnorderedSet<std::pair<FrontendFlowStepType, FrontendFlowStep::Funct
       }
       case(PRECEDENCE_RELATIONSHIP):
       {
-         relationships.insert(std::make_pair(DEAD_CODE_ELIMINATION, SAME_FUNCTION));
-         if(parameters->getOption<int>(OPT_gcc_openmp_simd))
-         {
-            relationships.insert(std::make_pair(VECTORIZE, SAME_FUNCTION));
-         }
+         relationships.insert(std::make_pair(DETERMINE_MEMORY_ACCESSES, SAME_FUNCTION));
+         relationships.insert(std::make_pair(UN_COMPARISON_LOWERING, SAME_FUNCTION));
          break;
       }
       case(INVALIDATION_RELATIONSHIP):
@@ -1346,15 +1365,6 @@ const CustomUnorderedSet<std::pair<FrontendFlowStepType, FrontendFlowStep::Funct
          THROW_UNREACHABLE("");
    }
    return relationships;
-}
-
-bool eSSA::HasToBeExecuted() const
-{
-   if(!HasToBeExecuted0())
-   {
-      return false;
-   }
-   return function_behavior->GetBitValueVersion() != bv_ver || FunctionFrontendFlowStep::HasToBeExecuted();
 }
 
 void eSSA::Initialize()
@@ -1375,13 +1385,13 @@ DesignFlowStep_Status eSSA::InternalExec()
    BBGraph GCC_bb_graph(GCC_bb_graphs_collection, CFG_SELECTOR);
    CustomUnorderedMap<unsigned int, vertex> inverse_vertex_map;
    /// add vertices
-   for(auto block : sl->list_of_bloc)
+   for(const auto& block : sl->list_of_bloc)
    {
       inverse_vertex_map.try_emplace(block.first, GCC_bb_graphs_collection->AddVertex(BBNodeInfoRef(new BBNodeInfo(block.second))));
    }
 
    /// add edges
-   for(auto curr_bb_pair : sl->list_of_bloc)
+   for(const auto& curr_bb_pair : sl->list_of_bloc)
    {
       unsigned int curr_bb = curr_bb_pair.first;
       for(const auto& lop : sl->list_of_bloc.at(curr_bb)->list_of_pred)
@@ -1411,7 +1421,7 @@ DesignFlowStep_Status eSSA::InternalExec()
    bb_dominators.calculate_dominance_info(dominance<BBGraph>::CDI_DOMINATORS);
 
    DT.reset(new BBGraph(GCC_bb_graphs_collection, D_SELECTOR));
-   for(auto it : bb_dominators.get_dominator_map())
+   for(const auto& it : bb_dominators.get_dominator_map())
    {
       if(it.first != inverse_vertex_map.at(bloc::ENTRY_BLOCK_ID))
       {
@@ -1436,7 +1446,7 @@ DesignFlowStep_Status eSSA::InternalExec()
    // as multi-way if.
    CustomSet<OperandRef> OpsToRename;
 
-   auto BBvisit = [&](blocRef BB) {
+   const auto BBvisit = [&](blocRef BB) {
       const auto& stmt_list = BB->CGetStmtList();
 
       // Skip empty BB
@@ -1490,7 +1500,7 @@ DesignFlowStep_Status eSSA::InternalExec()
       else
       {
          // Otherwise, recursively visit this child.
-         const auto Child = DT->CGetBBNodeInfo(ChildRange.front())->block;
+         const auto& Child = DT->CGetBBNodeInfo(ChildRange.front())->block;
          workStack.top().second.pop_front();
 
          workStack.push({ChildRange.front(), boost::make_iterator_range(boost::adjacent_vertices(ChildRange.front(), *DT))});
@@ -1521,7 +1531,6 @@ DesignFlowStep_Status eSSA::InternalExec()
    DT.reset();
    INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "<--");
 
-   bv_ver = function_behavior->GetBitValueVersion();
    modified ? function_behavior->UpdateBBVersion() : 0;
    return modified ? DesignFlowStep_Status::SUCCESS : DesignFlowStep_Status::UNCHANGED;
 }

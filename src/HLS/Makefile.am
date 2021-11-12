@@ -235,6 +235,7 @@ lib_interconnectionbinding_la_CPPFLAGS = \
    -I$(top_srcdir)/src/algorithms/clique_covering \
    -I$(top_srcdir)/src/behavior  \
    -I$(top_srcdir)/src/circuit \
+   -I$(top_srcdir)/src/constants \
    -I$(top_srcdir)/src/design_flows \
    -I$(top_srcdir)/src/graph \
    -I$(top_srcdir)/src/HLS \
@@ -351,6 +352,7 @@ lib_hls_chaining_la_CPPFLAGS = \
    -I$(top_srcdir)/src/HLS/virtual_components \
    -I$(top_srcdir)/src/intermediate_representations \
    -I$(top_srcdir)/src/intermediate_representations/hls \
+   -I$(top_srcdir)/src/tree \
    -I$(top_srcdir)/src/utility \
    $(AM_CPPFLAGS)
 
@@ -587,7 +589,7 @@ if BUILD_LIB_VCD
 endif
 if BUILD_TRNG
    lib_hls_flow_la_CPPFLAGS += \
-      -I$(top_builddir)/ext/trng-4.17
+      -isystem $(top_builddir)/ext/trng-4.17
 endif
 
 noinst_LTLIBRARIES += lib_interface.la
@@ -742,7 +744,6 @@ noinst_HEADERS += \
    module_allocation/add_library.hpp \
    module_allocation/allocation.hpp \
    module_allocation/allocation_information.hpp \
-   module_allocation/hls_bit_value.hpp \
    module_allocation/hls_function_bit_value.hpp \
    module_allocation/omp_allocation.hpp
 
@@ -750,7 +751,6 @@ lib_allocation_la_SOURCES = \
    module_allocation/add_library.cpp \
    module_allocation/allocation.cpp \
    module_allocation/allocation_information.cpp \
-   module_allocation/hls_bit_value.cpp \
    module_allocation/hls_function_bit_value.cpp \
    module_allocation/omp_allocation.cpp
 
@@ -808,6 +808,7 @@ lib_scheduling_la_CPPFLAGS = \
    -I$(top_srcdir)/src/HLS/binding/interconnection \
    -I$(top_srcdir)/src/HLS/binding/module \
    -I$(top_srcdir)/src/HLS/binding/register \
+   -I$(top_srcdir)/src/HLS/function_allocation \
    -I$(top_srcdir)/src/HLS/memory \
    -I$(top_srcdir)/src/HLS/scheduling \
    -I$(top_srcdir)/src/HLS/stg \
@@ -1006,10 +1007,10 @@ if BUILD_LIB_VCD
       -I$(top_srcdir)/src/HLS/vcd
 endif
 if BUILD_BEAGLE
-  lib_HLS_la_CPPFLAGS += -I$(BEAGLE_DIR)/beagle/include/  \
-                         -I$(top_builddir)/ext/beagle/beagle/include/ \
-                         -I$(BEAGLE_DIR)/beagle/GA/include/ \
-                         -I$(BEAGLE_DIR)/PACC
+  lib_HLS_la_CPPFLAGS += -isystem $(BEAGLE_DIR)/beagle/include/  \
+                         -isystem $(top_builddir)/ext/beagle/beagle/include/ \
+                         -isystem $(BEAGLE_DIR)/beagle/GA/include/ \
+                         -isystem $(BEAGLE_DIR)/PACC
 endif
 if BUILD_LIB_ILP
   lib_HLS_la_CPPFLAGS += \

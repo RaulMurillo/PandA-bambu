@@ -49,10 +49,10 @@
 REF_FORWARD_DECL(tree_node);
 REF_FORWARD_DECL(tree_manipulation);
 REF_FORWARD_DECL(tree_manager);
-class statement_list;
-class function_decl;
-class parm_decl;
-class ssa_name;
+struct statement_list;
+struct function_decl;
+struct parm_decl;
+struct ssa_name;
 
 #include "custom_set.hpp"
 #include <list>
@@ -74,17 +74,14 @@ class interface_infer : public FunctionFrontendFlowStep
     */
    const CustomUnorderedSet<std::pair<FrontendFlowStepType, FunctionRelationship>> ComputeFrontendRelationships(const DesignFlowStep::RelationshipType relationship_type) const override;
 
-   void Computepar2ssa(statement_list* sl, std::map<unsigned, unsigned>& par2ssa);
+   void Computepar2ssa(const statement_list* sl, std::map<unsigned, unsigned>& par2ssa);
 
-   void classifyArgRecurse(CustomOrderedSet<unsigned>& Visited, ssa_name* argSSA, unsigned int destBB, statement_list* sl, bool& canBeMovedToBB2, bool& isRead, bool& isWrite, bool& unkwown_pattern, std::list<tree_nodeRef>& writeStmt,
-                           std::list<tree_nodeRef>& readStmt);
-   void classifyArg(statement_list* sl, tree_nodeRef argSSANode, bool& canBeMovedToBB2, bool& isRead, bool& isWrite, bool& unkwown_pattern, std::list<tree_nodeRef>& writeStmt, std::list<tree_nodeRef>& readStmt);
-   void addGimpleNOPxVirtual(tree_nodeRef origStmt, const tree_managerRef TM, CustomOrderedSet<unsigned>& writeVdef);
+   void classifyArgRecurse(CustomOrderedSet<unsigned>& Visited, const ssa_name* argSSA, const statement_list* sl, bool& isRead, bool& isWrite, bool& unkwown_pattern, std::list<tree_nodeRef>& writeStmt, std::list<tree_nodeRef>& readStmt);
+   void classifyArg(statement_list* sl, tree_nodeRef argSSANode, bool& isRead, bool& isWrite, bool& unkwown_pattern, std::list<tree_nodeRef>& writeStmt, std::list<tree_nodeRef>& readStmt);
 
-   void create_Read_function(tree_nodeRef refStmt, const std::string& argName_string, tree_nodeRef origStmt, unsigned int destBB, const std::string& fdName, tree_nodeRef argSSANode, tree_nodeRef aType, tree_nodeRef readType,
-                             const std::list<tree_nodeRef>& usedStmt_defs, const tree_manipulationRef tree_man, const tree_managerRef TM, bool commonRWSignature);
+   void create_Read_function(tree_nodeRef origStmt, const std::string& argName_string, const std::string& fdName, tree_nodeRef aType, tree_nodeRef readType, const tree_manipulationRef tree_man, const tree_managerRef TM, bool commonRWSignature);
    void create_Write_function(const std::string& argName_string, tree_nodeRef origStmt, const std::string& fdName, tree_nodeRef writeValue, tree_nodeRef aType, tree_nodeRef writeType, const tree_manipulationRef tree_man, const tree_managerRef TM,
-                              bool commonRWSignature, CustomOrderedSet<unsigned>& writeVdef);
+                              bool commonRWSignature);
 
    void create_resource_Read_simple(const std::set<std::string>& operations, const std::string& argName_string, const std::string& interfaceType, unsigned int inputBitWidth, bool IO_port, unsigned n_resources, unsigned rwBWsize);
    void create_resource_Write_simple(const std::set<std::string>& operations, const std::string& argName_string, const std::string& interfaceType, unsigned int inputBitWidth, bool IO_port, bool isDiffSize, unsigned n_resources, bool is_real,

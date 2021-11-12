@@ -65,7 +65,8 @@
 #include <random>
 
 #include "behavioral_helper.hpp"
-#include "dbgPrintHelper.hpp"      // for DEBUG_LEVEL_
+#include "dbgPrintHelper.hpp" // for DEBUG_LEVEL_
+#include "fileIO.hpp"
 #include "string_manipulation.hpp" // for GET_CLASS
 #include "tree_helper.hpp"
 
@@ -90,7 +91,7 @@ const CustomUnorderedSet<std::tuple<HLSFlowStep_Type, HLSFlowStepSpecializationC
       {
          if(HLSMgr->get_HLS(funId))
          {
-            if(HLSMgr->GetFunctionBehavior(funId)->build_simple_pipeline())
+            if(HLSMgr->GetFunctionBehavior(funId)->is_simple_pipeline())
             {
                ret.insert(std::make_tuple(HLSFlowStep_Type::UNIQUE_MODULE_BINDING, HLSFlowStepSpecializationConstRef(), HLSFlowStep_Relationship::SAME_FUNCTION));
             }
@@ -99,7 +100,7 @@ const CustomUnorderedSet<std::tuple<HLSFlowStep_Type, HLSFlowStepSpecializationC
                ret.insert(std::make_tuple(HLSMgr->get_HLS(funId)->module_binding_algorithm, HLSFlowStepSpecializationConstRef(), HLSFlowStep_Relationship::SAME_FUNCTION));
             }
          }
-         if(HLSMgr->GetFunctionBehavior(funId)->build_simple_pipeline())
+         if(HLSMgr->GetFunctionBehavior(funId)->is_simple_pipeline())
          {
             ret.insert(std::make_tuple(HLSFlowStep_Type::UNIQUE_REGISTER_BINDING, HLSFlowStepSpecializationConstRef(), HLSFlowStep_Relationship::SAME_FUNCTION));
          }
@@ -181,6 +182,7 @@ int port_swapping::vertex_distance(const std::vector<PSE>& spt_edges, PSVertex r
    PSVSet set;
    set.v = root;
    set.level = 0;
+   set.belongs = SET_A;
    vset.push_back(set);
    int distance = 0;
    bool flag = false;
@@ -535,12 +537,12 @@ DesignFlowStep_Status port_swapping::InternalExec()
             unsigned int tree_var = std::get<0>(var_read[var_num]);
             if(tree_var == 0)
             {
-               INDENT_DBG_MEX(DEBUG_LEVEL_PEDANTIC, debug_level, "---Constant: " + STR(std::get<1>(var_read[var_num])));
+               INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "---Constant: " + STR(std::get<1>(var_read[var_num])));
                key_value = std::make_tuple(0, 0, std::get<1>(var_read[var_num]));
             }
             else
             {
-               INDENT_DBG_MEX(DEBUG_LEVEL_PEDANTIC, debug_level, "-->Read: " + behavioral_helper->PrintVariable(tree_var));
+               INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "-->Read: " + behavioral_helper->PrintVariable(tree_var));
                const CustomOrderedSet<vertex>& running_states = HLS->Rliv->get_state_where_run(fu_operation);
                for(const auto state : running_states)
                {
@@ -571,7 +573,7 @@ DesignFlowStep_Status port_swapping::InternalExec()
                         {
                            unsigned int storage_value = HLS->storage_value_information->get_storage_value_index(state, tree_var);
                            unsigned int r_index = HLS->Rreg->get_register(storage_value);
-                           INDENT_DBG_MEX(DEBUG_LEVEL_PEDANTIC, debug_level, "---Register: " + STR(r_index));
+                           INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "---Register: " + STR(r_index));
                            key_value = std::make_tuple(3, 0, r_index);
                         }
                         else
@@ -583,7 +585,7 @@ DesignFlowStep_Status port_swapping::InternalExec()
                      {
                         unsigned int storage_value = HLS->storage_value_information->get_storage_value_index(state, tree_var);
                         unsigned int r_index = HLS->Rreg->get_register(storage_value);
-                        INDENT_DBG_MEX(DEBUG_LEVEL_PEDANTIC, debug_level, "---Register: " + STR(r_index));
+                        INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "---Register: " + STR(r_index));
                         key_value = std::make_tuple(3, 0, r_index);
                      }
                   }
@@ -596,7 +598,7 @@ DesignFlowStep_Status port_swapping::InternalExec()
             if(op_vertex_map.find(key_value) == op_vertex_map.end())
             {
                v_input = boost::add_vertex(g);
-               INDENT_DBG_MEX(DEBUG_LEVEL_PEDANTIC, debug_level, "Vertex: " + STR(v_input));
+               INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Vertex: " + STR(v_input));
                op_vertex_map[key_value] = v_input;
             }
             vertices_in_op[var_num] = op_vertex_map.at(key_value);
@@ -617,7 +619,7 @@ DesignFlowStep_Status port_swapping::InternalExec()
       INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "PORT_SWAPPING STARTING");
       if(DEBUG_LEVEL_VERY_PEDANTIC <= debug_level)
       {
-         std::ofstream file("starting-graph_" + HLS->allocation_information->get_string_name(fu.first.first) + "_" + STR(fu.first.second) + ".dot");
+         std::ofstream file(GetPath("starting-graph_" + HLS->allocation_information->get_string_name(fu.first.first) + "_" + STR(fu.first.second) + ".dot"));
          boost::write_graphviz(file, g);
          file.close();
       }

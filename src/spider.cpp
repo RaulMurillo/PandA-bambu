@@ -144,6 +144,7 @@
 /// utility includes
 #include "dbgPrintHelper.hpp" // for DEBUG_LEVEL_
 #include "exceptions.hpp"
+#include "fileIO.hpp"
 #include "string_manipulation.hpp"
 
 #define MAX_LENGTH 10000
@@ -199,8 +200,9 @@ int main(int argc, char* argv[])
             TranslatorConstRef tr(new Translator(parameters));
             std::string csv_file;
             const auto input_files = parameters->getOption<const CustomSet<std::string>>(OPT_input_file);
-            for(const auto input_file : input_files)
+            for(auto input_file : input_files)
             {
+               input_file = GetPath(input_file);
                if(parameters->GetFileFormat(input_file, false) == Parameters_FileFormat::FF_CSV)
                {
                   csv_file = input_file;
@@ -228,6 +230,7 @@ int main(int argc, char* argv[])
                case(Parameters_FileFormat::FF_CPP):
                case(Parameters_FileFormat::FF_FORTRAN):
                case(Parameters_FileFormat::FF_LLVM):
+               case(Parameters_FileFormat::FF_LLVM_CPP):
 #endif
                case(Parameters_FileFormat::FF_CSV):
                case(Parameters_FileFormat::FF_CSV_RTL):
@@ -321,6 +324,7 @@ int main(int argc, char* argv[])
                case(Parameters_FileFormat::FF_CPP):
                case(Parameters_FileFormat::FF_FORTRAN):
                case(Parameters_FileFormat::FF_LLVM):
+               case(Parameters_FileFormat::FF_LLVM_CPP):
 #endif
                case(Parameters_FileFormat::FF_CSV):
 #if HAVE_FROM_CSV_BUILT
@@ -480,13 +484,13 @@ int main(int argc, char* argv[])
                case(Parameters_FileFormat::FF_TEX):
                {
                   INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Input: xml - Output: tex");
-                  tr->write_to_latex(results, input_format, parameters->getOption<std::string>(OPT_output_file));
+                  tr->write_to_latex(results, input_format, GetPath(parameters->getOption<std::string>(OPT_output_file)));
                   break;
                }
                case(Parameters_FileFormat::FF_CSV):
                {
                   INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Input: XML - Output: CSV");
-                  tr->write_to_csv(results, parameters->getOption<std::string>(OPT_output_file));
+                  tr->write_to_csv(results, GetPath(parameters->getOption<std::string>(OPT_output_file)));
                   break;
                }
 #if HAVE_FROM_AADL_ASN_BUILT
@@ -500,6 +504,7 @@ int main(int argc, char* argv[])
                case(Parameters_FileFormat::FF_CPP):
                case(Parameters_FileFormat::FF_FORTRAN):
                case(Parameters_FileFormat::FF_LLVM):
+               case(Parameters_FileFormat::FF_LLVM_CPP):
 #endif
 #if HAVE_FROM_CSV_BUILT
                case(Parameters_FileFormat::FF_CSV_RTL):
@@ -769,6 +774,7 @@ int main(int argc, char* argv[])
                case(Parameters_FileFormat::FF_CPP):
                case(Parameters_FileFormat::FF_FORTRAN):
                case(Parameters_FileFormat::FF_LLVM):
+               case(Parameters_FileFormat::FF_LLVM_CPP):
 #endif
                case(Parameters_FileFormat::FF_CSV):
                case(Parameters_FileFormat::FF_CSV_RTL):
@@ -836,6 +842,7 @@ int main(int argc, char* argv[])
          case(Parameters_FileFormat::FF_CPP):
          case(Parameters_FileFormat::FF_FORTRAN):
          case(Parameters_FileFormat::FF_LLVM):
+         case(Parameters_FileFormat::FF_LLVM_CPP):
 #endif
 #if HAVE_FROM_CSV_BUILT
          case(Parameters_FileFormat::FF_CSV_RTL):
@@ -899,7 +906,7 @@ int main(int argc, char* argv[])
    {
       std::cerr << "Unknown error type" << std::endl;
    }
-   if(not(parameters->getOption<bool>(OPT_no_clean)))
+   if(!parameters->getOption<bool>(OPT_no_clean))
    {
       boost::filesystem::remove_all(parameters->getOption<std::string>(OPT_output_temporary_directory));
    }

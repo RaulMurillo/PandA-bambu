@@ -51,15 +51,22 @@ class CallGraphBuiltinCall : public FunctionFrontendFlowStep
  private:
    using TypeDeclarationMap = std::map<std::string, CustomOrderedSet<unsigned int>>;
    bool modified;
+   /// Already visited tree node (used to avoid infinite recursion)
+   CustomUnorderedSet<unsigned int> already_visited;
 
    /**
     * Map function types to matching declarations.
     */
    TypeDeclarationMap typeToDeclaration;
 
+   bool typeToDeclarationBuilt;
+
    void lookForBuiltinCall(const tree_nodeRef TN);
 
    void ExtendCallGraph(unsigned int callerIdx, tree_nodeRef funType, unsigned int stmtIdx);
+
+   // Build the typeToDeclarationMap
+   void buildTypeToDeclaration();
 
  protected:
    /// @brief State relationship with other design step

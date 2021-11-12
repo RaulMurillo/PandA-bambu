@@ -71,8 +71,11 @@ enum kind : int;
 REF_FORWARD_DECL(tree_manager);
 CONSTREF_FORWARD_DECL(tree_node);
 REF_FORWARD_DECL(tree_node);
+REF_FORWARD_DECL(application_manager);
 enum class TreeVocabularyTokenTypes_TokenEnum;
 //@}
+
+#define BUILTIN_SRCP "<built-in>:0:0"
 
 /**
  * This class manages the tree structures extracted from the raw file.
@@ -129,7 +132,7 @@ class tree_manager
    /// this table stores all identifier_nodes with their nodeID.
    CustomUnorderedMapUnstable<std::string, unsigned int> identifiers_unique_table;
 
-   CustomUnorderedMap<std::pair<long long int, unsigned int>, tree_nodeRef> unique_integer_cst_map;
+   CustomUnorderedMap<std::pair<std::string, unsigned int>, tree_nodeRef> unique_cst_map;
 
    /// Set of parameters
    const ParameterConstRef Param;
@@ -172,6 +175,8 @@ class tree_manager
     * @param stmt is the statement that is inserted in the usage vector of ssa variables.
     */
    void insert_usage_info(const tree_nodeRef& tn, const tree_nodeRef& stmt);
+
+   tree_nodeRef create_unique_const(const std::string& val, const tree_nodeConstRef& type);
 
  public:
    /**
@@ -307,11 +312,19 @@ class tree_manager
 
    /**
     * Return the index of a function given its name
-    * @param tm is the tree_manager
     * @param function_name is the name of the function
     * @return the treenode_index of the function_decl
     */
+   /// FIXME: to be remove after substitution with GetFunction
    unsigned int function_index(const std::string& function_name) const;
+
+   /**
+    * Return the index of a function given its name
+    * @param tm is the tree_manager
+    * @param function_name is the name of the function
+    * @return the tree node of the function_decl
+    */
+   tree_nodeRef GetFunction(const std::string& function_name) const;
 
    /**
     * Return the index of a function given its mangled name
@@ -363,7 +376,7 @@ class tree_manager
     * @param tn is the top tree node of the tree to be collapsed
     * @param removed_nodes is the set of nodes removed during collapsing
     */
-   void collapse_into(const unsigned int& funID, CustomUnorderedMapUnstable<unsigned int, unsigned int>& stmt_to_bloc, const tree_nodeRef& tn, CustomUnorderedSet<unsigned int>& removed_nodes);
+   void collapse_into(const unsigned int& funID, CustomUnorderedMapUnstable<unsigned int, unsigned int>& stmt_to_bloc, const tree_nodeRef& tn, CustomUnorderedSet<unsigned int>& removed_nodes, const application_managerRef AppM);
 
    /// increment the number a parallel loop
    void add_parallel_loop();
@@ -453,9 +466,17 @@ class tree_manager
     * memoization of integer constants
     * @param value is the integer value
     * @param type_index is the type of the integer constant
-    * @return a tree reindex node for the integer value with as type type_index
+    * @return a tree reindex node for the integer value with as type type
     */
-   tree_nodeRef CreateUniqueIntegerCst(long long int value, unsigned int type_index);
+   tree_nodeRef CreateUniqueIntegerCst(long long int value, const tree_nodeConstRef& type);
+
+   /**
+    * memoization of integer constants
+    * @param value is the real value
+    * @param type_index is the type of the real constant
+    * @return a tree reindex node for the real value with as type type
+    */
+   tree_nodeRef CreateUniqueRealCst(long double value, const tree_nodeConstRef& type);
 
    /**
     * @brief is_CPP return true in case we have at least one CPP source code

@@ -53,7 +53,6 @@
 #include "hls_constraints.hpp"
 #include "hls_manager.hpp"
 #include "hls_target.hpp"
-
 #include "memory_allocation.hpp"
 
 /// technology include
@@ -62,7 +61,7 @@
 /// technology/physical_library include
 #include "technology_node.hpp"
 
-/// tree include
+#include "call_graph_manager.hpp"
 #include "tree_helper.hpp"
 #include "tree_manager.hpp"
 #include "tree_node.hpp"
@@ -132,7 +131,7 @@ DesignFlowStep_Status InitializeHLS::InternalExec()
 #endif
    {
       HLS->controller_type = static_cast<HLSFlowStep_Type>(parameters->getOption<int>(OPT_controller_architecture));
-      if(HLSMgr->GetFunctionBehavior(funId)->build_simple_pipeline())
+      if(HLSMgr->GetFunctionBehavior(funId)->is_simple_pipeline())
       {
          HLS->controller_type = HLSFlowStep_Type::PIPELINE_CONTROLLER_CREATOR;
       }

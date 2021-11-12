@@ -82,7 +82,7 @@ using FrontendFlowStepType = enum FrontendFlowStepType {
 #endif
    CREATE_TREE_MANAGER,
 #if HAVE_BAMBU_BUILT
-   FIND_MAX_CFG_TRANSFORMATIONS,
+   FIND_MAX_TRANSFORMATIONS,
 #endif
    FUNCTION_ANALYSIS, //! Creation of the call graph
 #if HAVE_ZEBU_BUILT
@@ -90,9 +90,6 @@ using FrontendFlowStepType = enum FrontendFlowStepType {
 #endif
 #if HAVE_HOST_PROFILING_BUILT
    HOST_PROFILING,
-#endif
-#if HAVE_BAMBU_BUILT
-   IPA_POINT_TO_ANALYSIS,
 #endif
 #if HAVE_FROM_PRAGMA_BUILT
    PRAGMA_SUBSTITUTION,
@@ -114,7 +111,6 @@ using FrontendFlowStepType = enum FrontendFlowStepType {
 #if HAVE_BAMBU_BUILT
    ADD_OP_PHI_FLOW_EDGES,
 #endif
-   AGGREGATE_DATA_FLOW_ANALYSIS,
 #if HAVE_ZEBU_BUILT
    ARRAY_REF_FIX,
 #endif
@@ -129,6 +125,7 @@ using FrontendFlowStepType = enum FrontendFlowStepType {
 #if HAVE_BAMBU_BUILT
    BIT_VALUE,
    BIT_VALUE_OPT,
+   BITVALUE_RANGE,
    BIT_VALUE_IPA,
 #endif
    BLOCK_FIX,
@@ -147,7 +144,6 @@ using FrontendFlowStepType = enum FrontendFlowStepType {
    CHECK_CRITICAL_SESSION,
 #endif
    CHECK_SYSTEM_TYPE, //! Set the system flag to variables and types
-   CLEAN_VIRTUAL_PHI,
    COMPLETE_BB_GRAPH,
    COMPLETE_CALL_GRAPH,
 #if HAVE_BAMBU_BUILT
@@ -163,6 +159,7 @@ using FrontendFlowStepType = enum FrontendFlowStepType {
 #endif
 #if HAVE_ZEBU_BUILT || HAVE_BAMBU_BUILT
    DEAD_CODE_ELIMINATION,
+   DEAD_CODE_ELIMINATION_IPA,
 #endif
 #if HAVE_BAMBU_BUILT
    DETERMINE_MEMORY_ACCESSES,
@@ -187,9 +184,10 @@ using FrontendFlowStepType = enum FrontendFlowStepType {
 #if HAVE_BAMBU_BUILT
    EXTRACT_PATTERNS,
    FIX_STRUCTS_PASSED_BY_VALUE,
-   FUNCTION_PARM_MASK,
    FUNCTION_CALL_TYPE_CLEANUP,
+   FUNCTION_CALL_OPT,
    FANOUT_OPT,
+   FIX_VDEF,
 #endif
 #if HAVE_ZEBU_BUILT
    GLOBAL_VARIABLES_ANALYSIS,
@@ -230,8 +228,6 @@ using FrontendFlowStepType = enum FrontendFlowStepType {
 #if HAVE_BAMBU_BUILT
    LUT_TRANSFORMATION,
 #endif
-   MEMORY_DATA_FLOW_ANALYSIS,
-   MEM_CG_EXT,
 #if HAVE_BAMBU_BUILT
    MULTI_WAY_IF,
    MULTIPLE_ENTRY_IF_REDUCTION,

@@ -43,15 +43,14 @@
 /// Superclass include
 #include "function_frontend_flow_step.hpp"
 
-/// Utility include
-#include "refcount.hpp"
-
 /**
  * Speculation code motion step
  */
 class SDCCodeMotion : public FunctionFrontendFlowStep
 {
  private:
+   bool restart_ifmwi_opt;
+
    /**
     * Return the set of analyses in relationship with this design step
     * @param relationship_type is the type of relationship to be considered
@@ -79,21 +78,9 @@ class SDCCodeMotion : public FunctionFrontendFlowStep
    DesignFlowStep_Status InternalExec() override;
 
    /**
-    * Initialize the step (i.e., like a constructor, but executed just before exec
-    */
-   void Initialize() override;
-
-   /**
     * Check if this step has actually to be executed
     * @return true if the step has to be executed
     */
    bool HasToBeExecuted() const override;
-
-   /**
-    * Compute the relationships of a step with other steps
-    * @param dependencies is where relationships will be stored
-    * @param relationship_type is the type of relationship to be computed
-    */
-   void ComputeRelationships(DesignFlowStepSet& relationship, const DesignFlowStep::RelationshipType relationship_type) override;
 };
 #endif

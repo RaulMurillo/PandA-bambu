@@ -91,14 +91,14 @@ const CustomUnorderedSet<std::pair<FrontendFlowStepType, FrontendFlowStep::Funct
    {
       case(DEPENDENCE_RELATIONSHIP):
       {
-         relationships.insert(std::pair<FrontendFlowStepType, FunctionRelationship>(LOOPS_ANALYSIS_BAMBU, SAME_FUNCTION));
-         break;
-      }
-      case(INVALIDATION_RELATIONSHIP):
-      {
+         relationships.insert(std::make_pair(LOOPS_ANALYSIS_BAMBU, SAME_FUNCTION));
          break;
       }
       case(PRECEDENCE_RELATIONSHIP):
+      {
+         break;
+      }
+      case(INVALIDATION_RELATIONSHIP):
       {
          break;
       }
@@ -116,10 +116,6 @@ void ExtractOmpFor::Initialize()
 
 bool ExtractOmpFor::HasToBeExecuted() const
 {
-   if(!HasToBeExecuted0())
-   {
-      return false;
-   }
    return bb_version == 0;
 }
 
@@ -133,7 +129,7 @@ DesignFlowStep_Status ExtractOmpFor::InternalExec()
    {
       return DesignFlowStep_Status::UNCHANGED;
    }
-   if(debug_level >= DEBUG_LEVEL_PEDANTIC)
+   if(debug_level >= DEBUG_LEVEL_PEDANTIC && !parameters->IsParameter("disable-print-dot-FF"))
    {
       WriteBBGraphDot("BB_Before_" + GetName() + ".dot");
       PrintTreeManager(true);

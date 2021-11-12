@@ -55,7 +55,8 @@
 REF_FORWARD_DECL(Bit_Value_opt);
 REF_FORWARD_DECL(tree_manager);
 REF_FORWARD_DECL(tree_manipulation);
-class statement_list;
+struct function_decl;
+struct ssa_name;
 //@}
 
 /**
@@ -67,18 +68,17 @@ class Bit_Value_opt : public FunctionFrontendFlowStep
    /// when true IR has been modified
    bool modified;
 
-   /// True if dead code must be restarted
-   bool restart_dead_code;
-
    const CustomUnorderedSet<std::pair<FrontendFlowStepType, FunctionRelationship>> ComputeFrontendRelationships(const DesignFlowStep::RelationshipType relationship_type) const override;
 
    /**
     * do bit value based optimization such as:
     * - constant propagation
-    * @param sl is the statement list
+    * @param fd is the function declaration
     * @param TM is the tree manager
     */
-   void optimize(statement_list* sl, tree_managerRef TM, tree_manipulationRef IRman);
+   void optimize(const function_decl* fd, tree_managerRef TM, tree_manipulationRef IRman);
+
+   void propagateValue(const ssa_name* ssa, tree_managerRef TM, tree_nodeRef old_val, tree_nodeRef new_val);
 
  public:
    /**
@@ -96,7 +96,7 @@ class Bit_Value_opt : public FunctionFrontendFlowStep
    ~Bit_Value_opt() override;
 
    /**
-    * Extract patterns from the GCC IR.
+    * Optimize IR after the BitValue/BitValueIPA has been executed
     * @return the exit status of this step
     */
    DesignFlowStep_Status InternalExec() override;
@@ -106,9 +106,7 @@ class Bit_Value_opt : public FunctionFrontendFlowStep
     * @return true if the step has to be executed
     */
    bool HasToBeExecuted() const override;
-   /**
-    * Initialize the step (i.e., like a constructor, but executed just before exec
-    */
-   void Initialize() override;
+
+   static void constrainSSA(ssa_name* op_ssa, tree_managerRef TM);
 };
 #endif /* Bit_Value_opt_HPP */

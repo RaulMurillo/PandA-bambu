@@ -24,7 +24,7 @@ lib_technology_la_LIBADD =
 
 if BUILD_LIBERTY_PARSER
    lib_technology_la_CPPFLAGS += \
-      -I$(top_srcdir)/ext/liberty_parser
+      -isystem $(top_srcdir)/ext/liberty_parser
 endif
 
 if BUILD_LIB_TARGET
@@ -400,6 +400,7 @@ if BUILD_LIB_LIBRARY_CHARACTERIZATION
    -I$(top_srcdir)/src/wrapper \
    -I$(top_srcdir)/src/wrapper/synthesis\
    -I$(top_srcdir)/src/wrapper/synthesis/xilinx \
+   -I$(top_srcdir)/src/tree \
    -I$(top_srcdir)/src/utility \
    $(AM_CPPFLAGS)
 

@@ -423,9 +423,10 @@ class FunctionBehavior
     * Constructor
     * @param AppM is the application manager
     * @param _helper is the helper associated with the function
-    * @param parameters is the set of input paramters
+    * @param parameters is the set of input parameters
     */
    FunctionBehavior(const application_managerConstRef AppM, const BehavioralHelperRef _helper, const ParameterConstRef parameters);
+   FunctionBehavior(const FunctionBehavior&) = delete;
 
    /**
     * Destructor
@@ -840,6 +841,15 @@ class FunctionBehavior
    }
 
    /**
+    * @brief get_state_variables
+    * @return the state variables data structure
+    */
+   const CustomOrderedSet<unsigned int>& get_state_variables()
+   {
+      return state_variables;
+   }
+
+   /**
     * @brief update the the packed variables status
     * @param packed is true when there is at least one packed variables
     */
@@ -856,12 +866,12 @@ class FunctionBehavior
       return packed_vars;
    }
 
-   bool is_pipelining_enabled() const
+   bool is_pipeline_enabled() const
    {
       return pipeline_enabled;
    }
 
-   bool build_simple_pipeline() const
+   bool is_simple_pipeline() const
    {
       if(simple_pipeline)
       {

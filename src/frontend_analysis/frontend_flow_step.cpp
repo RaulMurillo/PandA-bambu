@@ -78,15 +78,14 @@ void FrontendFlowStep::CreateSteps(const DesignFlowManagerConstRef design_flow_m
       {
          case(ALL_FUNCTIONS):
          {
-            const vertex call_graph_computation_step = design_flow_manager->GetDesignFlowStep(ApplicationFrontendFlowStep::ComputeSignature(FUNCTION_ANALYSIS));
-            const DesignFlowStepRef cg_design_flow_step =
-                call_graph_computation_step ? design_flow_graph->CGetDesignFlowStepInfo(call_graph_computation_step)->design_flow_step : frontend_flow_step_factory->CreateApplicationFrontendFlowStep(FUNCTION_ANALYSIS);
+            const auto call_graph_computation_step = design_flow_manager->GetDesignFlowStep(ApplicationFrontendFlowStep::ComputeSignature(FUNCTION_ANALYSIS));
+            const auto cg_design_flow_step = call_graph_computation_step ? design_flow_graph->CGetDesignFlowStepInfo(call_graph_computation_step)->design_flow_step : frontend_flow_step_factory->CreateApplicationFrontendFlowStep(FUNCTION_ANALYSIS);
             relationships.insert(cg_design_flow_step);
             const auto functions_with_body = application_manager->CGetCallGraphManager()->GetReachedBodyFunctions();
             for(const auto function_with_body_id : functions_with_body)
             {
-               const vertex sdf_step = design_flow_manager->GetDesignFlowStep(FunctionFrontendFlowStep::ComputeSignature(frontend_relationship->first, function_with_body_id));
-               const DesignFlowStepRef design_flow_step = sdf_step ? design_flow_graph->CGetDesignFlowStepInfo(sdf_step)->design_flow_step : frontend_flow_step_factory->CreateFunctionFrontendFlowStep(frontend_relationship->first, function_with_body_id);
+               const auto sdf_step = design_flow_manager->GetDesignFlowStep(FunctionFrontendFlowStep::ComputeSignature(frontend_relationship->first, function_with_body_id));
+               const auto design_flow_step = sdf_step ? design_flow_graph->CGetDesignFlowStepInfo(sdf_step)->design_flow_step : frontend_flow_step_factory->CreateFunctionFrontendFlowStep(frontend_relationship->first, function_with_body_id);
                relationships.insert(design_flow_step);
             }
             break;
@@ -100,18 +99,18 @@ void FrontendFlowStep::CreateSteps(const DesignFlowManagerConstRef design_flow_m
          }
          case(WHOLE_APPLICATION):
          {
-            vertex sdf_step = design_flow_manager->GetDesignFlowStep(ApplicationFrontendFlowStep::ComputeSignature(frontend_relationship->first));
+            const auto sdf_signature = ApplicationFrontendFlowStep::ComputeSignature(frontend_relationship->first);
+            const auto sdf_step = design_flow_manager->GetDesignFlowStep(sdf_signature);
             DesignFlowStepRef design_flow_step;
             if(sdf_step)
             {
                design_flow_step = design_flow_graph->CGetDesignFlowStepInfo(sdf_step)->design_flow_step;
-               relationships.insert(design_flow_step);
             }
             else
             {
                design_flow_step = frontend_flow_step_factory->GenerateFrontendStep(frontend_relationship->first);
-               relationships.insert(design_flow_step);
             }
+            relationships.insert(design_flow_step);
             break;
          }
          default:
@@ -155,8 +154,6 @@ const std::string FrontendFlowStep::EnumToKindText(const FrontendFlowStepType fr
       case(ADD_OP_PHI_FLOW_EDGES):
          return "AddOpPhiFlowEdges";
 #endif
-      case(AGGREGATE_DATA_FLOW_ANALYSIS):
-         return "AggregateDataFlowAnalysis";
 #if HAVE_ZEBU_BUILT
       case(ARRAY_REF_FIX):
          return "ArrayRefFix";
@@ -184,6 +181,8 @@ const std::string FrontendFlowStep::EnumToKindText(const FrontendFlowStepType fr
          return "BitValue";
       case(BIT_VALUE_OPT):
          return "BitValueOpt";
+      case(BITVALUE_RANGE):
+         return "BitValueRange";
       case BIT_VALUE_IPA:
          return "BitValueIPA";
 #endif
@@ -211,8 +210,6 @@ const std::string FrontendFlowStep::EnumToKindText(const FrontendFlowStepType fr
 #endif
       case(CHECK_SYSTEM_TYPE):
          return "CheckSystemType";
-      case CLEAN_VIRTUAL_PHI:
-         return "CleanVirtualPhi";
       case(COMPLETE_BB_GRAPH):
          return "CompleteBBGraph";
       case(COMPLETE_CALL_GRAPH):
@@ -236,6 +233,8 @@ const std::string FrontendFlowStep::EnumToKindText(const FrontendFlowStepType fr
 #if HAVE_ZEBU_BUILT || HAVE_BAMBU_BUILT
       case(DEAD_CODE_ELIMINATION):
          return "DeadCodeElimination";
+      case(DEAD_CODE_ELIMINATION_IPA):
+         return "DeadCodeEliminationIPA";
 #endif
 #if HAVE_BAMBU_BUILT
       case(DETERMINE_MEMORY_ACCESSES):
@@ -278,18 +277,20 @@ const std::string FrontendFlowStep::EnumToKindText(const FrontendFlowStepType fr
          return "ExtractPatterns";
 #endif
 #if HAVE_BAMBU_BUILT
-      case FIND_MAX_CFG_TRANSFORMATIONS:
-         return "FindMaxCfgTransformations";
+      case FIND_MAX_TRANSFORMATIONS:
+         return "FindMaxTransformations";
 #endif
       case(FUNCTION_ANALYSIS):
          return "CallGraphComputation";
 #if HAVE_BAMBU_BUILT
       case FIX_STRUCTS_PASSED_BY_VALUE:
          return "FixStructsPassedByValue";
-      case FUNCTION_PARM_MASK:
-         return "FunctionParmMask";
+      case FIX_VDEF:
+         return "FixVdef";
       case FUNCTION_CALL_TYPE_CLEANUP:
          return "FunctionCallTypeCleanup";
+      case FUNCTION_CALL_OPT:
+         return "FunctionCallOpt";
 #endif
 #if HAVE_ZEBU_BUILT
       case(FUNCTION_POINTER_CALLGRAPH_COMPUTATION):
@@ -324,8 +325,6 @@ const std::string FrontendFlowStep::EnumToKindText(const FrontendFlowStepType fr
 #if HAVE_BAMBU_BUILT
       case(INTERFACE_INFER):
          return "InterfaceInfer";
-      case(IPA_POINT_TO_ANALYSIS):
-         return "IpaPointToAnalysis";
       case(IR_LOWERING):
          return "IrLowering";
 #endif
@@ -355,10 +354,6 @@ const std::string FrontendFlowStep::EnumToKindText(const FrontendFlowStepType fr
       case(LUT_TRANSFORMATION):
          return "LutTransformation";
 #endif
-      case(MEMORY_DATA_FLOW_ANALYSIS):
-         return "MemoryDataFlowAnalysis";
-      case MEM_CG_EXT:
-         return "MemCgExt";
 #if HAVE_BAMBU_BUILT
       case MULTI_WAY_IF:
          return "MultiWayIf";
@@ -389,7 +384,7 @@ const std::string FrontendFlowStep::EnumToKindText(const FrontendFlowStepType fr
          return "Parm2SSA";
 #if HAVE_BAMBU_BUILT
       case PARM_DECL_TAKEN_ADDRESS:
-         return "ParmDeclTakenAddress";
+         return "ParmDeclTakenAddressFix";
       case PHI_OPT:
          return "PhiOpt";
 #endif
@@ -563,10 +558,16 @@ void FrontendFlowStep::PrintTreeManager(const bool before) const
 
 void FrontendFlowStep::PrintInitialIR() const
 {
-   PrintTreeManager(true);
+   if(!parameters->IsParameter("disable-print-tree-manager"))
+   {
+      PrintTreeManager(true);
+   }
 }
 
 void FrontendFlowStep::PrintFinalIR() const
 {
-   PrintTreeManager(false);
+   if(!parameters->IsParameter("disable-print-tree-manager"))
+   {
+      PrintTreeManager(false);
+   }
 }

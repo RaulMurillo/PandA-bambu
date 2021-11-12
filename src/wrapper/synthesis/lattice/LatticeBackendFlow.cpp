@@ -44,16 +44,11 @@
 /// Header include
 #include "LatticeBackendFlow.hpp"
 
-#include "config_HAVE_LATTICE.hpp"
-#include "config_LATTICE_SETTINGS.hpp"
-#include "config_PANDA_DATA_INSTALLDIR.hpp"
-#if HAVE_LATTICE
-#include "config_LATTICE_PMI_DEF.hpp"
-#endif
 #include "LUT_model.hpp"
 #include "LatticeWrapper.hpp"
 #include "area_model.hpp"
 #include "clb_model.hpp"
+#include "config_PANDA_DATA_INSTALLDIR.hpp"
 #include "target_device.hpp"
 #include "target_manager.hpp"
 #include "time_model.hpp"
@@ -207,7 +202,7 @@ void LatticeBackendFlow::xparse_utilization(const std::string& fn)
 void LatticeBackendFlow::CheckSynthesisResults()
 {
    PRINT_OUT_MEX(OUTPUT_LEVEL_MINIMUM, output_level, "Analyzing Lattice synthesis results");
-   std::string report_filename = actual_parameters->parameter_values[PARAM_lattice_report];
+   std::string report_filename = GetPath(actual_parameters->parameter_values[PARAM_lattice_report]);
    xparse_utilization(report_filename);
 
    THROW_ASSERT(design_values.find(LATTICE_SLICE) != design_values.end(), "Missing logic elements");
@@ -234,8 +229,8 @@ void LatticeBackendFlow::CheckSynthesisResults()
 
 void LatticeBackendFlow::WriteFlowConfiguration(std::ostream& script)
 {
-   auto setupscr = STR(LATTICE_SETTINGS);
-   if(setupscr.size() and setupscr != "0")
+   auto setupscr = Param->isOption(OPT_lattice_settings) ? Param->getOption<std::string>(OPT_lattice_settings) : "";
+   if(setupscr.size() && setupscr != "0")
    {
       script << "#configuration" << std::endl;
       if(boost::algorithm::starts_with(setupscr, "export"))
@@ -321,9 +316,10 @@ void LatticeBackendFlow::InitDesignParameters()
          THROW_ERROR("Extension not recognized! " + extension);
       }
    }
-#if HAVE_LATTICE
-   sources_macro_list += "prj_src add -format VERILOG " + std::string(LATTICE_PMI_DEF) + "\n";
-#endif
+   if(Param->isOption(OPT_lattice_pmi_def))
+   {
+      sources_macro_list += "prj_src add -format VERILOG " + Param->getOption<std::string>(OPT_lattice_pmi_def) + "\n";
+   }
    actual_parameters->parameter_values[PARAM_sources_macro_list] = sources_macro_list;
 
    create_sdc(actual_parameters);

@@ -79,17 +79,25 @@ const CustomUnorderedSet<std::pair<FrontendFlowStepType, FunctionFrontendFlowSte
       {
          break;
       }
-      case(INVALIDATION_RELATIONSHIP):
-      {
-         break;
-      }
       case(PRECEDENCE_RELATIONSHIP):
       {
+         relationships.insert(std::make_pair(COMPUTE_IMPLICIT_CALLS, SAME_FUNCTION));
+         relationships.insert(std::make_pair(FIX_STRUCTS_PASSED_BY_VALUE, SAME_FUNCTION));
+         relationships.insert(std::make_pair(FUNCTION_ANALYSIS, WHOLE_APPLICATION));
+         relationships.insert(std::make_pair(IR_LOWERING, SAME_FUNCTION));
 #if HAVE_FROM_PRAGMA_BUILT
          relationships.insert(std::make_pair(PRAGMA_ANALYSIS, WHOLE_APPLICATION));
 #endif
-         relationships.insert(std::make_pair(IR_LOWERING, SAME_FUNCTION));
-         relationships.insert(std::make_pair(MEM_CG_EXT, WHOLE_APPLICATION));
+         if(parameters->isOption(OPT_soft_float) && parameters->getOption<bool>(OPT_soft_float))
+         {
+            relationships.insert(std::make_pair(SOFT_FLOAT_CG_EXT, SAME_FUNCTION));
+         }
+         relationships.insert(std::make_pair(UN_COMPARISON_LOWERING, SAME_FUNCTION));
+         relationships.insert(std::make_pair(USE_COUNTING, SAME_FUNCTION));
+         break;
+      }
+      case(INVALIDATION_RELATIONSHIP):
+      {
          break;
       }
       default:
@@ -102,10 +110,6 @@ const CustomUnorderedSet<std::pair<FrontendFlowStepType, FunctionFrontendFlowSte
 
 bool PredicateStatements::HasToBeExecuted() const
 {
-   if(!HasToBeExecuted0())
-   {
-      return false;
-   }
    return bb_version == 0;
 }
 
@@ -113,10 +117,9 @@ DesignFlowStep_Status PredicateStatements::InternalExec()
 {
    const auto behavioral_helper = function_behavior->CGetBehavioralHelper();
    const auto TM = AppM->get_tree_manager();
-   const auto tree_man = tree_manipulationRef(new tree_manipulation(TM, parameters));
-   const auto true_value_id = TM->new_tree_node_id();
-   const auto boolean_type = tree_man->create_boolean_type();
-   const auto true_value = tree_man->CreateIntegerCst(boolean_type, 1, true_value_id);
+   const auto tree_man = tree_manipulationRef(new tree_manipulation(TM, parameters, AppM));
+   const auto boolean_type = tree_man->GetBooleanType();
+   const auto true_value = TM->CreateUniqueIntegerCst(1, boolean_type);
 
    bool bb_modified = false;
    const auto fd = GetPointer<const function_decl>(TM->CGetTreeNode(function_id));
@@ -125,15 +128,15 @@ DesignFlowStep_Status PredicateStatements::InternalExec()
    {
       for(const auto& stmt : block.second->CGetStmtList())
       {
-         auto ga = GetPointer<gimple_assign>(GET_NODE(stmt));
-         if(behavioral_helper->CanBeSpeculated(stmt->index) or not ga or (GET_NODE(ga->op1)->get_kind() == call_expr_K || GET_NODE(ga->op1)->get_kind() == aggr_init_expr_K))
+         const auto ga = GetPointer<gimple_assign>(GET_NODE(stmt));
+         if(behavioral_helper->CanBeSpeculated(stmt->index) || !ga || (GET_NODE(ga->op1)->get_kind() == call_expr_K || GET_NODE(ga->op1)->get_kind() == aggr_init_expr_K))
          {
             continue;
          }
          else
          {
             INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "---Predicating " + STR(stmt));
-            THROW_ASSERT(!ga->predicate, "unexpected condition");
+            THROW_ASSERT(!ga->predicate || ga->predicate->index == true_value->index, "unexpected condition");
             ga->predicate = true_value;
          }
       }

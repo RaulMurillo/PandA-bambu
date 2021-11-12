@@ -156,22 +156,22 @@ const CustomUnorderedSet<std::pair<FrontendFlowStepType, FrontendFlowStep::Funct
    {
       case(DEPENDENCE_RELATIONSHIP):
       {
-         relationships.insert(std::pair<FrontendFlowStepType, FunctionRelationship>(SWITCH_FIX, SAME_FUNCTION));
-         relationships.insert(std::pair<FrontendFlowStepType, FunctionRelationship>(BLOCK_FIX, SAME_FUNCTION));
-         relationships.insert(std::pair<FrontendFlowStepType, FunctionRelationship>(USE_COUNTING, SAME_FUNCTION));
+         relationships.insert(std::make_pair(SWITCH_FIX, SAME_FUNCTION));
+         relationships.insert(std::make_pair(BLOCK_FIX, SAME_FUNCTION));
+         relationships.insert(std::make_pair(USE_COUNTING, SAME_FUNCTION));
          break;
       }
       case(INVALIDATION_RELATIONSHIP):
       {
          if(design_flow_manager.lock()->GetStatus(GetSignature()) == DesignFlowStep_Status::SUCCESS)
          {
-            relationships.insert(std::pair<FrontendFlowStepType, FunctionRelationship>(PHI_OPT, SAME_FUNCTION));
+            relationships.insert(std::make_pair(PHI_OPT, SAME_FUNCTION));
          }
          break;
       }
       case(PRECEDENCE_RELATIONSHIP):
       {
-         relationships.insert(std::pair<FrontendFlowStepType, FunctionRelationship>(PHI_OPT, SAME_FUNCTION));
+         relationships.insert(std::make_pair(PHI_OPT, SAME_FUNCTION));
          break;
       }
       default:
@@ -185,7 +185,7 @@ const CustomUnorderedSet<std::pair<FrontendFlowStepType, FrontendFlowStep::Funct
 void RemoveEndingIf::Initialize()
 {
    TM = AppM->get_tree_manager();
-   tree_man = tree_manipulationRef(new tree_manipulation(TM, parameters));
+   tree_man = tree_manipulationRef(new tree_manipulation(TM, parameters, AppM));
    const auto temp = TM->get_tree_node_const(function_id);
    auto fd = GetPointer<function_decl>(temp);
    sl = GetPointer<statement_list>(GET_NODE(fd->body));
@@ -200,10 +200,6 @@ void RemoveEndingIf::Initialize()
 
 bool RemoveEndingIf::HasToBeExecuted() const
 {
-   if(!HasToBeExecuted0())
-   {
-      return false;
-   }
    /// If no schedule exists, this step has NOT to be executed
 #if HAVE_ILP_BUILT
    if(parameters->getOption<HLSFlowStep_Type>(OPT_scheduling_algorithm) == HLSFlowStep_Type::SDC_SCHEDULING and GetPointer<const HLS_manager>(AppM) and GetPointer<const HLS_manager>(AppM)->get_HLS(function_id) and
@@ -321,8 +317,8 @@ DesignFlowStep_Status RemoveEndingIf::InternalExec()
                         while(not dep_block->CGetStmtList().empty())
                         {
                            auto current_stmt = dep_block->CGetStmtList().front();
-                           dep_block->RemoveStmt(current_stmt);
-                           if_block->PushBack(current_stmt);
+                           dep_block->RemoveStmt(current_stmt, AppM);
+                           if_block->PushBack(current_stmt, AppM);
                         }
 
                         bb_modified = true;

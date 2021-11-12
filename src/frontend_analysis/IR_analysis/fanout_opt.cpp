@@ -98,7 +98,7 @@ const CustomUnorderedSet<std::pair<FrontendFlowStepType, FrontendFlowStep::Funct
          {
             case DesignFlowStep_Status::SUCCESS:
             {
-               if(not parameters->getOption<int>(OPT_gcc_openmp_simd))
+               if(!parameters->getOption<int>(OPT_gcc_openmp_simd))
                {
                   relationships.insert(std::make_pair(BIT_VALUE, SAME_FUNCTION));
                }
@@ -125,8 +125,8 @@ const CustomUnorderedSet<std::pair<FrontendFlowStepType, FrontendFlowStep::Funct
       }
       case DEPENDENCE_RELATIONSHIP:
       {
-         relationships.insert(std::pair<FrontendFlowStepType, FunctionRelationship>(CSE_STEP, SAME_FUNCTION));
-         relationships.insert(std::pair<FrontendFlowStepType, FunctionRelationship>(EXTRACT_PATTERNS, SAME_FUNCTION));
+         relationships.insert(std::make_pair(CSE_STEP, SAME_FUNCTION));
+         relationships.insert(std::make_pair(EXTRACT_PATTERNS, SAME_FUNCTION));
          break;
       }
       default:
@@ -154,14 +154,14 @@ DesignFlowStep_Status fanout_opt::InternalExec()
 {
    if(parameters->IsParameter("disable-fanout_opt"))
    {
-      return DesignFlowStep_Status::SKIPPED;
+      return DesignFlowStep_Status::UNCHANGED;
    }
    bool IR_changed = false;
 
    tree_nodeRef temp = TM->get_tree_node_const(function_id);
    auto* fd = GetPointer<function_decl>(temp);
    auto* sl = GetPointer<statement_list>(GET_NODE(fd->body));
-   const tree_manipulationRef tree_man = tree_manipulationRef(new tree_manipulation(TM, parameters));
+   const tree_manipulationRef tree_man = tree_manipulationRef(new tree_manipulation(TM, parameters, AppM));
 
    for(auto block : sl->list_of_bloc)
    {
@@ -182,9 +182,8 @@ DesignFlowStep_Status fanout_opt::InternalExec()
                auto* ssa_defined = GetPointer<ssa_name>(GET_NODE(ga->op0));
                if(ssa_defined->CGetNumberUses() > 1)
                {
-                  unsigned assigned_ssa_type_index;
-                  const tree_nodeRef assigned_ssa_type_node = tree_helper::get_type_node(GET_NODE(ga->op0), assigned_ssa_type_index);
-                  INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "---the assigned ssa_name " + STR(GET_NODE(ga->op0)) + " has type " + assigned_ssa_type_node->ToString());
+                  const auto assigned_ssa_type_node = tree_helper::CGetType(ga->op0);
+                  INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "---the assigned ssa_name " + STR(GET_NODE(ga->op0)) + " has type " + STR(assigned_ssa_type_node));
                   bool is_first_stmt = true;
                   std::list<tree_nodeRef> list_of_dest_statements;
                   for(auto dest_statement : ssa_defined->CGetUseStmts())
@@ -200,9 +199,9 @@ DesignFlowStep_Status fanout_opt::InternalExec()
                   }
                   for(auto dest_statement : list_of_dest_statements)
                   {
-                     tree_nodeRef temp_assign = tree_man->CreateGimpleAssign(assigned_ssa_type_node, ssa_defined->min, ssa_defined->max, ga->op0, block.first, srcp_default);
+                     tree_nodeRef temp_assign = tree_man->CreateGimpleAssign(assigned_ssa_type_node, ssa_defined->min, ssa_defined->max, ga->op0, function_id, block.first, srcp_default);
                      INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "---create a temporary assignment " + temp_assign->ToString());
-                     block.second->PushAfter(temp_assign, stmt);
+                     block.second->PushAfter(temp_assign, stmt, AppM);
                      tree_nodeRef temp_ssa_var = GetPointer<gimple_assign>(GET_NODE(temp_assign))->op0;
                      GetPointer<gimple_assign>(GET_NODE(temp_assign))->keep = true;
                      GetPointer<gimple_assign>(GET_NODE(temp_assign))->temporary_address = ga->temporary_address;
@@ -251,7 +250,7 @@ DesignFlowStep_Status fanout_opt::InternalExec()
                   }
                   tree_nodeRef new_res_var;
                   INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "---starting from phi " + phi->ToString());
-                  auto new_phi = tree_man->create_phi_node(new_res_var, list_of_def_edge, gp->scpe, block.first);
+                  auto new_phi = tree_man->create_phi_node(new_res_var, list_of_def_edge, GET_INDEX_CONST_NODE(gp->scpe), block.first);
                   auto new_res_var_ssa = GetPointer<ssa_name>(GET_NODE(new_res_var));
                   new_res_var_ssa->min = ssa_defined->min;
                   new_res_var_ssa->max = ssa_defined->max;

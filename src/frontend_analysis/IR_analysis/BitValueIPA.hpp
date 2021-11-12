@@ -64,6 +64,7 @@ class BitValueIPA : public ApplicationFrontendFlowStep, public BitLatticeManipul
     * steps have to be invalidated by this step
     */
    CustomOrderedSet<unsigned int> fun_id_to_restart;
+   CustomOrderedSet<unsigned int> fun_id_to_restart_caller;
 
    std::map<unsigned int, unsigned int> last_bitvalue_ver;
 
@@ -89,11 +90,6 @@ class BitValueIPA : public ApplicationFrontendFlowStep, public BitLatticeManipul
     * @return true if the step has to be executed
     */
    bool HasToBeExecuted() const override;
-
-   /**
-    * Initialize the step (i.e., like a constructor, but executed just before exec
-    */
-   void Initialize() override;
 };
 
 #endif

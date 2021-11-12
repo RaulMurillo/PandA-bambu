@@ -42,9 +42,6 @@
  *
  */
 
-/// Autoheader include
-#include "config_XILINX_VIVADO_SETTINGS.hpp"
-
 /// Includes the class definition
 #include "VIVADO_xsim_wrapper.hpp"
 
@@ -126,7 +123,7 @@ void VIVADO_xsim_wrapper::GenerateScript(std::ostringstream& script, const std::
 
    log_file = XSIM_SUBDIR + suffix + "/" + top_filename + "_xsim.log";
    script << "#configuration" << std::endl;
-   auto setupscr = STR(XILINX_VIVADO_SETTINGS);
+   auto setupscr = Param->isOption(OPT_xilinx_vivado_settings) ? Param->getOption<std::string>(OPT_xilinx_vivado_settings) : "";
    if(!setupscr.empty() && setupscr != "0")
    {
       if(boost::algorithm::starts_with(setupscr, "export"))

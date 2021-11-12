@@ -68,7 +68,6 @@
 #include "mppb_instruction_writer.hpp"
 #endif
 #include "prettyPrintVertex.hpp"
-#include "simple_indent.hpp"
 
 /// Behavior include
 #include "basic_block.hpp"
@@ -155,7 +154,7 @@ void InstructionWriter::write(const FunctionBehaviorConstRef function_behavior, 
 
 void InstructionWriter::declareFunction(const unsigned int function_id)
 {
-   const BehavioralHelperConstRef behavioral_helper = AppM->CGetFunctionBehavior(function_id)->CGetBehavioralHelper();
+   const auto behavioral_helper = AppM->CGetFunctionBehavior(function_id)->CGetBehavioralHelper();
    indented_output_stream->Append(behavioral_helper->print_type(function_id, false, true, false, 0, var_pp_functorConstRef(new std_var_pp_functor(behavioral_helper))));
 }
 

@@ -148,8 +148,8 @@ DesignFlowStep_Status GenerateTasteHDLArchitecture::Exec()
    writer->write("\n");
    for(const auto& top_function : HLSMgr->aadl_information->top_functions_names)
    {
-      const auto function_id = TreeM->function_index(top_function);
-      const auto SM = HLSMgr->get_HLS(function_id)->top;
+      const auto function_node = TreeM->GetFunction(top_function);
+      const auto SM = HLSMgr->get_HLS(function_node->index)->top;
       const auto circuit = SM->get_circ();
       writer->write_component_declaration(circuit);
    }
@@ -255,7 +255,7 @@ DesignFlowStep_Status GenerateTasteHDLArchitecture::Exec()
       counter++;
    }
    writer->write("end;\n");
-   writer->WriteFile("architecture_top.vhd");
+   writer->WriteFile(GetPath("architecture_top.vhd"));
    HLSMgr->hdl_files.push_back(GetPath("top.vhd"));
    HLSMgr->hdl_files.push_back(GetPath("architecture_top.vhd"));
 
@@ -306,8 +306,8 @@ DesignFlowStep_Status GenerateTasteHDLArchitecture::Exec()
    config_writer->write("   type octStr_24 is array (0 to 23) of std_logic_vector(7 downto 0);\n");
    config_writer->write("end;\n");
 
-   config_writer->WriteFile("architecture_config.vhd");
-   HLSMgr->hdl_files.push_back("architecture_config.vhd");
+   config_writer->WriteFile(GetPath("architecture_config.vhd"));
+   HLSMgr->hdl_files.push_back(GetPath("architecture_config.vhd"));
 
    return DesignFlowStep_Status::SUCCESS;
 }

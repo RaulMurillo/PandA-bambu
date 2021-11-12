@@ -70,6 +70,7 @@
 #include "technology_manager.hpp"
 #include "technology_wishbone.hpp"
 #include "tree_helper.hpp"
+#include "tree_manager.hpp"
 
 /// technology/physical_library include
 #include "technology_node.hpp"
@@ -113,7 +114,7 @@ DesignFlowStep_Status WB4_interface::InternalExec()
 
    build_WB4_complete_logic(SM_wb4_interface, wrappedObj, interfaceObj);
 
-   if(!parameters->isOption(OPT_do_not_expose_globals) || !parameters->getOption<bool>(OPT_do_not_expose_globals))
+   if(parameters->isOption(OPT_expose_globals) && parameters->getOption<bool>(OPT_expose_globals))
    {
       memory::propagate_memory_parameters(HLS->top->get_circ(), SM_wb4_interface);
    }
@@ -125,8 +126,8 @@ DesignFlowStep_Status WB4_interface::InternalExec()
 
 unsigned int WB4_interface::get_data_bus_bitsize()
 {
-   const FunctionBehaviorConstRef function_behavior = HLSMgr->CGetFunctionBehavior(HLS->functionId);
-   const BehavioralHelperConstRef behavioral_helper = function_behavior->CGetBehavioralHelper();
+   const auto function_behavior = HLSMgr->CGetFunctionBehavior(HLS->functionId);
+   const auto behavioral_helper = function_behavior->CGetBehavioralHelper();
    std::map<unsigned int, memory_symbolRef> function_parameters = HLSMgr->Rmem->get_function_parameters(HLS->functionId);
 
    unsigned int data_bus_bitsize = HLSMgr->Rmem->get_bus_data_bitsize();
@@ -134,7 +135,7 @@ unsigned int WB4_interface::get_data_bus_bitsize()
    {
       if(function_parameter.first != HLS->functionId)
       {
-         data_bus_bitsize = std::max(data_bus_bitsize, behavioral_helper->get_size(function_parameter.first));
+         data_bus_bitsize = std::max(data_bus_bitsize, tree_helper::Size(HLSMgr->get_tree_manager()->CGetTreeReindex(function_parameter.first)));
       }
    }
    return data_bus_bitsize;
@@ -609,15 +610,12 @@ void WB4_interface::build_WB4_complete_logic(structural_managerRef SM, structura
          connect_with_signal(SM, S_Wdata_ram_port, interfaceObj->find_member(WB_DATIS_PORT_NAME, port_o_K, interfaceObj));
          PRINT_DBG_MEX(DEBUG_LEVEL_VERBOSE, debug_level, "Connected S_Wdata_ram");
       }
-   }
-
-   // ---- Add the Rdata logic ----
-   if(is_slave)
-   {
+      // ---- Add the Rdata logic ----
       PRINT_DBG_MEX(DEBUG_LEVEL_VERBOSE, debug_level, "Connecting Sout_Rdata_ram");
       connect_with_signal(SM, Sout_Rdata_ram_port, interfaceObj->find_member(WB_DATOS_PORT_NAME, port_o_K, interfaceObj));
       PRINT_DBG_MEX(DEBUG_LEVEL_VERBOSE, debug_level, "Connected Sout_Rdata_ram");
    }
+
    if(is_master)
    {
       if(is_slave)
@@ -783,11 +781,8 @@ void WB4_interface::build_WB4_complete_logic(structural_managerRef SM, structura
          connect_with_signal_name(SM, S_addr_ram_port, afAddrISOut1, "addr_is_f");
          PRINT_DBG_MEX(DEBUG_LEVEL_VERBOSE, debug_level, "Connected S_addr_ram");
       }
-   }
 
-   // ---- Data ready ack logic ----
-   if(is_slave)
-   {
+      // ---- Data ready ack logic ----
       PRINT_DBG_MEX(DEBUG_LEVEL_VERBOSE, debug_level, "Inserting AckOSGate");
       structural_objectRef andGateAckOS = SM->add_module_from_technology_library("andGateAckOS", AND_GATE_STD, LIBRARY_STD, interfaceObj, HLS->HLS_T->get_technology_manager());
 

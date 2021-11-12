@@ -69,7 +69,7 @@ const CustomUnorderedSet<std::pair<FrontendFlowStepType, FrontendFlowStep::Funct
    {
       case(DEPENDENCE_RELATIONSHIP):
       {
-         relationships.insert(std::pair<FrontendFlowStepType, FunctionRelationship>(OP_FEEDBACK_EDGES_IDENTIFICATION, SAME_FUNCTION));
+         relationships.insert(std::make_pair(OP_FEEDBACK_EDGES_IDENTIFICATION, SAME_FUNCTION));
          break;
       }
       case(INVALIDATION_RELATIONSHIP):
@@ -128,7 +128,7 @@ DesignFlowStep_Status OpOrderComputation::InternalExec()
          bool toadd = true;
          vertex next = boost::target(*o, *cfg);
          INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "-->Considering successor " + GET_NAME(cfg, next));
-         /// Checking if all successor's predecessors have been examinated
+         /// Checking if all successor's predecessors have been analyzed
          for(boost::tie(i, i_end) = boost::in_edges(next, *cfg); i != i_end; i++)
          {
             if(!MARK[boost::source(*i, *cfg)])

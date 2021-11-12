@@ -227,6 +227,8 @@ DesignFlowStep_Status BB_based_stg::InternalExec()
    CustomOrderedSet<vertex> already_analyzed;
    VertexIterator vit, vend;
 
+   bool is_pipelined = HLSMgr->CGetFunctionBehavior(funId)->is_simple_pipeline();
+
    /// contains the list of operations which are executing, starting, ending and "on-fly" in every state of the STG
    std::map<vertex, std::list<vertex>> global_executing_ops, global_starting_ops, global_ending_ops, global_onfly_ops;
 
@@ -285,7 +287,6 @@ DesignFlowStep_Status BB_based_stg::InternalExec()
          has_registered_inputs = true;
       }
    }
-
    auto omp_functions = GetPointer<OmpFunctions>(HLSMgr->Rfuns);
    if(HLS->Param->isOption(OPT_context_switch))
    {
@@ -296,6 +297,7 @@ DesignFlowStep_Status BB_based_stg::InternalExec()
    }
    HLS->registered_inputs = has_registered_inputs;
 
+   /// build portion of STG associated with each BBs
    for(boost::tie(vit, vend) = boost::vertices(*fbb); vit != vend; ++vit)
    {
       if(*vit == bb_entry)
@@ -418,6 +420,7 @@ DesignFlowStep_Status BB_based_stg::InternalExec()
          executing_ops[cstep].push_back(op);
          starting_ops[cstep].push_back(op);
          const auto initiation_time = HLS->allocation_information->get_initiation_time(fu_name, op);
+         INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "---initiation_time " + STR(initiation_time));
          if(initiation_time == 0 || initiation_time > delay)
          {
             for(auto c = cstep + 1u; c <= end_step; c++)
@@ -677,7 +680,7 @@ DesignFlowStep_Status BB_based_stg::InternalExec()
       INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "<--Analyzed BB" + STR(fbb->CGetBBNodeInfo(bb_src)->block->number) + "-->" + STR(fbb->CGetBBNodeInfo(bb_tgt)->block->number));
    }
    ///*****************************************************
-   if(parameters->getOption<bool>(OPT_print_dot))
+   if(parameters->getOption<bool>(OPT_print_dot) && DEBUG_LEVEL_VERY_PEDANTIC <= debug_level)
    {
       HLS->STG->CGetStg()->WriteDot("HLS_STGraph-pre-opt.dot");
    }
@@ -695,7 +698,7 @@ DesignFlowStep_Status BB_based_stg::InternalExec()
             // std::cerr << "begin cycles optimization" << std::endl;
             optimize_cycles(bbEndingCycle, first_state, last_state, global_starting_ops, global_ending_ops, global_executing_ops, global_onfly_ops);
             // std::cerr << "end cycles optimization " << STR(instance) << std::endl;
-            if(parameters->getOption<bool>(OPT_print_dot))
+            if(parameters->getOption<bool>(OPT_print_dot) && DEBUG_LEVEL_VERY_PEDANTIC <= debug_level)
             {
                HLS->STG->CGetStg()->WriteDot("HLS_STGraph-post" + STR(instance) + ".dot");
             }
@@ -709,7 +712,6 @@ DesignFlowStep_Status BB_based_stg::InternalExec()
    ///*****************************************************
 
    HLS->STG->compute_min_max();
-   bool is_pipelined = HLSMgr->CGetFunctionBehavior(funId)->build_simple_pipeline();
    if(HLS->STG->CGetStg()->CGetStateTransitionGraphInfo()->min_cycles != 1 && !is_pipelined)
    {
       HLS->registered_done_port = true;
@@ -1021,7 +1023,7 @@ void BB_based_stg::compute_EPP_edge_increments(const std::map<vertex, std::list<
 }
 
 /**
- * Given two bb linked by a forwarding edge, this method tries to move
+ * Given two bb linked by a forwarding edge, this method tries to
  * overlap the execution of the last state of the bb ending the cycle
  * with the execution of the first state of the bb that begins the cycle.
  */
@@ -1029,12 +1031,12 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
                                    std::map<vertex, std::list<vertex>>& global_ending_ops, std::map<vertex, std::list<vertex>>& global_executing_ops, std::map<vertex, std::list<vertex>>& global_onfly_ops)
 {
    const BBGraphConstRef fbb = HLSMgr->CGetFunctionBehavior(funId)->CGetBBGraph(FunctionBehavior::FBB);
-   PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Considering bbEndingCycle:" + STR(fbb->CGetBBNodeInfo(bbEndingCycle)->block->number));
+   INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Considering bbEndingCycle:" + STR(fbb->CGetBBNodeInfo(bbEndingCycle)->block->number));
    std::list<vertex>::iterator it, findIter;
    // The last state of the cycle
    const StateTransitionGraphConstRef stg = HLS->STG->CGetStg();
    vertex lastst = last_state[bbEndingCycle];
-   PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Last state is " + stg->CGetStateInfo(lastst)->name);
+   INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Last state is " + stg->CGetStateInfo(lastst)->name);
    if(stg->CGetStateInfo(lastst)->is_duplicated)
    {
       return;
@@ -1044,7 +1046,7 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
       return;
    }
 
-   PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Compute the second last state of the bb");
+   INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Compute the second last state of the bb");
    /*
     Compute the second last state of the bb. After the move,
     this state will become the last state of the bb.
@@ -1054,7 +1056,7 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
    {
       return;
    }
-   PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Second last state computed " + stg->CGetStateInfo(secondLastState)->name);
+   INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Second last state computed " + stg->CGetStateInfo(secondLastState)->name);
 
    BOOST_FOREACH(EdgeDescriptor oedge, boost::out_edges(lastst, *stg))
    {
@@ -1119,7 +1121,7 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
     From now on, lastStateEndingOpList can be considered a list
     containing all the operations of the state.
     *************************************************************/
-   PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Basic checks passed");
+   INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Basic checks passed");
    /*
     Some operations cannot be moved in any case. If any of them
     is executed in the last state, I have to return without performing
@@ -1131,18 +1133,18 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
    const OpGraphConstRef dfgRef = HLSMgr->CGetFunctionBehavior(funId)->CGetOpGraph(FunctionBehavior::DFG);
    for(it = lastStateEndingOpList.begin(); it != lastStateEndingOpList.end(); ++it)
    {
-      PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Check phi");
+      INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Check phi");
       // phi operators cannot be moved
       if(GET_TYPE(dfgRef, *it) & (TYPE_PHI | TYPE_VPHI))
       {
          return;
       }
-      PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Check return");
+      INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Check return");
       if(GET_TYPE(dfgRef, *it) & TYPE_RET)
       {
          return;
       }
-      PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Check switch and multi-if");
+      INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Check switch and multi-if");
       // creates a list containing all the conditional operations
       if(GET_TYPE(dfgRef, *it) & (TYPE_IF))
       {
@@ -1157,8 +1159,14 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
          return; // lastStateConditionalOpList.push_back(*it);
       }
 
-      PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Check unbounded");
-      technology_nodeRef tn = HLS->allocation_information->get_fu(HLS->Rfu->get_assign(*it));
+      INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Check unbounded");
+      auto fu_id = HLS->Rfu->get_assign(*it);
+      /// interface operations cannot be copied or moved
+      if(HLS->allocation_information->get_fu_name(fu_id).second == INTERFACE_LIBRARY)
+      {
+         return;
+      }
+      technology_nodeRef tn = HLS->allocation_information->get_fu(fu_id);
       technology_nodeRef op_tn = GetPointer<functional_unit>(tn)->get_operation(tree_helper::normalized_ID(dfgRef->CGetOpNodeInfo(*it)->GetOperation()));
       if(!GetPointer<operation>(op_tn)->is_bounded())
       {
@@ -1170,11 +1178,11 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
          has_STOREs = true;
       }
 
-      PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Check resource-constrained");
+      INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Check resource-constrained");
       // operations executed by resource-constrained fu should not be moved
       if(res_const_operation(*it, lastStateExecutingOpList, lastst))
       {
-         PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Resource constraints limit on operation " + dfgRef->CGetOpNodeInfo(*it)->GetOperation());
+         INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Resource constraints limit on operation " + dfgRef->CGetOpNodeInfo(*it)->GetOperation());
          return;
       }
 
@@ -1182,7 +1190,7 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
         check if the operation is chained to a conditional operation:
         in this case, I cannot optimize.
         */
-      PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Check data dependency with control operation");
+      INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Check data dependency with control operation");
       BOOST_FOREACH(EdgeDescriptor ei, boost::out_edges(*it, *dfgRef))
       {
          vertex tgt_op = boost::target(ei, *dfgRef);
@@ -1192,23 +1200,23 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
          }
          if(GET_TYPE(dfgRef, tgt_op) & (TYPE_IF))
          {
-            PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "depending if");
+            INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "depending if");
             return;
          }
          if(GET_TYPE(dfgRef, tgt_op) & (TYPE_MULTIIF))
          {
-            PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "depending multi if");
+            INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "depending multi if");
             return;
          }
          if(GET_TYPE(dfgRef, tgt_op) & (TYPE_SWITCH))
          {
-            PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "depending switch");
+            INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "depending switch");
             return;
          }
       }
    }
 
-   PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Creating list of following bb");
+   INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Creating list of following bb");
    /*
     Create a list of all the bb following the last bb of the cycle
     that I am optimizing.
@@ -1240,7 +1248,12 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
          for(auto next_ops : global_starting_ops[first_state[tempBb]])
          {
             const auto operation = dfgRef->CGetOpNodeInfo(next_ops);
-            if((GET_TYPE(dfgRef, next_ops) & (TYPE_STORE | TYPE_LOAD | TYPE_EXTERNAL)) != 0)
+            auto curr_vertex_type = GET_TYPE(dfgRef, next_ops);
+            if((curr_vertex_type & (TYPE_STORE | TYPE_LOAD)) != 0)
+            {
+               return;
+            }
+            if((curr_vertex_type & TYPE_EXTERNAL) && (curr_vertex_type & TYPE_RW))
             {
                return;
             }
@@ -1259,7 +1272,7 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
       // std::cerr << fbb->CGetBBNodeInfo(tempBb)->get_bb_index() << std::endl;
    }
 
-   PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "check if it is possible to move the last state");
+   INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "check if it is possible to move the last state");
    /*
     check if it is possible to move the last state of the cycle at the beginning
     of every adjacent bb.
@@ -1272,11 +1285,7 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
       }
    }
 
-   /********************************************************
-    If I arrive here, it is possible to move the last state
-    *********************************************************/
-
-   PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "compute which variables are defined and used");
+   INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "compute which variables are defined and used");
    /*
     compute which variables are defined and used by the operations that will be
     moved, and check that it is possible to store in registers all the used variables
@@ -1300,7 +1309,7 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
    }
    if(is_dest_first_st_equal_to_second)
    {
-      PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "is_dest_first_st_equal_to_second is true!");
+      INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "is_dest_first_st_equal_to_second is true!");
    }
    for(auto bbVertex : followingBb)
    {
@@ -1330,7 +1339,7 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
       }
       if(skip_phi)
       {
-         PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Phi can be skipped!");
+         INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Phi can be skipped!");
       }
       for(auto stmt : global_ending_ops[dest_first_state])
       {
@@ -1356,6 +1365,7 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
       }
    }
    std::map<vertex, std::size_t> in_degree_following_Bb;
+   INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Check dummy");
    for(auto bbVertex : followingBb)
    {
       in_degree_following_Bb[bbVertex] = boost::in_degree(first_state[bbVertex], *stg);
@@ -1363,19 +1373,33 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
       {
          return;
       }
+      /// check if first state duplication is required
+      if(in_degree_following_Bb[bbVertex] > 1)
+      {
+         INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "src state:" + stg->CGetStateInfo(first_state[bbVertex])->name);
+         BOOST_FOREACH(EdgeDescriptor oedge, boost::out_edges(first_state[bbVertex], *stg))
+         {
+            vertex cstate = boost::target(oedge, *stg);
+            INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "target state:" + stg->CGetStateInfo(cstate)->name);
+            if(stg->CGetStateInfo(cstate)->is_dummy)
+            {
+               return;
+            }
+         }
+      }
    }
 
    for(auto bbVertex : followingBb)
    {
-      PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "analyzing BB:" + STR(fbb->CGetBBNodeInfo(bbVertex)->block->number));
-      PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "first state:" + stg->CGetStateInfo(first_state[bbVertex])->name);
-      PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "last state:" + stg->CGetStateInfo(last_state[bbVertex])->name);
+      INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "analyzing BB:" + STR(fbb->CGetBBNodeInfo(bbVertex)->block->number));
+      INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "first state:" + stg->CGetStateInfo(first_state[bbVertex])->name);
+      INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "last state:" + stg->CGetStateInfo(last_state[bbVertex])->name);
       if(last_state[bbVertex] == first_state[bbVertex])
       {
          BOOST_FOREACH(EdgeDescriptor ei, boost::out_edges(bbVertex, *fbb))
          {
             vertex tgtBB = boost::target(ei, *fbb);
-            PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "target BB:" + STR(fbb->CGetBBNodeInfo(tgtBB)->block->number));
+            INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "target BB:" + STR(fbb->CGetBBNodeInfo(tgtBB)->block->number));
             if(boost::in_degree(first_state[tgtBB], *stg) > 1)
             {
                return;
@@ -1383,7 +1407,10 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
          }
       }
    }
-   PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "One state can be moved!");
+   /********************************************************
+    If I arrive here, it is possible to move the last state
+    *********************************************************/
+   INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "One state can be moved!");
 
    /*
     Move all the conditional operations from the last state to
@@ -1413,7 +1440,7 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
     */
    for(auto bbVertex : followingBb)
    {
-      PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "analyzing BB:" + STR(fbb->CGetBBNodeInfo(bbVertex)->block->number));
+      INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "analyzing BB:" + STR(fbb->CGetBBNodeInfo(bbVertex)->block->number));
       if(in_degree_following_Bb[bbVertex] > 1)
       {
          move_with_duplication(lastst, secondLastState, first_state[bbVertex], global_starting_ops, global_executing_ops, global_ending_ops, defSet, useSet);
@@ -1428,7 +1455,7 @@ void BB_based_stg::optimize_cycles(vertex bbEndingCycle, CustomUnorderedMap<vert
     Now I can delete the last state of the bb ending the cycle,
     and all the edges entering and exiting from it
     **********************************************************/
-   PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Deleting the last state of the cycle..");
+   INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "Deleting the last state of the cycle..");
    /*
     update the last_state map
     */
@@ -1902,14 +1929,14 @@ void BB_based_stg::move_with_duplication(const vertex stateToMove, const vertex 
       BOOST_FOREACH(EdgeDescriptor oe, boost::out_edges(stateToMove, *stg))
       {
          vertex next_state = boost::target(oe, *stg);
-         PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "(F)newEdge " + clonedStateInfo->name + "->" +
+         INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "(F)newEdge " + clonedStateInfo->name + "->" +
                stg->GetStateInfo(next_state == stateToClone ?  clonedState : next_state)->name);
          EdgeDescriptor new_edge = HLS->STG->STG_builder->connect_state(clonedState,
                next_state == stateToClone ?  clonedState : next_state, stg->GetSelector(oe));
          HLS->STG->STG_builder->copy_condition(new_edge, oe);
          if(next_state != stateToClone)
          {
-            PRINT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level,
+            INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level,
             "all path for " + stg->GetStateInfo(next_state)->name + "set to true");
             stg->GetStateInfo(next_state)->all_paths = true;
          }

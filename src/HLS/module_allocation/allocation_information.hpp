@@ -323,7 +323,7 @@ class AllocationInformation : public HLSFunctionIR
    CustomSet<unsigned int> ComputeDrivenCondExpr(const unsigned int ssa) const;
 
    /**
-    * Compute the values for the initialization of the multiplxer characteristics database
+    * Compute the values for the initialization of the multiplexer characteristics database
     * @param allocation_information is a reference to an instance of this class
     * @return the pair mux_timing_db, mux_area_db
     */
@@ -1093,5 +1093,6 @@ struct node_kind_prec_info
    node_kind_prec_info() : output_prec(0), base128_output_nelem(0), real_output_nelem(0), is_single_bool_test_cond_expr(false), is_simple_pointer_plus_expr(false)
    {
    }
+   void print(std::ostream& os) const;
 };
 #endif

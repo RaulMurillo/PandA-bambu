@@ -66,6 +66,7 @@ const CustomUnorderedSet<std::pair<FrontendFlowStepType, FrontendFlowStep::Funct
    {
       case(DEPENDENCE_RELATIONSHIP):
       {
+         relationships.insert(std::make_pair(CHECK_SYSTEM_TYPE, SAME_FUNCTION));
          relationships.insert(std::make_pair(FIX_STRUCTS_PASSED_BY_VALUE, SAME_FUNCTION));
          relationships.insert(std::make_pair(FUNCTION_CALL_TYPE_CLEANUP, SAME_FUNCTION));
          relationships.insert(std::make_pair(IR_LOWERING, SAME_FUNCTION));
@@ -91,15 +92,15 @@ const CustomUnorderedSet<std::pair<FrontendFlowStepType, FrontendFlowStep::Funct
 DesignFlowStep_Status parm_decl_taken_address_fix::InternalExec()
 {
    bool changed = false;
-   const tree_managerRef TM = AppM->get_tree_manager();
-   const tree_manipulationRef IRman = tree_manipulationRef(new tree_manipulation(TM, parameters));
-   const tree_nodeRef tn = TM->get_tree_node_const(function_id);
+   const auto TM = AppM->get_tree_manager();
+   const auto IRman = tree_manipulationRef(new tree_manipulation(TM, parameters, AppM));
+   const auto tn = TM->GetTreeNode(function_id);
    auto* fd = GetPointer<function_decl>(tn);
-   THROW_ASSERT(fd and fd->body, "Node " + STR(tn) + "is not a function_decl or has no body");
+   THROW_ASSERT(fd && fd->body, "Node " + STR(tn) + "is not a function_decl or has no body");
    const auto* sl = GetPointer<const statement_list>(GET_NODE(fd->body));
    THROW_ASSERT(sl, "Body is not a statement_list");
    const std::string fu_name = tree_helper::name_function(TM, function_id);
-   THROW_ASSERT(not GetPointer<const function_type>(tree_helper::CGetType(tn))->varargs_flag, "function " + fu_name + " is varargs");
+   THROW_ASSERT(!GetPointer<const function_type>(GET_CONST_NODE(tree_helper::CGetType(tn)))->varargs_flag, "function " + fu_name + " is varargs");
    // compute the set of parm_decl for which an address is taken
    CustomOrderedSet<unsigned int> parm_decl_addr;
    std::map<unsigned int, tree_nodeRef> parm_decl_var_decl_rel;
@@ -161,20 +162,20 @@ DesignFlowStep_Status parm_decl_taken_address_fix::InternalExec()
          const auto* pd = GetPointer<const parm_decl>(GET_NODE(par));
          THROW_ASSERT(pd, "unexpected condition");
          const std::string srcp_default = pd->include_name + ":" + STR(pd->line_number) + ":" + STR(pd->column_number);
-         auto new_ga_expr = IRman->CreateGimpleAssignAddrExpr(GET_NODE(vd), bb_index, srcp_default);
-         first_block->PushFront(new_ga_expr);
+         auto new_ga_expr = IRman->CreateGimpleAssignAddrExpr(GET_NODE(vd), function_id, bb_index, srcp_default);
+         first_block->PushFront(new_ga_expr, AppM);
          INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "---New statement statement " + GET_NODE(new_ga_expr)->ToString());
          auto* nge = GetPointer<gimple_assign>(GET_NODE(new_ga_expr));
          nge->temporary_address = true;
          tree_nodeRef ssa_addr = nge->op0;
          auto* sa = GetPointer<ssa_name>(GET_NODE(ssa_addr));
-         tree_nodeRef offset = TM->CreateUniqueIntegerCst(0, GET_INDEX_NODE(sa->type));
+         tree_nodeRef offset = TM->CreateUniqueIntegerCst(0, sa->type);
 
          const tree_nodeRef p_type = pd->type;
          auto mr = IRman->create_binary_operation(p_type, ssa_addr, offset, srcp_default, mem_ref_K);
          tree_nodeRef ssa_par = IRman->create_ssa_name(par, p_type, tree_nodeRef(), tree_nodeRef());
-         tree_nodeRef ga = IRman->create_gimple_modify_stmt(mr, ssa_par, srcp_default, bb_index);
-         first_block->PushAfter(ga, new_ga_expr);
+         tree_nodeRef ga = IRman->create_gimple_modify_stmt(mr, ssa_par, function_id, srcp_default, bb_index);
+         first_block->PushAfter(ga, new_ga_expr, AppM);
          GetPointer<gimple_node>(GET_NODE(ga))->artificial = true;
          INDENT_DBG_MEX(DEBUG_LEVEL_VERY_PEDANTIC, debug_level, "---New statement statement " + GET_NODE(ga)->ToString());
       }

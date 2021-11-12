@@ -52,6 +52,7 @@
 #include "config_HAVE_FROM_RTL_BUILT.hpp"
 #include "config_HAVE_I386_CLANG10_COMPILER.hpp"
 #include "config_HAVE_I386_CLANG11_COMPILER.hpp"
+#include "config_HAVE_I386_CLANG12_COMPILER.hpp"
 #include "config_HAVE_I386_CLANG4_COMPILER.hpp"
 #include "config_HAVE_I386_CLANG5_COMPILER.hpp"
 #include "config_HAVE_I386_CLANG6_COMPILER.hpp"
@@ -173,15 +174,18 @@ enum class CompilerWrapper_CompilerTarget
 #if HAVE_I386_CLANG11_COMPILER
    CT_I386_CLANG11 = 65536,
 #endif
+#if HAVE_I386_CLANG12_COMPILER
+   CT_I386_CLANG12 = 131072,
+#endif
 #if HAVE_I386_CLANGVVD_COMPILER
-   CT_I386_CLANGVVD = 131072,
+   CT_I386_CLANGVVD = 262144,
 #endif
 #if HAVE_ARM_COMPILER
-   CT_ARM_GCC = 262144,
+   CT_ARM_GCC = 524288,
 #endif
 #if HAVE_SPARC_COMPILER
-   CT_SPARC_GCC = 524288,
-   CT_SPARC_ELF_GCC = 1048576
+   CT_SPARC_GCC = 1048576,
+   CT_SPARC_ELF_GCC = 2097152
 #endif
 };
 
@@ -206,10 +210,10 @@ class CompilerWrapper
    {
     public:
       /// The cpp executable
-      boost::filesystem::path cpp;
+      std::string cpp;
 
       /// The compiler frontend executable
-      boost::filesystem::path gcc;
+      std::string gcc;
 
       /// The extra_options
       std::string extra_options;
@@ -243,10 +247,10 @@ class CompilerWrapper
       std::string ASTAnalyzer_plugin_name;
 
       /// The clang llvm-link executable
-      boost::filesystem::path llvm_link;
+      std::string llvm_link;
 
       /// The clang llvm-opt executable
-      boost::filesystem::path llvm_opt;
+      std::string llvm_opt;
 
 #if HAVE_FROM_RTL_BUILT
       /// The plugin to dump gimple and rtl

@@ -435,7 +435,7 @@ void VcdSignalSelection::SingleStepPropagateAddrSsa(const tree_nodeRef& curr_tn)
          if(rhs_kind == view_convert_expr_K)
          {
             const auto* vc = GetPointer<const view_convert_expr>(rhs);
-            const auto vc_kind = tree_helper::get_type_node(GET_NODE(vc->op))->get_kind();
+            const auto vc_kind = GET_CONST_NODE(tree_helper::CGetType(vc->op))->get_kind();
             if(vc_kind == record_type_K || vc_kind == union_type_K)
             {
                rhs_is_load_candidate = true;
@@ -547,7 +547,7 @@ void VcdSignalSelection::CrossPropagateAddrSsa(CustomUnorderedMap<unsigned int, 
              */
             if(callid == 0)
             {
-               THROW_ASSERT(HLSMgr->CGetFunctionBehavior(called_id)->CGetBehavioralHelper()->get_function_name() == "__internal_bambu_memcpy",
+               THROW_ASSERT(HLSMgr->CGetFunctionBehavior(called_id)->CGetBehavioralHelper()->get_function_name() == MEMCPY,
                             "artificial calls to " + HLSMgr->CGetFunctionBehavior(called_id)->CGetBehavioralHelper()->get_function_name() + " should not happen");
                continue;
             }
@@ -818,7 +818,7 @@ void VcdSignalSelection::SelectInternalSignals(CustomUnorderedMap<unsigned int, 
             {
                to_select += "array_" + STR(alloc_info->get_memory_var(fu_type_id)) + "_" + STR(fu_bind->get_index(*op_vi) / alloc_info->get_number_channels(fu_type_id));
             }
-            else if((alloc_info->is_direct_proxy_memory_unit(fu_type_id) and alloc_info->is_proxy_memory_unit(fu_type_id)) or alloc_info->is_indirect_access_memory_unit(fu_type_id))
+            else if((alloc_info->is_direct_proxy_memory_unit(fu_type_id)) or alloc_info->is_indirect_access_memory_unit(fu_type_id))
             {
                to_select += fu_bind->get_fu_name(*op_vi) + "_i" + STR(fu_bind->get_index(*op_vi) / alloc_info->get_number_channels(fu_type_id));
             }
@@ -835,13 +835,13 @@ void VcdSignalSelection::SelectInternalSignals(CustomUnorderedMap<unsigned int, 
                }
                to_select += "_instance";
             }
-            else if(fu_bind->get_operations(fu_type_id, fu_instance_id).size() == 1)
-            {
-               to_select += "fu_" + GET_NAME(op_graph, *op_vi);
-            }
             else if(alloc_info->get_number_channels(fu_type_id) > 0)
             {
                to_select += fu_bind->get_fu_name(*op_vi) + "_i" + STR(fu_bind->get_index(*op_vi) / alloc_info->get_number_channels(fu_type_id));
+            }
+            else if(fu_bind->get_operations(fu_type_id, fu_instance_id).size() == 1)
+            {
+               to_select += "fu_" + GET_NAME(op_graph, *op_vi);
             }
             else
             {

@@ -95,11 +95,11 @@ class CSE : public FunctionFrontendFlowStep
    /// tree manager
    const tree_managerRef TM;
 
-   /// The statement list
-   statement_list* sl;
-
    /// when true PHI_OPT step has to restart
    bool restart_phi_opt;
+
+   /// when true BIT_VALUE step has to restart
+   bool restart_bit_value;
 
    const CustomUnorderedSet<std::pair<FrontendFlowStepType, FunctionRelationship>> ComputeFrontendRelationships(const DesignFlowStep::RelationshipType relationship_type) const override;
 
@@ -107,10 +107,10 @@ class CSE : public FunctionFrontendFlowStep
    using CSE_tuple_key_type = std::pair<enum kind, std::vector<unsigned int>>;
 
    /// check if the statement has an equivalent in the unique table
-   tree_nodeRef hash_check(tree_nodeRef tn, vertex bb, std::map<vertex, CustomUnorderedMapStable<CSE_tuple_key_type, tree_nodeRef>>& unique_table);
+   tree_nodeRef hash_check(const tree_nodeRef& tn, vertex bb, const statement_list* sl, std::map<vertex, CustomUnorderedMapStable<CSE_tuple_key_type, tree_nodeRef>>& unique_table) const;
 
    /// check if the gimple assignment is a load, store or a memcpy/memset
-   bool check_loads(const gimple_assign* ga, unsigned int right_part_index, tree_nodeRef right_part);
+   bool has_memory_access(const gimple_assign* ga) const;
 
  public:
    /**
