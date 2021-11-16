@@ -313,7 +313,7 @@ namespace flopoco
 			string simlibs="--ieee=standard --ieee=synopsys ";
 			s <<  "ghdl -a " << simlibs << "-fexplicit "<< outputFileName <<endl;
 			s <<  "ghdl -e " << simlibs << "-fexplicit " << op->getName() <<endl;
-			s <<  "ghdl -r " << simlibs << op->getName() << " --vcd=" << op->getName() << ".vcd --stop-time=" << ((TestBench*)op)->getSimulationTime() << "ns" <<endl;
+			s <<  "ghdl -r " << simlibs << "-fexplicit " << op->getName() << " --vcd=" << op->getName() << ".vcd --stop-time=" << ((TestBench*)op)->getSimulationTime() << "ns" <<endl;
 			s <<  "gtkwave " << op->getName() << ".vcd" << endl;
 			cerr << "To run the simulation using nvc, type the following in a shell prompt:" <<endl;
 			cerr <<  "nvc  -a " << outputFileName << " --relax=prefer-explicit  -e " <<  op->getName() << "  -r --exit-severity=failure " << "--wave=" << op->getName() << ".fst --stop-time=" << ((TestBench*)op)->getSimulationTime() << "ns" <<endl;
