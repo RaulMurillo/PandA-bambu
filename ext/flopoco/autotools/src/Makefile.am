@@ -308,6 +308,7 @@ noinst_HEADERS = \
 		FlopocoStream.hpp \
 		IEEE/IEEEAdd.hpp \
 		IEEE/IEEEFMA.hpp \
+		IEEE/IEEEFloatFormat.hpp \
 		Posit/Posit2Posit.hpp \
 		Posit/Add/PIFAdd.hpp \
 		Posit/Add/PositAdd.hpp \
@@ -393,6 +394,7 @@ libflopoco_la_SOURCES = \
 		ConstMult/IntConstDiv.cpp \
 		ConstMult/IntConstMultShiftAdd.cpp \
 		ConstMult/IntConstMultShiftAddTypes.cpp \
+		ConstMult/IntConstMultShiftAddOptTernary.cpp \
 		ConstMult/IntConstMultShiftAddOpt.cpp \
 		ConstMult/IntConstMultShiftAddRPAG.cpp \
 		ConstMult/adder_cost.cpp \
@@ -447,6 +449,7 @@ libflopoco_la_SOURCES = \
 		ExpLog/FPPow.cpp \
 		IEEE/IEEEFMA.cpp \
 		IEEE/IEEEAdd.cpp \
+		IEEE/IEEEFloatFormat.cpp \
 		Table.cpp \
 		DualTable.cpp \
 		FixConstant.cpp \

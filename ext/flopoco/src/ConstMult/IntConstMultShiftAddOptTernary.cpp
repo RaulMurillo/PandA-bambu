@@ -23,17 +23,17 @@
 #include "IntConstMultShiftAdd.hpp"
 
 #include "tscm_solutions.hpp"
-#include "pagsuite/pagexponents.hpp"
-
-#include "pagsuite/compute_successor_set.h"
-#include "pagsuite/log2_64.h"
-#include "pagsuite/fundamental.h"
 
 #include <algorithm>
 
 using namespace std;
 
 #if defined(HAVE_PAGLIB) && defined(HAVE_OSCM)
+#include "pagsuite/pagexponents.hpp"
+
+#include "pagsuite/compute_successor_set.h"
+#include "pagsuite/log2_64.h"
+#include "pagsuite/fundamental.h"
 
 using namespace PAGSuite;
 

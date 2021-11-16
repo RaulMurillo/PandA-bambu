@@ -19,7 +19,7 @@ namespace flopoco{
 		/**
 		 * The IntDualAddSub constructor
 		 * @param[in] target the target device
-		 * @param[in] wIn    the with of the inputs and output
+		 * @param[in] wIn    the width of the inputs and output
 		 * @param[in] opType:  if 1, compute X-Y and X+Y; if 0, compute X-Y and Y-X
 		 * @param[in] inputDelays the delays for each input
 		 **/

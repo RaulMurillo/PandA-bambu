@@ -221,7 +221,7 @@ namespace flopoco{
 							<< ". Decreasing LSB and starting over. Thank you for your patience");
 					//empty poly
 					for (auto i:poly)
-						free(i);
+						delete i;
 					while(!poly.empty())
 						poly.pop_back();
 

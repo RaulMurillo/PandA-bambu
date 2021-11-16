@@ -18,7 +18,7 @@ namespace flopoco{
 		/**
 		 * The IntSquarer constructor
 		 * @param[in] target the target device
-		 * @param[in] wIn    the with of the inputs and output
+		 * @param[in] wIn    the width of the inputs and output
 		 * @param[in] wOut the delays for each input; -1 means: exact squarer
 		 **/
 		IntSquarer(OperatorPtr parentOp, Target* target, int wIn, bool signedIn_=false, int wOut=0);

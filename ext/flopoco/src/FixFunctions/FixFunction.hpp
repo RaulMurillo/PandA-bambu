@@ -68,7 +68,6 @@ namespace flopoco{
 		string description;
 		sollya_obj_t fS;
 		sollya_obj_t inputRangeS;  /**< computed by the constructor */
-		sollya_obj_t outputRangeS; /**< computed by the constructor */
 	private:
 		void initialize();
 		string outputDescription;

@@ -18,7 +18,7 @@ namespace flopoco{
 		 * The permuter constructor
 		 * @param[in] parentOp the parent operator of this ocmponent
 		 * @param[in] target the target device
-		 * @param[in] wIn the with of the inputs and outputs
+		 * @param[in] wIn the width of the inputs and outputs
 		 * @param[in] nbInputs the number of inputs
 		 * @param[in] perm the permutation applied by the permuter
 		 */
@@ -33,7 +33,7 @@ namespace flopoco{
 		 */
 		void emulate (TestCase* tc);
 
-		static void registeFactory();
+		static void registerFactory();
 		
 	private:
 		perm perm_;

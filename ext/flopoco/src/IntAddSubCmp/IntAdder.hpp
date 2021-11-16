@@ -27,7 +27,7 @@ namespace flopoco {
 		 * The IntAdder constructor
 		 * @param[in] parentOp         the parent operator of this component
 		 * @param[in] target           the target device
-		 * @param[in] wIn              the with of the inputs and output
+		 * @param[in] wIn              the width of the inputs and output
 		 **/
 		IntAdder ( OperatorPtr parentOp, Target* target, int wIn);
 

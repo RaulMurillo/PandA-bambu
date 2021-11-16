@@ -69,7 +69,7 @@ void	FixFunction::initialize()
 #if 1 // this sometimes enlarges the interval. 
 		if(signedIn)
 			inputRangeS = sollya_lib_parse_string("[-1;1]");
-		else			
+		else
 			inputRangeS = sollya_lib_parse_string("[0;1]");
 #else // This is tighter : interval is [O, 1-1b-l]  but it causes more problems than it solves 
 		string maxvalIn="1-1b"+to_string(lsbIn);
@@ -119,7 +119,6 @@ void	FixFunction::initialize()
 	{
 	  sollya_lib_clear_obj(fS);
 	  sollya_lib_clear_obj(inputRangeS);
-	  sollya_lib_clear_obj(outputRangeS);
 	}
 
 	string FixFunction::getDescription() const

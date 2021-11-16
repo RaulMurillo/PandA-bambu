@@ -21,8 +21,8 @@ namespace flopoco{
 		/**
 		 * The FPSqrtPoly constructor
 		 * @param[in]		target		the target device
-		 * @param[in]		wE			the the with of the exponent for the f-p number X
-		 * @param[in]		wF			the the with of the fraction for the f-p number X
+		 * @param[in]		wE			the width of the exponent for the f-p number X
+		 * @param[in]		wF			the width of the fraction for the f-p number X
 		 * @param[in]  correctlyRounded if the result will be correctly rounded or not
 		 */
 		FPSqrtPoly(Target* target, int wE, int wF, bool correctlyRounded = false, int degree = 2);

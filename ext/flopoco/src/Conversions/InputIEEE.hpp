@@ -8,7 +8,6 @@
 
 #include "Operator.hpp"
 #include "TestBenches/FPNumber.hpp"
-#include "ShiftersEtc/LZOC.hpp"
 
 namespace flopoco{
 
@@ -19,13 +18,13 @@ namespace flopoco{
 		/**
 		 * @brief The InputIEEE constructor
 		 * @param[in]		target		the target device
-		 * @param[in]		wE			the width of the exponent for the f-p number X
-		 * @param[in]		wF			the width of the fraction for the f-p number X
+		 * @param[in]		wE		the width of the exponent for the f-p number X
+		 * @param[in]		wF		the width of the fraction for the f-p number X
 		 */
 		InputIEEE(OperatorPtr parentOp, Target* target, int wEI, int wFI, int wEO, int wFO, bool flushToZero=true);
 
 		/**
-		 * @brief InputIEEE destructor
+		 * InputIEEE destructor
 		 */
 		~InputIEEE();
 
@@ -38,6 +37,9 @@ namespace flopoco{
 
 		/** Factory method that parses arguments and calls the constructor */
 		static OperatorPtr parseArguments(OperatorPtr parentOp, Target *target , vector<string> &args);
+
+		/** Generate unit tests */
+		static TestList unitTest(int index);
 
 		/** Factory register method */ 
 		static void registerFactory();
@@ -57,8 +59,6 @@ namespace flopoco{
 		int overflowThreshold;
 		/** if false, convert subnormals if possible (needs more hardware). If true, always flush them to zero */
 		bool flushToZero;
-		/** The shifter used to normalize subnormal numbers */
-		LZOC* shifter;
 	};
 
 }

@@ -20,7 +20,7 @@ namespace flopoco {
 			/**
 			* The IntAdderClassical constructor
 			* @param[in] target           the target device
-			* @param[in] wIn              the with of the inputs and output
+			* @param[in] wIn              the width of the inputs and output
 			* @param[in] inputDelays      the delays for each input
 			* @param[in] optimizeType     the type optimization we want for our adder.
 			*            0: optimize for logic (LUT/ALUT)
@@ -53,7 +53,7 @@ namespace flopoco {
 			int classicalSlackVersion;        /**< for the slack case, two architectures are possible in the classical case. */
 			int alternativeSlackVersion;      /**< for the slack case, two architectures are possible in the alternative case. */
 
-			int shortLatencyVersion;          /**< the short-latency has two options, one optimized and one defalut. The default one is selected if the optimization cannot take place */
+			int shortLatencyVersion;          /**< the short-latency has two options, one optimized and one default. The default one is selected if the optimization cannot take place */
 			int shortLatencyKValue;          /**<  */
 
 			int shortLatencyInputRegister;

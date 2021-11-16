@@ -20,7 +20,7 @@ namespace flopoco{
 		/**
 		 * The LongIntAdderAddAddMuxGen2 constructor
 		 * @param[in] target the target device
-		 * @param[in] wIn    the with of the inputs and output
+		 * @param[in] wIn    the width of the inputs and output
 		 * @param[in] inputDelays the delays for each input
 		 * @param[in] regular defaults to 0. A value of 32 for example forces the chunk-size to be 32
 		 **/
