@@ -1158,11 +1158,11 @@ void flopoco_wrapper::outputSignals(const std::string &FU_name_stored, std::ostr
 
    if (format == flopoco_wrapper::FT_FLOAT)
    {
-      if (type == flopoco_wrapper::UT_ADDSUB && format == flopoco_wrapper::FT_FLOAT)
+      if (type == flopoco_wrapper::UT_ADDSUB)
       {
          Signals += "wire_ADDSUB, ";
       }
-      else if (type == flopoco_wrapper::UT_SUB && format == flopoco_wrapper::FT_FLOAT)
+      else if (type == flopoco_wrapper::UT_SUB)
       {
          Signals += "wire_SUB, ";
       }
@@ -1176,6 +1176,11 @@ void flopoco_wrapper::outputSignals(const std::string &FU_name_stored, std::ostr
       }
       n_bits_in += FLOPOCO_ADDITIONAL_BITS;
       n_bits_out += FLOPOCO_ADDITIONAL_BITS;
+   }
+   else //(format == flopoco_wrapper::FT_POSIT)
+   {
+      n_bits_in = width_;
+      n_bits_out = width_;
    }
 
    if (type == flopoco_wrapper::UT_IFIX2FP or type == flopoco_wrapper::UT_UFIX2FP)
@@ -1227,27 +1232,35 @@ void flopoco_wrapper::outputPortDeclaration(const std::string &FU_prefix, const 
    prec_out = FU_to_prec_it->second.second;
    if (wrapped == c_type)
    {
-      if (type != flopoco_wrapper::UT_IFIX2FP and type != flopoco_wrapper::UT_UFIX2FP && format == flopoco_wrapper::FT_FLOAT)
+      if (format == flopoco_wrapper::FT_FLOAT)
       {
-         in_offset += FLOPOCO_ADDITIONAL_BITS;
+         if (type != flopoco_wrapper::UT_IFIX2FP and type != flopoco_wrapper::UT_UFIX2FP)
+         {
+            in_offset += FLOPOCO_ADDITIONAL_BITS;
+         }
+         if (type != flopoco_wrapper::UT_FP2UFIX and type != flopoco_wrapper::UT_FP2IFIX and type != flopoco_wrapper::UT_compare_expr)
+         {
+            out_offset += FLOPOCO_ADDITIONAL_BITS;
+         }
+         if (type == flopoco_wrapper::UT_FF_CONV)
+         {
+            n_bits_in = n_bits_out = prec_out;
+         }
+         else if (type == flopoco_wrapper::UT_compare_expr)
+         {
+            n_bits_in = prec_in;
+            n_bits_out = 1;
+         }
+         else
+         {
+            n_bits_in = prec_in;
+            n_bits_out = prec_out;
+         }
       }
-      if (type != flopoco_wrapper::UT_FP2UFIX and type != flopoco_wrapper::UT_FP2IFIX and type != flopoco_wrapper::UT_compare_expr && format == flopoco_wrapper::FT_FLOAT)
+      else //(format == flopoco_wrapper::FT_POSIT)
       {
-         out_offset += FLOPOCO_ADDITIONAL_BITS;
-      }
-      if (type == flopoco_wrapper::UT_FF_CONV)
-      {
-         n_bits_in = n_bits_out = prec_out;
-      }
-      else if (type == flopoco_wrapper::UT_compare_expr)
-      {
-         n_bits_in = prec_in;
-         n_bits_out = 1;
-      }
-      else
-      {
-         n_bits_in = prec_in;
-         n_bits_out = prec_out;
+         n_bits_in = width_;
+         n_bits_out = width_;
       }
    }
    else if (in_wrap == c_type)
@@ -1268,7 +1281,7 @@ void flopoco_wrapper::outputPortDeclaration(const std::string &FU_prefix, const 
       else //(format == flopoco_wrapper::FT_POSIT)
       {
          n_bits_in = prec_in;
-         n_bits_out = prec_out;
+         n_bits_out = width_;
       }
    }
    else if (out_wrap == c_type)
@@ -1280,7 +1293,7 @@ void flopoco_wrapper::outputPortDeclaration(const std::string &FU_prefix, const 
       }
       else //(format == flopoco_wrapper::FT_POSIT)
       {
-         n_bits_in = prec_in;
+         n_bits_in = width_;
          n_bits_out = prec_out;
       }
    }
