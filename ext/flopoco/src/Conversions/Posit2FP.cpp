@@ -82,22 +82,22 @@ namespace flopoco
 		vhdl << tab << declare(.0, "sign", 1, false) << " <= I" << of(widthP - 1) << ";" << endl;
 		vhdl << tab << declare(.0, "encoding", widthP - 1) << " <= I" << range(widthP - 2, 0) << ";" << endl;
 
-		vhdl << tab << declare(target->eqConstComparatorDelay(widthP - 1), "isNZN", 1, false) << " <= "
+		vhdl << tab << declare(getTarget()->eqConstComparatorDelay(widthP - 1), "isZN", 1, false) << " <= "
 			 << "'1' when encoding=\"" << string(widthP - 1, '0') << "\" else '0';" << endl;
-		vhdl << tab << declare(target->logicDelay(2), "isNAR", 1, false) << " <= sign AND isNZN;" << endl;
-		vhdl << tab << declare(target->logicDelay(2), "isZero", 1, false) << " <= NOT(sign) AND isNZN;" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(2), "isNAR", 1, false) << " <= sign AND isZN;" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(2), "isZero", 1, false) << " <= NOT(sign) AND isZN;" << endl;
 
 		//====================================================================|
 		addFullComment("Regime extraction");
 		//====================================================================|
 		vhdl << tab << "with sign select "
-			 << declare(target->logicDelay(widthP), "absoluteEncoding", widthP - 1) << " <= " << endl
+			 << declare(getTarget()->logicDelay(widthP), "absoluteEncoding", widthP - 1) << " <= " << endl
 			 << tab << tab << "encoding when '0'," << endl
 			 << tab << tab << "not(encoding) + 1 when '1'," << endl
 			 << tab << tab << "\"" << string(widthP - 1, '-') << "\" when others;" << endl;
 
-		vhdl << declare(0., "exponentSign", 1, false) << " <= absoluteEncoding" << of(widthP - 2) << ";" << endl;
-		vhdl << declare(0., "encodingTail", widthP - 2, true) << " <= absoluteEncoding" << range(widthP - 3, 0) << ";" << endl;
+		vhdl << tab << declare(.0, "exponentSign", 1, false) << " <= absoluteEncoding" << of(widthP - 2) << ";" << endl;
+		vhdl << tab << declare(.0, "encodingTail", widthP - 2) << " <= absoluteEncoding" << range(widthP - 3, 0) << ";" << endl;
 
 		ostringstream param, inmap, outmap;
 		int wCount = intlog2(widthP - 2);
@@ -110,7 +110,7 @@ namespace flopoco
 		newInstance("Normalizer", "lzoc", param.str(), inmap.str(), outmap.str());
 
 		vhdl << tab << "with exponentSign select "
-			 << declare(target->logicDelay(wCount), "rangeExp", wCount + 1, true) << " <= " << endl
+			 << declare(getTarget()->logicDelay(wCount), "rangeExp", wCount + 1) << " <= " << endl
 			 << tab << tab << "('1' & not (lzCount)) when '0'," << endl
 			 << tab << tab << "('0' & lzCount) when '1'," << endl
 			 << tab << tab << "\"" << string(wCount + 1, '-') << "\" when others;" << endl;
@@ -123,7 +123,7 @@ namespace flopoco
 		if (wESP > 0)
 		{
 			addComment("Extract exponent");
-			vhdl << tab << declare(0., "exponentVal", wESP, true)
+			vhdl << tab << declare(.0, "exponentVal", wESP)
 				 << " <= shiftedResult" << range(wF_ + wESP - 1, wF_) << ";" << endl;
 
 			concat << " & exponentVal";
@@ -131,7 +131,7 @@ namespace flopoco
 		if (wEF_ > wE_)
 		{
 			addComment("Pad exponent");
-			vhdl << tab << "with exponentSign select " << declare(target->logicDelay(), "exponentPad", wEF_ - wE_, true) << " <= " << endl
+			vhdl << tab << "with exponentSign select " << declare(getTarget()->logicDelay(), "exponentPad", wEF_ - wE_) << " <= " << endl
 				 << tab << tab << "\"" << string(wEF_ - wE_, '1') << "\" when '0'," << endl
 				 << tab << tab << "\"" << string(wEF_ - wE_, '0') << "\" when '1'," << endl
 				 << tab << tab << "\"" << string(wEF_ - wE_, '-') << "\" when others;" << endl;
@@ -139,7 +139,7 @@ namespace flopoco
 			preconcat << "exponentPad & ";
 		}
 		uint64_t bias = (1 << (wEF_ - 1)) - 1;
-		vhdl << tab << declare(target->adderDelay(wEF_), "exponent", wEF_, true)
+		vhdl << tab << declare(getTarget()->adderDelay(wEF_), "exponent", wEF_)
 			 << " <= (" << preconcat.str() << "rangeExp" << concat.str() << ") + " << bias << ";" << endl;
 
 		//====================================================================|
@@ -147,31 +147,33 @@ namespace flopoco
 		//====================================================================|
 		if (wFF_ >= wF_)
 		{ // Simple case, pad with 0's
-			vhdl << tab << declare(0., "mantissa", wFF_, true) << " <= shiftedResult" << range(wF_ - 1, 0) << " & \"" << string(wFF_ - wF_, '0') << "\";" << endl;
+			vhdl << tab << declare(.0, "mantissa", wFF_) << " <= shiftedResult" << range(wF_ - 1, 0) << " & \"" << string(wFF_ - wF_, '0') << "\";" << endl;
 			// Maybe change first bit of mantissa to isNaR to get IEEE NaN (?)
 		}
 		else
 		{ // Need to round mantissa
 			int truncBits = wF_ - wFF_;
-			vhdl << tab << declare(0., "lsb", 1, false) << " <= shiftedResult" << of(truncBits) << ";" << endl;
-			vhdl << tab << declare(0., "guard", 1, false) << " <= shiftedResult" << of(truncBits - 1) << ";" << endl;
+			vhdl << tab << declare(.0, "lsb", 1, false) << " <= shiftedResult" << of(truncBits) << ";" << endl;
+			vhdl << tab << declare(.0, "guard", 1, false) << " <= shiftedResult" << of(truncBits - 1) << ";" << endl;
 			if (truncBits > 1)
 			{
-				vhdl << tab << declare(target->eqConstComparatorDelay(truncBits - 1), "sticky", 1, false) << " <= '0' when shiftedResult" << range(truncBits - 2, 0) << "=\"" << string(truncBits - 1, '0') << "\" else '1';" << endl;
-				vhdl << tab << declare(target->logicDelay(3), "round_bit", 1, false) << " <= guard and (sticky or lsb);" << endl;
+				vhdl << tab << declare(getTarget()->eqConstComparatorDelay(truncBits - 1), "sticky", 1, false) << " <= '0' when shiftedResult" << range(truncBits - 2, 0) << "=\"" << string(truncBits - 1, '0') << "\" else '1';" << endl;
+				vhdl << tab << declare(getTarget()->logicDelay(3), "round_bit", 1, false) << " <= guard and (sticky or lsb);" << endl;
 			}
 			else
 			{
-				vhdl << tab << declare(target->logicDelay(2), "round_bit", 1, false) << " <= guard and lsb;" << endl;
+				vhdl << tab << declare(getTarget()->logicDelay(2), "round_bit", 1, false) << " <= guard and lsb;" << endl;
 			}
-			vhdl << tab << declare(target->adderDelay(wFF_), "mantissa", wFF_, true) << " <= "
+			vhdl << tab << declare(getTarget()->adderDelay(wFF_), "mantissa", wFF_) << " <= "
 				 << "shiftedResult" << range(wF_ - 1, truncBits) << " + round_bit;" << endl;
 		}
 
 		addComment("Final result");
-		vhdl << tab << declare(target->logicDelay(2), "finalSignExp", wEF_ + 1, true) << " <= "
-			 << "(finalSignExp'high=>'0', others => isNAR) when (isZero OR isNAR) = '1' else sign & exponent;" << endl;
-		vhdl << tab << "O <= (finalSignExp & mantissa);" << endl;
+		vhdl << tab << "with isZN select " << declare(getTarget()->logicDelay(), "finalSignExp", wEF_ + 1) << " <= " << endl
+				<< tab << tab << "(others => isNAR) when '1'," << endl	// sign does not matter
+				<< tab << tab << "(sign & exponent) when '0'," << endl
+				<< tab << tab << "\"" << string(wEF_ + 1, '-') << "\" when others;" << endl;
+		vhdl << tab << "O <= finalSignExp & mantissa;" << endl;
 	}
 
 	void Posit2FP::emulate(TestCase *tc)

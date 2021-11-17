@@ -83,7 +83,7 @@ namespace flopoco
 		vhdl << tab << declare(.0, "sign", 1, false) << " <= I" << of(widthI - 1) << ";" << endl;
 
 		// vhdl << "with sign select " <<
-		// 	declare(target->logicDelay(widthI), "absI", widthI - 1) << " <= " << endl <<
+		// 	declare(getTarget()->logicDelay(widthI), "absI", widthI - 1) << " <= " << endl <<
 		// 	tab <<  "I" << range(widthI - 2, 0) << " when '0'," << endl <<
 		// 	tab << "not(I" << range(widthI - 2, 0) << ") + 1 when '1'," << endl <<
 		// 	tab << "\"" << string(widthI - 1, '-') << "\" when others;" << endl;
@@ -95,7 +95,7 @@ namespace flopoco
 		{ // Need to round mantissa
 			int trunc_bits = wFF - (wF_ + 1);
 			vhdl << "I" << range(wFF - 1, trunc_bits) << ";" << endl;
-			vhdl << tab << declare(target->eqConstComparatorDelay(trunc_bits), "trunc_sticky", 1, false) << " <= "
+			vhdl << tab << declare(getTarget()->eqConstComparatorDelay(trunc_bits), "trunc_sticky", 1, false) << " <= "
 				 << "'0' when I" << range(trunc_bits - 1, 0) << " = \"" << string(trunc_bits, '0') << "\" else '1';" << endl;
 		}
 		else
@@ -105,37 +105,37 @@ namespace flopoco
 
 		addComment("Special cases");
 		// // Consider subnormal numbers
-		// vhdl << declare(target->eqConstComparatorDelay(wFF),"is_special", 1, false) << " <= '1' when I" << range(wFF-1, 0) << " = \"" << string(wFF,'0') << "\" else '0';" << endl;
-		// vhdl << declare(target->eqConstComparatorDelay(wEF),"zero_sub", 1, false) << "<= '1' when biased_exp = \"" << string(wEF,'0') << "\" else '0';" << endl;
-		// vhdl << declare(target->logicDelay(2),"is_zero", 1, false) << "<= is_special AND zero_sub;" << endl;
-		// vhdl << declare(target->logicDelay(2),"is_sub", 1, false) << "<= NOT(is_special) AND zero_sub;" << endl;
-		// vhdl << declare(target->eqConstComparatorDelay(wEF),"is_NaN", 1, false) << "<= '1' when biased_exp = \"" << string(wEF,'1') << "\" else '0';" << endl;
+		// vhdl << declare(getTarget()->eqConstComparatorDelay(wFF),"is_special", 1, false) << " <= '1' when I" << range(wFF-1, 0) << " = \"" << string(wFF,'0') << "\" else '0';" << endl;
+		// vhdl << declare(getTarget()->eqConstComparatorDelay(wEF),"zero_sub", 1, false) << "<= '1' when biased_exp = \"" << string(wEF,'0') << "\" else '0';" << endl;
+		// vhdl << declare(getTarget()->logicDelay(2),"is_zero", 1, false) << "<= is_special AND zero_sub;" << endl;
+		// vhdl << declare(getTarget()->logicDelay(2),"is_sub", 1, false) << "<= NOT(is_special) AND zero_sub;" << endl;
+		// vhdl << declare(getTarget()->eqConstComparatorDelay(wEF),"is_NaN", 1, false) << "<= '1' when biased_exp = \"" << string(wEF,'1') << "\" else '0';" << endl;
 
 		// Do not consider subnormal numbers
-		vhdl << tab << declare(target->eqConstComparatorDelay(wEF), "is_zero", 1, false) << "<= '1' when biased_exp = \"" << string(wEF, '0') << "\" else '0';" << endl;
-		vhdl << tab << declare(target->eqConstComparatorDelay(wEF), "is_NaN", 1, false) << "<= '1' when biased_exp = \"" << string(wEF, '1') << "\" else '0';" << endl;
+		vhdl << tab << declare(getTarget()->eqConstComparatorDelay(wEF), "is_zero", 1, false) << "<= '1' when biased_exp = \"" << string(wEF, '0') << "\" else '0';" << endl;
+		vhdl << tab << declare(getTarget()->eqConstComparatorDelay(wEF), "is_NaN", 1, false) << "<= '1' when biased_exp = \"" << string(wEF, '1') << "\" else '0';" << endl;
 
 		addComment("Compute unbiased exponent");
 		const uint64_t bias = (1 << (wEF - 1)) - 1;
 		ostringstream concat;
 		if (wE_ < wEF)
 		{ // FP has larger dynamic range than Posit format
-			vhdl << tab << declare(target->adderDelay(wEF), "unbiased_exp", wEF) << " <= biased_exp - " << bias << ";" << endl;
+			vhdl << tab << declare(getTarget()->adderDelay(wEF), "unbiased_exp", wEF) << " <= biased_exp - " << bias << ";" << endl;
 			// If a 32-bit number is representable with 16 bits, i.e., in the range [-32768,+32767] (32768 = 2^15), then the 32-15=17 msbs will all be the same.
 			int esMSB = wEF - wE_;
-			vhdl << tab << declare(target->eqConstComparatorDelay(esMSB + 1), "notTooBig", 1, false) << " <= '1' when unbiased_exp" << range(wEF - 1, wE_ - 1) << " = \"" << string(esMSB + 1, '0') << "\" else '0';" << endl;
-			vhdl << tab << declare(target->eqConstComparatorDelay(esMSB + 1), "notTooSmall", 1, false) << " <= '1' when unbiased_exp" << range(wEF - 1, wE_ - 1) << " = \"" << string(esMSB + 1, '1') << "\" else '0';" << endl;
-			vhdl << tab << declare(target->logicDelay(2), "expFit", 1, false) << " <= notTooBig or notTooSmall;" << endl;
+			vhdl << tab << declare(getTarget()->eqConstComparatorDelay(esMSB + 1), "notTooBig", 1, false) << " <= '1' when unbiased_exp" << range(wEF - 1, wE_ - 1) << " = \"" << string(esMSB + 1, '0') << "\" else '0';" << endl;
+			vhdl << tab << declare(getTarget()->eqConstComparatorDelay(esMSB + 1), "notTooSmall", 1, false) << " <= '1' when unbiased_exp" << range(wEF - 1, wE_ - 1) << " = \"" << string(esMSB + 1, '1') << "\" else '0';" << endl;
+			vhdl << tab << declare(getTarget()->logicDelay(2), "expFit", 1, false) << " <= notTooBig or notTooSmall;" << endl;
 
-			vhdl << tab << "with expFit select " << declare(target->logicDelay(wE_ + wF_ + 1), "exponent", wE_) << " <= " << endl
+			vhdl << tab << "with expFit select " << declare(getTarget()->logicDelay(wE_ + wF_ + 1), "exponent", wE_) << " <= " << endl
 				 << tab << tab << "unbiased_exp" << range(wE_ - 1, 0) << " when '1'," << endl
-				 << tab << tab << "unbiased_exp(unbiased_exp'high) & \"" << string(wE_ - 1, '1') << "\" when '0'," << endl
+				 << tab << tab << "unbiased_exp" << of(wE_ - 1) << " & \"" << string(wE_ - 1, '1') << "\" when '0'," << endl
 				 << tab << tab << "\"" << string(wE_, '-') << "\" when others;" << endl;
 		}
 		else
 		{ // Pad exponent
 			concat << "\"" << string(wE_ - wEF, '0') << "\" & ";
-			vhdl << tab << declare(target->adderDelay(wE_), "exponent", wE_) << " <= (" << concat.str() << "biased_exp) - " << bias << ";" << endl;
+			vhdl << tab << declare(getTarget()->adderDelay(wE_), "exponent", wE_) << " <= (" << concat.str() << "biased_exp) - " << bias << ";" << endl;
 		}
 
 		if (wESP > 0)
@@ -151,14 +151,14 @@ namespace flopoco
 		vhdl << tab << declare(0., "bin_regime", wCount) << " <= exponent" << range(wE_ - 2, wESP) << ";" << endl;
 		vhdl << tab << declare(0., "first_regime", 1, false) << " <= exponent" << of(wE_ - 1) << ";" << endl;
 
-		vhdl << tab << "with first_regime select " << declare(target->logicDelay(wCount), "regime", wCount) << " <= " << endl
+		vhdl << tab << "with first_regime select " << declare(getTarget()->logicDelay(wCount), "regime", wCount) << " <= " << endl
 			 << tab << tab << "bin_regime when '0', " << endl
 			 << tab << tab << "not bin_regime when '1', " << endl
 			 << tab << tab << "\"" << string(wCount, '-') << "\" when others;" << endl;
 
 		// what to start with (negative or positive exp)
-		vhdl << tab << declare(target->logicDelay(1), "pad_bit", 1, false) << " <= not(first_regime);" << endl;
-		vhdl << tab << declare(target->logicDelay(1), "start_regime", 2) << " <= not(first_regime) & first_regime;" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(1), "pad_bit", 1, false) << " <= not(first_regime);" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(1), "start_regime", 2) << " <= not(first_regime) & first_regime;" << endl;
 
 		// Sanity check
 		if (widthP != 2 + wESP + wF_ + 1)
@@ -190,23 +190,23 @@ namespace flopoco
 		vhdl << tab << declare(0., "guard", 1, false) << " <= extended_posit" << of(0) << ";" << endl;
 		if (wF_ + 1 < wFF)
 		{
-			vhdl << tab << declare(target->logicDelay(2), "sticky", 1, false) << " <= trunc_sticky OR pre_sticky;" << endl;
+			vhdl << tab << declare(getTarget()->logicDelay(2), "sticky", 1, false) << " <= trunc_sticky OR pre_sticky;" << endl;
 		}
 		else
 		{
 			vhdl << tab << declare(0., "sticky", 1, false) << " <= pre_sticky;" << endl;
 		}
 
-		vhdl << tab << declare(target->logicDelay(3), "round_bit", 1, false) << " <= guard and (sticky or lsb);" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(3), "round_bit", 1, false) << " <= guard and (sticky or lsb);" << endl;
 
-		vhdl << tab << declare(target->adderDelay(widthP - 1), "rounded_reg_exp_frac", widthP - 1) << " <= truncated_posit + round_bit;" << endl;
+		vhdl << tab << declare(getTarget()->adderDelay(widthP - 1), "rounded_reg_exp_frac", widthP - 1) << " <= truncated_posit + round_bit;" << endl;
 
-		vhdl << tab << "with sign select " << declare(target->logicDelay(widthP - 1), "rounded_posit", widthP) << " <= " << endl
+		vhdl << tab << "with sign select " << declare(getTarget()->logicDelay(widthP - 1), "rounded_posit", widthP) << " <= " << endl
 			 << tab << tab << "sign & rounded_reg_exp_frac when '0'," << endl
 			 << tab << tab << "sign & not(rounded_reg_exp_frac) + 1 when '1'," << endl
 			 << tab << tab << "\"" << string(widthP, '-') << "\" when others;" << endl;
 
-		vhdl << tab << declare(target->logicDelay(2), "rounded_posit_zero", widthP) << " <= rounded_posit when (is_zero or is_NaN) = '0' else (is_NaN & \"" << string(widthP - 1, '0') << "\");" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(2), "rounded_posit_zero", widthP) << " <= rounded_posit when (is_zero or is_NaN) = '0' else (is_NaN & \"" << string(widthP - 1, '0') << "\");" << endl;
 		vhdl << tab << "O <= rounded_posit_zero;" << endl;
 
 		addFullComment("End of vhdl generation");
