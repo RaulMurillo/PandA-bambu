@@ -1,7 +1,7 @@
 FROM ubuntu:focal
-RUN apt-get update
-RUN yes | apt-get install wget sudo
-RUN wget flopoco.gforge.inria.fr/install_scripts/install-plain-gitmaster-on-focal64.sh
+RUN apt update
+RUN yes | apt install wget sudo
+RUN wget https://flopoco.gitlabpages.inria.fr/flopoco/install_scripts/install-plain-gitmaster-on-focal64.sh
 RUN yes | sh install-plain-gitmaster-on-focal64.sh
 
 VOLUME ["/flopoco_workspace"]

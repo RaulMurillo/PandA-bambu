@@ -178,16 +178,16 @@ namespace flopoco{
 									 << tab <<" ("<<intpow2(currentLevel)-1<<" downto 0 => "  << padbit << ") & "<< currentLevelName.str() <<";"<<endl;
 						}
 					}
-					ostringstream lastLevelName;
-					lastLevelName << "level"<<wShiftIn;
-					if (direction==Right)
-						vhdl << tab << "R <= "<<lastLevelName.str()<<"("<< wX + intpow2(wShiftIn)-1-1 << " downto " << wX + intpow2(wShiftIn)-1 - wR <<");"<<endl;
-					else
-						vhdl << tab << "R <= "<<lastLevelName.str()<<"("<< wR-1 << " downto 0);"<<endl;
 				}
-			}
+				ostringstream lastLevelName;
+				lastLevelName << "level"<<wShiftIn;
+				if (direction==Right)
+					vhdl << tab << "R <= "<<lastLevelName.str()<<"("<< wX + intpow2(wShiftIn)-1-1 << " downto " << wX + intpow2(wShiftIn)-1 - wR <<");"<<endl;
+				else
+					vhdl << tab << "R <= "<<lastLevelName.str()<<"("<< wR-1 << " downto 0);"<<endl;
 		}
-
+	}
+	
 	Shifter::~Shifter() {
 	}
 

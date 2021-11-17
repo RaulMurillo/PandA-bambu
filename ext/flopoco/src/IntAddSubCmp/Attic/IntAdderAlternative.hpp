@@ -25,7 +25,7 @@ namespace flopoco {
 			/**
 			* The IntAdderAlternative constructor
 			* @param[in] target           the target device
-			* @param[in] wIn              the with of the inputs and output
+			* @param[in] wIn              the width of the inputs and output
 			* @param[in] inputDelays      the delays for each input
 			* @param[in] optimizeType     the type optimization we want for our adder.
 			*            0: optimize for logic (LUT/ALUT)

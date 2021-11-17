@@ -20,12 +20,12 @@ namespace flopoco{
 		/**
 		 * The FPMutliplier constructor
 		 * @param[in]		target		the target device
-		 * @param[in]		wEX			the the with of the exponent for the f-p number X
-		 * @param[in]		wFX			the the with of the fraction for the f-p number X
-		 * @param[in]		wEY			the the with of the exponent for the f-p number Y
-		 * @param[in]		wFY			the the with of the fraction for the f-p number Y
-		 * @param[in]		wER			the the with of the exponent for the multiplication result
-		 * @param[in]		wFR			the the with of the fraction for the multiplication result
+		 * @param[in]		wEX			the width of the exponent for the f-p number X
+		 * @param[in]		wFX			the width of the fraction for the f-p number X
+		 * @param[in]		wEY			the width of the exponent for the f-p number Y
+		 * @param[in]		wFY			the width of the fraction for the f-p number Y
+		 * @param[in]		wER			the width of the exponent for the multiplication result
+		 * @param[in]		wFR			the width of the fraction for the multiplication result
 		 **/
 		FPMult(OperatorPtr parentOp, Target* target, int wEX, int wFX, int wEY, int wFY, int wER, int wFR,
 		             bool norm = true, bool correctlyRounded=true, float dspOccupationThreshold = 0.0);

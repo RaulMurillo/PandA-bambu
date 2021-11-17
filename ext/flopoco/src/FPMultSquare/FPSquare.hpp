@@ -19,9 +19,9 @@ namespace flopoco{
 		/**
 		 * The FPMutliplier constructor
 		 * @param[in]		target		the target device
-		 * @param[in]		wEX			the the with of the exponent for the f-p number X
-		 * @param[in]		wFX			the the with of the fraction for the f-p number X
-		 * @param[in]		wFR			the the with of the fraction for the multiplication result
+		 * @param[in]		wEX			the width of the exponent for the f-p number X
+		 * @param[in]		wFX			the width of the fraction for the f-p number X
+		 * @param[in]		wFR			the width of the fraction for the multiplication result
 		 **/
 		FPSquare(Target* target, int wEX, int wFX, int wFR);
 

@@ -96,14 +96,14 @@ namespace flopoco{
 		sollya_lib_clear_obj(absoluteS);
 
 		// clear the FixedFunction, only if we created it here
-		if(needToFreeF)	free(f);
+		if(needToFreeF)	delete f;
 
 		// clear other attributes
 		sollya_lib_clear_obj(polynomialS);
 		//	  sollya_lib_clear_obj(S);
 		if(coeff.size()!=0){
 			for (unsigned int i=0; i<coeff.size(); i++)
-				free(coeff[i]);
+				delete coeff[i];
 		}
 	}
 

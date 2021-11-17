@@ -42,8 +42,8 @@ namespace flopoco{
 		/**
 		 * The Table constructor
 		 * @param[in] target the target device
-		 * @param[in] wIn    the with of the input in bits
-		 * @param[in] wOut   the with of the output in bits  
+		 * @param[in] wIn    the width of the input in bits
+		 * @param[in] wOut   the width of the output in bits  
 		 **/
 		DualTable(Target* target, int _wIn, int _wOut, int _minIn=0, int _maxIn=-1);
 		

@@ -1,11 +1,11 @@
 #!/bin/bash
 
-yes | sudo apt update && sudo apt install -y subversion git cmake sollya wget g++ libsollya-dev flex bison libboost-all-dev autotools-dev autoconf automake f2c libblas-dev liblapack-dev libtool liblpsolve55-dev lp-solve
+yes | sudo apt update && sudo DEBIAN_FRONTEND=noninteractive apt install -y subversion git cmake sollya wget g++ libsollya-dev flex bison libboost-all-dev autotools-dev autoconf automake f2c libblas-dev liblapack-dev libtool liblpsolve55-dev lp-solve
 
 BASEDIR=$PWD
 
 #WCPG
-git clone https://scm.gforge.inria.fr/anonscm/git/metalibm/wcpg.git && cd wcpg && sh autogen.sh && ./configure && make && sudo make install && cd $BASEDIR
+git clone https://github.com/fixif/WCPG.git && cd WCPG && sh autogen.sh && ./configure && make && sudo make install && cd $BASEDIR
 
 #ScaLP -- see the documentation to use other backends than lpsolve
 svn checkout https://digidev.digi.e-technik.uni-kassel.de/home/svn/scalp/ && cd scalp/trunk && mkdir build && cd build && cmake -DUSE_LPSOLVE=ON -DLPSOLVE_LIBRARIES="/usr/lib/lp_solve/liblpsolve55.so" -DLPSOLVE_INCLUDE_DIRS="/usr/include/" .. && make && cd $BASEDIR

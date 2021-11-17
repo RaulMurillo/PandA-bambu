@@ -48,8 +48,8 @@ namespace flopoco{
 		 * @param[in] target 		the target device
 		 * @param[in] values 		the values used to fill the table. Each value is a bit vector given as positive mpz_class.
 		 * @param[in] name      a new name for the VHDL entity
-		 * @param[in] wIn    		the with of the input in bits (optional, may be deduced from values)
-		 * @param[in] wOut   		the with of the output in bits  (optional, may be deduced from values)
+		 * @param[in] wIn    		the width of the input in bits (optional, may be deduced from values)
+		 * @param[in] wOut   		the width of the output in bits  (optional, may be deduced from values)
 		 * @param[in] logicTable 1 if the table is intended to be implemented as logic; It is then shared  
                             -1 if it is intended to be implemented as embedded RAM; 
 	                        	 0 (default): let the constructor decide, depending on the size and target

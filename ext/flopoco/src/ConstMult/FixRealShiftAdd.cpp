@@ -460,9 +460,10 @@ namespace flopoco{
 				lsbOut(int): weight associated to output least significant bit; \
 				constant(string): constant given in arbitrary-precision decimal, or as a Sollya expression, e.g \"log(2)\"; \
 				targetUlpError(real)=1.0: required precision on last bit. Should be strictly greater than 0.5 and lesser than 1;",
-				"This variant of Ken Chapman's Multiplier is briefly described in <a href=\"bib/flopoco.html#DinIstoMas2014-SOPCJR\">this article</a>.<br> Special constants, such as 0 or powers of two, are handled efficiently.",
-				FixRealShiftAdd::parseArguments,
-				FixRealShiftAdd::unitTest
+				"This variant of shift-and-add multiplier is briefly described in <a href=\"bib/flopoco.html#deDinechinEtAl2019-Arith-KCMvsSA\">this article</a>.<br> Special constants, such as 0 or powers of two, are handled efficiently.",
+				FixRealShiftAdd::parseArguments
+				// Unplugged for now because it entails too long running times 
+				//, 				FixRealShiftAdd::unitTest 
 		);
 	}
 }//namespace

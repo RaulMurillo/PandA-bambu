@@ -1394,7 +1394,10 @@ namespace flopoco{
 				if(actual->incompleteDeclaration())		{
 					//copy the details from the output port
 					actual->copySignalParameters(op->getSignalByName(formalName));
-					actual->setIncompleteDeclaration(false); //mark the signal as completely declared
+					//the port has not been scheduled yet
+					//override the copied value
+					actual->setHasBeenScheduled(false);
+ 					actual->setIncompleteDeclaration(false); //mark the signal as completely declared
 					if(op->isShared()){ // shared instance:  directly connect the inputs to the actual output in the dependency graph
 						REPORT(DEBUG, "instance():  Actual parameter "<< actual->getUniqueName()  << " of shared instance " << op->getName());
 						// relink the critical path info for the pipeline to work.
@@ -2569,15 +2572,21 @@ namespace flopoco{
 					}
 				}
 
-				try{
-			    rhs = getSignalByName(it->second);
-				}catch(string &e){
-					if (allSignalsLowercased.find(toLower(it->second)) != allSignalsLowercased.end() ) {
+				try {
+					rhs = getSignalByName(it->second);
+				} catch (string &e) {
+					if (allSignalsLowercased.find(toLower(it->second)) != allSignalsLowercased.end()) {
 						THROWERROR("Signal " << it->second << " undeclared, but a signal that differs only by capitalization has been declared");
-					}
-					else{
-						REPORT(DEBUG, endl << "Warning: RHS signal name: " << it->second << " unknown so far"  << endl);
+					} else {
 						unknownRHSName = true;
+						std::string lower = toLower(it->second);
+						if (lower == "unsigned" || lower == "signed" || lower == "conv_std_logic_vector") {
+							// this is a VHDL function
+						} else if (constants_.find(it->second) != constants_.end()) {
+							// this is a constant
+						} else {
+							REPORT(DEBUG, endl << "Warning: RHS signal name: " << it->second << " unknown so far"  << endl);
+						}
 					}
 				}
 				

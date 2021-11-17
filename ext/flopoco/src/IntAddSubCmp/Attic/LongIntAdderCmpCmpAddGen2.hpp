@@ -19,7 +19,7 @@ namespace flopoco{
 		/**
 		 * The LongIntAdderCmpCmpAddGen2 constructor
 		 * @param[in] target the target device
-		 * @param[in] wIn    the with of the inputs and output
+		 * @param[in] wIn    the width of the inputs and output
 		 * @param[in] inputDelays the delays for each input
 		 **/
 		LongIntAdderCmpCmpAddGen2(Target* target, int wIn, map<string, double> inputDelays = emptyDelayMap);
