@@ -464,8 +464,9 @@ libflopoco_la_SOURCES = \
 		ExpLog/FPLog.cpp \
 		ExpLog/FPLogIterative.cpp \
 		ExpLog/FPPow.cpp \
-		IEEE/IEEEFMA.cpp \
 		IEEE/IEEEAdd.cpp \
+		IEEE/IEEEFMA.cpp \
+		IEEE/IEEEFloatFormat.cpp \
 		Table.cpp \
 		DualTable.cpp \
 		FixConstant.cpp \
