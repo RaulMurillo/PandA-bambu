@@ -130,6 +130,7 @@
 // #include "Targets/Old/Virtex5.hpp"
 // #include "Targets/Old/Virtex4.hpp"
 #include "Targets/Virtex6.hpp"
+#include "Targets/Zynq7000.hpp"
 /// Posit operators
 #include "Posit/Add/PositAddSub.hpp"
 #include "Posit/Mult/PositMult.hpp"
@@ -200,7 +201,7 @@ flopoco_wrapper::flopoco_wrapper(int
    }
    else if (FU_target.find("Zynq") != std::string::npos)
    { /// does not exist so we use Virtex 6 target
-      target = new flopoco::Virtex6();
+      target = new flopoco::Zynq7000();
    }
    else if (FU_target.find("Artix-7") != std::string::npos)
    { /// does not exist so we use Virtex 6 target
