@@ -31,10 +31,10 @@ namespace flopoco{
 		/**
 		 * @brief The OutputIEEE constructor
 		 * @param[in]		target		the target device
-		 * @param[in]		wEI			the the with of the exponent for the input floating point number encoded according FloPoCo format
-		 * @param[in]		wFI			the the with of the fraction for the input floating point number encoded according FloPoCo format
-		 * @param[in]		wEO			the the with of the exponent for the output floating point number encoded according IEEE format
-		 * @param[in]		wFO			the the with of the fraction for the output floating point number encoded according IEEE format
+		 * @param[in]		wEI			the width of the exponent for the input floating point number encoded according FloPoCo format
+		 * @param[in]		wFI			the width of the fraction for the input floating point number encoded according FloPoCo format
+		 * @param[in]		wEO			the width of the exponent for the output floating point number encoded according IEEE format
+		 * @param[in]		wFO			the width of the fraction for the output floating point number encoded according IEEE format
 		 * @param[in]		onlyPositiveZeroes      when true normalize +0 and -0 to +0
 		 */
 		OutputIEEE(OperatorPtr parentOp, Target* target, int wEI, int wFI, int wEO, int wFO, bool onlyPositiveZeroes=false);
@@ -54,6 +54,9 @@ namespace flopoco{
 
 		/** Factory method that parses arguments and calls the constructor */
 		static OperatorPtr parseArguments(OperatorPtr parentOp, Target *target , vector<string> &args);
+
+		/** Generate unit tests */
+		static TestList unitTest(int index);
 
 		/** Factory register method */ 
 		static void registerFactory();

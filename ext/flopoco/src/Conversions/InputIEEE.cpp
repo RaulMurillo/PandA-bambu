@@ -28,6 +28,7 @@
 #include "utils.hpp"
 #include "Operator.hpp"
 #include "InputIEEE.hpp"
+#include "IEEE/IEEEFloatFormat.h"
 
 using namespace std;
 
@@ -51,32 +52,31 @@ namespace flopoco{
 
 		// -------- Parameter set up -----------------
 
-		addIEEEInput("X", wEI,wFI);
-		addFPOutput ("R", wEO, wFO);
+		addIEEEInput ("X", wEI,wFI);
+		addFPOutput("R", wEO, wFO);
 
 		vhdl << tab << declare("expX", wEI) << "  <= X" << range(wEI+wFI-1, wFI) << ";" << endl;
 		vhdl << tab << declare("fracX", wFI) << "  <= X" << range(wFI-1, 0) << ";" << endl;
 		vhdl << tab << declare("sX") << "  <= X(" << wEI+wFI << ");" << endl;	
 
 		// There are three exponent cases to consider:
-		// wEI==wEO is the easiest case, with one subtelty:  
+		// wEI==wEO is the easiest case, with one subtlety:
 		//    we have two more exponent values than IEEE (field 0...0, value -(1<<wEI)+1, and field 11..11, value 1<<wEI),
 		//    we may thus convert into normal numbers subnormal input values whose mantissa field begins with a 1
 		//    Other subnormals are flushed to zero
 		// wEI > wEO (range downgrading) is probably the most useful, as we want to minimize the precision of the FPGA computation
-		//    with respect to a software implementation 
+		//    with respect to a software implementation
 		//    Anyway it is fairly easy to implement, too: subnormals are all flushed to zero, and some normal numbers may overflow or underflow.
 		// wEI < wEO (range widening) may be useful to some, but I don't see whom yet :) mail me if you want it implemented.
 		//    It will  be costly, since all input subnormals will need to be converted into normal numbers by means of a barrel shifter.
 
 		// In each exponent case, the mantissa may be copied (if wFI<=wFO -- taking care of the above subtlety,
 		// or it must be rounded if wFI>wFO (again, probably the most useful case)
-		// If wEI=WEO, the rounding may not lead to an overflow since we have this one more large exponent value, 
+		// If wEI=WEO, the rounding may not lead to an overflow since we have this one more large exponent value,
 		// If wEI<WEO, the rounding may lead to an overflow 
 		// This is reasonably cheap.
 
 		// analyze the input exponent
-		////manageCriticalPath(getTarget()->localWireDelay() + getTarget()->lutDelay());
 		vhdl << tab << declare("expZero") << "  <= '1' when expX = " << rangeAssign(wEI-1,0, "'0'") << " else '0';" << endl;
 		vhdl << tab << declare("expInfty") << "  <= '1' when expX = " << rangeAssign(wEI-1,0, "'1'") << " else '0';" << endl;
 		vhdl << tab << declare("fracZero") << " <= '1' when fracX = " << rangeAssign(wFI-1,0, "'0'") << " else '0';" << endl;
@@ -86,7 +86,6 @@ namespace flopoco{
 			vhdl << tab << declare("reprSubNormal") << " <= fracX(" << wFI-1 << ");" << endl;
 			vhdl << tab << "-- since we have one more exponent value than IEEE (field 0...0, value emin-1)," << endl 
 				  << tab << "-- we can represent subnormal numbers whose mantissa field begins with a 1" << endl;
-		        ////manageCriticalPath(getTarget()->localWireDelay() + getTarget()->lutDelay());
 			vhdl << tab << declare("sfracX",wFI) << " <= fracX" << range(wFI-2,0) << " & '0' when (expZero='1' and reprSubNormal='1')    else fracX;" << endl;
 
 			if(wFO>=wFI){
@@ -105,17 +104,14 @@ namespace flopoco{
 				// need to define a sticky bit
 				vhdl << tab << declare("sticky") << " <= ";
 				if(wFI-wFO>1){
-				        ////manageCriticalPath(getTarget()->localWireDelay() + getTarget()->lutDelay());
 					vhdl<< " '0' when sfracX" << range(wFI-wFO-2, 0) <<" = CONV_STD_LOGIC_VECTOR(0," << wFI-wFO-2 <<")   else '1';"<<endl;
 				}
 				else {
 					vhdl << "'0';" << endl; 
 				} // end of sticky computation
-				////manageCriticalPath(getTarget()->localWireDelay() + getTarget()->lutDelay());
 				vhdl << tab << declare("round") << " <= roundBit and (sticky or resultLSB);"<<endl;
 
 				vhdl << tab << "-- The following addition will not overflow since FloPoCo format has one more exponent value" <<endl; 
-				////manageCriticalPath(getTarget()->localWireDelay() + getTarget()->adderDelay(wEO+wFO));
 				vhdl << tab << declare("expfracR0", wEO+wFO) << " <= (expX & sfracX" << range(wFI-1, wFI-wFO) << ")  +  (CONV_STD_LOGIC_VECTOR(0," << wEO+wFO-1 <<") & round);"<<endl;
 				vhdl << tab << declare("fracR",wFO) << " <= expfracR0" << range(wFO-1, 0) << ";" << endl;
 				vhdl << tab << declare("expR",wEO) << " <= expfracR0" << range(wFO+wEO-1, wFO) << ";" << endl;
@@ -143,7 +139,6 @@ namespace flopoco{
 			// We have to compute ER = E_X - bias(wE_in) + bias(wE_R)
 			// Let us pack all the constants together
 			mpz_class expAddend = -biasI + eMaxO-1;
-			////manageCriticalPath(getTarget()->localWireDelay() + getTarget()->adderDelay(wEO));
 			vhdl << tab << declare("expR",    wEO) << " <= "
 					 << "(" << rangeAssign(wEO-1, wEI, "'0'") << "  & expX) + "
 					 << "\"" << unsignedBinary(expAddend, wEO) << "\""
@@ -179,11 +174,9 @@ namespace flopoco{
 			int32_t eMaxO = (1<<(wEO-1)); // that's our maximal exponent, one more than IEEE's
 			overflowThreshold = eMaxO+biasI;
 			vhdl << tab << "-- min exponent value without underflow, biased with input bias: " << underflowThreshold << endl ;
-			////manageCriticalPath(getTarget()->localWireDelay() + getTarget()->adderDelay(wEI+1));
 			vhdl << tab << declare("unSub",wEI+1) << " <= ('0' & expX) - CONV_STD_LOGIC_VECTOR(" << underflowThreshold << "," << wEI+1 <<");" << endl;
 			vhdl << tab << declare("underflow") << " <= unSub(" << wEI << ");" << endl;
 
-			////manageCriticalPath(getTarget()->localWireDelay() + getTarget()->adderDelay(wEI+1));
 			vhdl << tab << "-- max exponent value without overflow, biased with input bias: " << overflowThreshold << endl ;
 			vhdl << tab << declare("ovSub",wEI+1) << " <= CONV_STD_LOGIC_VECTOR(" << overflowThreshold << "," << wEI+1 <<")  -  ('0' & expX);" << endl;
 			vhdl << tab << declare("overflow") << " <= ovSub(" << wEI << ");" << endl;
@@ -192,7 +185,6 @@ namespace flopoco{
 			// have to compute expR = ((expX-biasI) + biasO) (wEO-1 downto 0)
 			// but the wEO-1 LSB bits of both biases are identical, therefore simply copy 
 			// and the remaining MSB are 1 for input and 0 for output, therefore subtract the leading 1 by inverting it
-			////manageCriticalPath(getTarget()->localWireDelay() + getTarget()->lutDelay());
 			vhdl << tab << declare("expXO", wEO) << " <= (not expX(" << wEO-1 << ")) & expX" << range(wEO-2, 0) << ";" << endl;
 
 			if(wFO>=wFI){ // no rounding needed
@@ -213,16 +205,13 @@ namespace flopoco{
 				vhdl << tab << declare("sticky") << " <= ";
 				if(wFI-wFO>1)
 				{
-					////manageCriticalPath(getTarget()->localWireDelay() + getTarget()->lutDelay());
 					vhdl<< " '0' when fracX" << range(wFI-wFO-2, 0) <<" = CONV_STD_LOGIC_VECTOR(0," << wFI-wFO-2 <<")   else '1';"<<endl;
 				}
 				else 
 					vhdl << "'0';" << endl;
-				////manageCriticalPath(getTarget()->localWireDelay() + getTarget()->lutDelay());
 				vhdl << tab << declare("round") << " <= roundBit and (sticky or resultLSB);"<<endl;
 
 				vhdl << tab << "-- The following addition may overflow" <<endl;
-				////manageCriticalPath(getTarget()->localWireDelay() + getTarget()->adderDelay(wEO+wFO+1));
 				vhdl << tab << declare("expfracR0", wEO+wFO+1) << " <= ('0' & expXO & fracX" << range(wFI-1, wFI-wFO) << ")  +  (CONV_STD_LOGIC_VECTOR(0," << wEO+wFO <<") & round);"<<endl;
 				vhdl << tab << declare("roundOverflow") << " <= expfracR0(" << wEO+wFO << ");" << endl;
 
@@ -248,11 +237,6 @@ namespace flopoco{
 	InputIEEE::~InputIEEE() {
 	}
 
-
-
-
-
-
 	void InputIEEE::emulate(TestCase * tc)
 	{
 		/* Get I/O values */
@@ -260,40 +244,34 @@ namespace flopoco{
 		mpz_class sgnX = (svX >> (wFI+wEI));
 		mpz_class expX = (svX >> wFI) & ((mpz_class(1)<<wEI)-1);
 		mpz_class fracX = svX & ((mpz_class(1)<<wFI)-1);
+
+		/** Special: even when wEI<wEO, subnormal numbers are flushed to zero */
+		if (wEI < wEO && expX == mpz_class(0)) {
+			mpz_class svR = sgnX << (wEO + wFO);
+			tc->addExpectedOutput("R", svR);
+			return;
+		}
+
 		mpfr_t x;
 		mpfr_init2(x, 1+wFI);
 	
-		if (wEI!=11 || wFI!=52)
-			throw string("InputIEEE::emulate(): only double-precision inputs supported");
-		else {
-			union {double d; uint32_t i[2];} xx;
-#if 1 // little-endian
-			mpz_class t;
-			t = (svX >> 32);
-			xx.i[1] = t.get_ui();
-			t = svX - (mpz_class(xx.i[1])<<32);
-			xx.i[0] = t.get_ui() ;
-#else //big-endian
-			t = (svX >> 32);
-			xx.i[0] = t.get_ui();
-			t = svX - (mpz_class(xx.i[0])<<32);
-			xx.i[1] = t.get_ui() ;
-#endif
-			//cout << "Double input to emulate: " << xx.d << endl;
+		/* Convert input to MPFR */
+		IEEENumber num(wEI, wFI, svX);
+		num.getMPFR(x);
 
-			mpfr_set_d(x, xx.d, GMP_RNDN);
+		//cout << "Double input to emulate: " << xx.d << endl;
 
-			mpfr_t r;
-			mpfr_init2(r, 1+wFO); 
-			mpfr_set(r, x, GMP_RNDN);
-			FPNumber  fpr(wEO, wFO, r);
+		/* Round to output precision */
+		mpfr_t r;
+		mpfr_init2(r, 1+wFO);
+		mpfr_set(r, x, GMP_RNDN);
+		FPNumber  fpr(wEO, wFO, r);
 
-			/* Set outputs */
-			mpz_class svr= fpr.getSignalValue();
-			tc->addExpectedOutput("R", svr);
+		/* Set outputs */
+		mpz_class svr = fpr.getSignalValue();
+		tc->addExpectedOutput("R", svr);
 
-			mpfr_clears(x, r, NULL);
-		}
+		mpfr_clears(x, r, NULL);
 	}
 
 	void InputIEEE::buildStandardTestCases(TestCaseList* tcl){
@@ -302,26 +280,28 @@ namespace flopoco{
 
 		tc = new TestCase(this); 
 		tc->addComment("a typical normal number: 1.0");
-		x = ((mpz_class(1) << 10)-1) << 52 ;
+		IEEENumber one(wEI, wFI, 1.0);
+		x = one.getSignalValue();
 		tc->addInput("X", x);
 		emulate(tc);
 		tcl->add(tc);
 
 		tc = new TestCase(this); 
 		tc->addComment("another one: -1.0");
-		x += (mpz_class(1) << 63);
+		IEEENumber negative_one(wEI, wFI, -1.0);
+		x = negative_one.getSignalValue();
 		tc->addInput("X", x);
 		emulate(tc);
 		tcl->add(tc);
 
 		tc = new TestCase(this);
 		tc->addComment("a subnormal that is converted to a normal number");
-		x = mpz_class(1) << 51;
+		x = mpz_class(1) << (wFI - 1);
 		tc->addInput("X", x);
 		emulate(tc);
-		tcl->add(tc);	
+		tcl->add(tc);
 
-		if(wFO==52 && wEO==11) {
+		if(wFI==52 && wEI==11 && wFO==52 && wEO==11) {
 			tc = new TestCase(this);
 			tc->addComment("the same, but defined explicitely (to check emulate())");
 			x = mpz_class(1) << 51;
@@ -333,42 +313,42 @@ namespace flopoco{
 
 		tc = new TestCase(this);
 		tc->addComment("the same, negative");
-		x += (mpz_class(1) << 63);
+		x += (mpz_class(1) << (wEI+wFI));
 		tc->addInput("X", x);
 		emulate(tc);
 		tcl->add(tc);
 
 		tc = new TestCase(this);
 		tc->addComment("a subnormal that is flushed to zero");
-		x = mpz_class(1) << 50;
+		x = mpz_class(1) << (wFI - 2);
 		tc->addInput("X", x);
 		emulate(tc);
 		tcl->add(tc);
 
 		tc = new TestCase(this);
 		tc->addComment("the same, negative");
-		x += (mpz_class(1) << 63);
+		x += (mpz_class(1) << (wEI+wFI));
 		tc->addInput("X", x);
 		emulate(tc);
 		tcl->add(tc);
 
 		tc = new TestCase(this);
 		tc->addComment("another subnormal that is flushed to zero");
-		x = mpz_class(1) << 49;
+		x = mpz_class(1) << (wFI - 3);
 		tc->addInput("X", x);
 		emulate(tc);
 		tcl->add(tc);
 
 		tc = new TestCase(this);
 		tc->addComment("the same, negative");
-		x += (mpz_class(1) << 63);
+		x += (mpz_class(1) << (wEI+wFI));
 		tc->addInput("X", x);
 		emulate(tc);
 		tcl->add(tc);
 
 		tc = new TestCase(this);
-		tc->addComment("The largest finite number. ");
-		x = (((mpz_class(1) << 11)-1) << 52) -1 ;
+		tc->addComment("The largest finite number");
+		x = (((mpz_class(1) << wEI)-1) << wFI) -1;
 		tc->addInput("X", x);
 		emulate(tc);
 		tcl->add(tc);
@@ -376,7 +356,7 @@ namespace flopoco{
 		if (wEI>wEO && wFI>wFO) {
 			tc = new TestCase(this);
 			tc->addComment("a number whose rounding will trigger an overflow");
-			x =  overflowThreshold << wFI; // maximal exponent
+			x = mpz_class(overflowThreshold) << wFI; // maximal exponent
 			x += ((mpz_class(1) << wFI)-1); // largest mantissa
 			tc->addInput("X", x);
 			emulate(tc);
@@ -392,33 +372,35 @@ namespace flopoco{
 
 		tc = new TestCase(this);
 		tc->addComment("the same, negative");
-		x += (mpz_class(1) << 63);
+		x += (mpz_class(1) << (wEI+wFI));
 		tc->addInput("X", x);
 		emulate(tc);
 		tcl->add(tc);
 
 		tc = new TestCase(this);
 		tc->addComment("Plus infty");
-		x = ((mpz_class(1) << 11)-1) << 52 ;
+		IEEENumber plus_inf(wEI, wFI, IEEENumber::plusInfty);
+		x = plus_inf.getSignalValue();
 		tc->addInput("X", x);
 		emulate(tc);
 		tcl->add(tc);
 
 		tc = new TestCase(this);
 		tc->addComment("Minus infty");
-		x += (mpz_class(1) << 63);
+		IEEENumber minus_inf(wEI, wFI, IEEENumber::minusInfty);
+		x = minus_inf.getSignalValue();
 		tc->addInput("X", x);
 		emulate(tc);
 		tcl->add(tc);
 
 		tc = new TestCase(this);
 		tc->addComment("NaN");
-		x = (((mpz_class(1) << 11)-1) << 52 ) + 12;
+		IEEENumber nan(wEI, wFI, IEEENumber::NaN);
+		x = nan.getSignalValue();
 		tc->addInput("X", x);
 		emulate(tc);
 		tcl->add(tc);
 	}
-
 	
 	OperatorPtr InputIEEE::parseArguments(OperatorPtr parentOp, Target *target, vector<string> &args) {
 		int wEIn, wFIn, wEOut, wFOut;
@@ -431,7 +413,34 @@ namespace flopoco{
 		return new InputIEEE(parentOp, target, wEIn, wFIn, wEOut, wFOut, flushToZero);
 	}
 
-	
+	TestList InputIEEE::unitTest(int index)
+	{
+		// the static list of mandatory tests
+		TestList testStateList;
+		vector<pair<string,string>> paramList;
+
+		if(index == -1)
+		{
+			// The unit tests
+			for (auto formatIn : IEEEFloatFormat::getStandardFormats()) {
+				for (auto formatOut : IEEEFloatFormat::getStandardFormats()) {
+					paramList.clear();
+					paramList.push_back(make_pair("wEIn", to_string(formatIn.wE)));
+					paramList.push_back(make_pair("wFIn", to_string(formatIn.wF)));
+					paramList.push_back(make_pair("wEOut", to_string(formatOut.wE)));
+					paramList.push_back(make_pair("wFOut", to_string(formatOut.wF)));
+					testStateList.push_back(paramList);
+				}
+			}
+		}
+		else
+		{
+			// finite number of random test computed out of index
+		}
+
+		return testStateList;
+	}
+
 	void InputIEEE::registerFactory(){
 		UserInterface::add("InputIEEE", // name
 											 "Conversion from IEEE-754-like to FloPoCo floating-point formats. Subnormals are all flushed to zero at the moment.",
@@ -442,7 +451,8 @@ namespace flopoco{
                         wEOut(int): output exponent size in bits;\
                         wFOut(int): output mantissa size in bits",
 											 "", // htmldoc
-											 InputIEEE::parseArguments
+											 InputIEEE::parseArguments,
+											 InputIEEE::unitTest
 											 ) ;
 	}
 }

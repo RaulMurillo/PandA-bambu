@@ -17,8 +17,8 @@ namespace flopoco{
 		/**
 		 * The IEEEFMA constructor
 		 * @param[in]		target		    target device
-		 * @param[in]		wE			       the with of the exponent 
-		 * @param[in]		wF			       the with of the fraction 
+		 * @param[in]		wE			       the width of the exponent 
+		 * @param[in]		wF			       the width of the fraction 
 		 * @param[in]		ieee_compliant	 operate on IEEE numbers if true, on FloPoCo numbers if false 
 		 */
 		IEEEFMA(OperatorPtr parentOp, Target* target, int wE, int wF);
@@ -36,7 +36,7 @@ namespace flopoco{
 		/** Factory method that parses arguments and calls the constructor */
 		static OperatorPtr parseArguments(OperatorPtr parentOp, Target *target , vector<string> &args);
 
-		//		static TestList unitTest(int index);
+		static TestList unitTest(int index);
 
 		/** Factory register method */ 
 		static void registerFactory();

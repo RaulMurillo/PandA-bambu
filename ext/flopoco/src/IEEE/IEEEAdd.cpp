@@ -13,6 +13,7 @@
   */
 
 #include "IEEEAdd.hpp"
+#include "IEEEFloatFormat.h"
 
 #include <iostream>
 #include <sstream>
@@ -349,6 +350,9 @@ namespace flopoco{
 			ieeex.getMPFR(x);
 			ieeey.getMPFR(y);
 
+			// set mpfr emin/emax
+			MPFRSetExp set_exp = MPFRSetExp::setupIEEE(wE, wF);
+
 			// Here now we compute in r the MPFR correctly rounded result,
 			// except in the cases of over/underflow.
 			// These cases will be handled by IEEE number.
@@ -366,7 +370,7 @@ namespace flopoco{
 			mpz_class svR = ieeer.getSignalValue();
 			tc->addExpectedOutput("R", svR);
 
-		// clean up
+			// clean up
 			mpfr_clears(x, y, r, NULL);
 	}
 
@@ -528,31 +532,14 @@ namespace flopoco{
 		vector<pair<string,string>> paramList;
 		
 		if(index==-1) 
-		{ // The unit tests
-
-			paramList.push_back(make_pair("wE","5"));
-			paramList.push_back(make_pair("wF","10"));		
-			testStateList.push_back(paramList);
-
-			paramList.clear();
-			paramList.push_back(make_pair("wE","8"));
-			paramList.push_back(make_pair("wF","23"));			
-			testStateList.push_back(paramList);
-
-			paramList.clear();
-			paramList.push_back(make_pair("wE","11"));
-			paramList.push_back(make_pair("wF","52"));	
-			testStateList.push_back(paramList);
-
-			paramList.clear();
-			paramList.push_back(make_pair("wE","15"));
-			paramList.push_back(make_pair("wF","112"));			
-			testStateList.push_back(paramList);
-
-			paramList.clear();
-			paramList.push_back(make_pair("wE","19"));
-			paramList.push_back(make_pair("wF","236"));			
-			testStateList.push_back(paramList);
+		{
+			// The unit tests
+			for (auto format : IEEEFloatFormat::getStandardFormats()) {
+				paramList.clear();
+				paramList.push_back(make_pair("wE", to_string(format.wE)));
+				paramList.push_back(make_pair("wF", to_string(format.wF)));
+				testStateList.push_back(paramList);
+			}
 		}
 		else     
 		{
@@ -572,7 +559,7 @@ namespace flopoco{
 
 	void IEEEAdd::registerFactory(){
 		UserInterface::add("IEEEAdd", // name
-											 "A floating-point adder with a new, more compact single-path architecture.",
+											 "A single-path floating-point adder.",
 											 "BasicFloatingPoint", // categories
 											 "",
 											 "wE(int): exponent size in bits; \
