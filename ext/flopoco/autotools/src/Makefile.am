@@ -308,7 +308,7 @@ noinst_HEADERS = \
 		FlopocoStream.hpp \
 		IEEE/IEEEAdd.hpp \
 		IEEE/IEEEFMA.hpp \
-		IEEE/IEEEFloatFormat.hpp \
+		IEEE/IEEEFloatFormat.h \
 		Posit/Posit2Posit.hpp \
 		Posit/Add/PIFAdd.hpp \
 		Posit/Add/PositAdd.hpp \
