@@ -129,6 +129,7 @@
 // #include "Targets/Old/Virtex5.hpp"
 // #include "Targets/Old/Virtex4.hpp"
 #include "Targets/Virtex6.hpp"
+#include "Targets/Zynq7000.hpp"
 
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
 #pragma GCC diagnostic pop
