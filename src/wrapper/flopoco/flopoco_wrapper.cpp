@@ -175,12 +175,12 @@ flopoco_wrapper::flopoco_wrapper(int
       target = new flopoco::Virtex6();
    else if("Virtex-7" == FU_target) /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
-   else if("Zynq" == FU_target) /// does not exist so we use Virtex 6 target
-      target = new flopoco::Virtex6();
-   else if("Zynq-VVD" == FU_target) /// does not exist so we use Virtex 6 target
-      target = new flopoco::Virtex6();
-   else if("Zynq-YOSYS-VVD" == FU_target) /// does not exist so we use Virtex 6 target
-      target = new flopoco::Virtex6();
+   else if("Zynq" == FU_target)
+      target = new flopoco::Zynq7000();
+   else if("Zynq-VVD" == FU_target)
+      target = new flopoco::Zynq7000();
+   else if("Zynq-YOSYS-VVD" == FU_target)
+      target = new flopoco::Zynq7000();
    else if("Virtex-7-VVD" == FU_target) /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
    else if("Artix-7-VVD" == FU_target) /// does not exist so we use Virtex 6 target
@@ -189,12 +189,12 @@ flopoco_wrapper::flopoco_wrapper(int
       target = new flopoco::Virtex6();
    else if(FU_target.find("CycloneV") != std::string::npos) /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
-   else if(FU_target.find("StratixII") != std::string::npos) /// does not exist so we use Virtex 6 target
-      target = new flopoco::Virtex6();
-   else if(FU_target.find("StratixIII") != std::string::npos) /// does not exist so we use Virtex 6 target
-      target = new flopoco::Virtex6();
-   else if(FU_target.find("StratixIV") != std::string::npos) /// does not exist so we use Virtex 6 target
-      target = new flopoco::Virtex6();
+   else if(FU_target.find("StratixII") != std::string::npos) /// does not exist so we use StratixV target
+      target = new flopoco::StratixV();
+   else if(FU_target.find("StratixIII") != std::string::npos) /// does not exist so we use StratixV target
+      target = new flopoco::StratixV();
+   else if(FU_target.find("StratixIV") != std::string::npos) /// does not exist so we use StratixV target
+      target = new flopoco::StratixV();
    else if(FU_target.find("StratixV") != std::string::npos)
       target = new flopoco::StratixV();
    else if(FU_target.find("LatticeECP3") != std::string::npos) /// does not exist so we use Virtex 6 target
