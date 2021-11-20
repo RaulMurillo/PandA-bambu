@@ -103,6 +103,7 @@ Conversions/Posit2FP
 Conversions/FP2Fix
 Conversions/Fix2FP
 Conversions/OutputIEEE
+Conversions/InputIEEE
 FPAddSub/FPAdd
 FPAddSub/FPAddDualPath
 FPAddSub/FPAddSinglePath
@@ -115,6 +116,7 @@ ExpLog/FPLogIterative
 ExpLog/FPPow
 IEEE/IEEEFMA
 IEEE/IEEEAdd
+IEEE/IEEEFloatFormat
 Table
 DualTable
 FixConstant

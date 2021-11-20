@@ -62,6 +62,11 @@ ext/sollya/autom4te.cache/
 ext/sollya/config.h.in
 ext/sollya/configure
 ext/sollya/m4/
+ext/abseil-cpp/aclocal.m4
+ext/abseil-cpp/autom4te.cache/
+ext/abseil-cpp/configure
+ext/abseil-cpp/m4/
+ext/sollya/build-aux/
 build
 ext/flopoco/Makefile.am
 ext/flopoco/configure.ac
@@ -78,3 +83,5 @@ obj/
 *orig
 
 panda_dist/
+
+lconfig.h.in

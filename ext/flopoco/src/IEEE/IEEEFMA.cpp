@@ -20,6 +20,7 @@
 // TODO opt: clean up exptentative/expupdate
 
 #include "IEEEFMA.hpp"
+#include "IEEEFloatFormat.h"
 
 #include <iostream>
 #include <sstream>
@@ -38,6 +39,7 @@
 #include <TestBenches/FPNumber.hpp>
 #include <TestBenches/IEEENumber.hpp>
 #include <IntAddSubCmp/IntAdder.hpp>
+#include <TestBenches/MPFRSetExp.hpp>
 
 
 
@@ -478,9 +480,8 @@ namespace flopoco{
 		fpC.getMPFR(c);
 
 		mpfr_set_default_prec (wF+1);
-		mpfr_set_emin ( -(1<<(wE-1)) + 3 -wF); // in the MPFR doc, they suggest 1073 for double precision
-		// 1073=-1024+3-52
-		mpfr_set_emax (1<<(wE-1)); // in the MPFR doc, they suggest 1024 for double precision
+		// set mpfr emin/emax
+		MPFRSetExp set_exp = MPFRSetExp::setupIEEE(wE, wF);
 
 
 		if (1==svnegateAB) { 
@@ -1002,8 +1003,33 @@ namespace flopoco{
 											 "wE(int): exponent size in bits; \
 			wF(int): mantissa size in bits;",
 											 "",
-											 IEEEFMA::parseArguments
+											 IEEEFMA::parseArguments,
+											 IEEEFMA::unitTest
 											 ) ;
+	}
+
+	TestList IEEEFMA::unitTest(int index)
+	{
+		// the static list of mandatory tests
+		TestList testStateList;
+		vector<pair<string,string>> paramList;
+
+		if(index == -1)
+		{
+			// The unit tests
+			for (auto format : IEEEFloatFormat::getStandardFormats()) {
+				paramList.clear();
+				paramList.push_back(make_pair("wE", to_string(format.wE)));
+				paramList.push_back(make_pair("wF", to_string(format.wF)));
+				testStateList.push_back(paramList);
+			}
+		}
+		else
+		{
+			// finite number of random test computed out of index
+		}
+
+		return testStateList;
 	}
 
 

@@ -18,7 +18,7 @@ namespace flopoco{
 		/**
 		 * @brief The IntIntKCM constructor
 		 * @param[in] target the target device
-		 * @param[in] wIn    the with of the input
+		 * @param[in] wIn    the width of the input
 		 * @param[in] C      the constant
 		 * @param[in] inputDelays the delays for each input
 		 **/

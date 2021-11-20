@@ -28,8 +28,8 @@ namespace flopoco{
 		/** The destructor */
 		virtual ~DSP() {}
 
-		/** Returns the with of the multiplier that this DSP block is using 
-		 * @return the with of the multiplier that this DSP block is using */
+		/** Returns the width of the multiplier that this DSP block is using 
+		 * @return the width of the multiplier that this DSP block is using */
 		int getMultiplierWidth();
 	
 		/** Assigns the designated width to the multiplier of the DSP block
@@ -50,8 +50,8 @@ namespace flopoco{
 		 * @return the amount by which an input can be shifted inside the DSP block */
 		int getShiftAmount();
 	
-		/** Returns the maximum with of the multiplier that this DSP block is using 
-		 * @return the maximum with of the multiplier that this DSP block is using */
+		/** Returns the maximum width of the multiplier that this DSP block is using 
+		 * @return the maximum width of the multiplier that this DSP block is using */
 		int getMaxMultiplierWidth();
 	
 		
@@ -143,7 +143,7 @@ namespace flopoco{
 		 */
 		void setAdditionOperands(DSP** o);
 	
-		/** Swaps the width and height of the DSP block. This is used in case of asymetrical DSP
+		/** Swaps the width and height of the DSP block. This is used in case of asymmetrical DSP
 		 * blocks when we want to do a vertical/horizontal replacement of the block and we need
 		 * to rotate the block by 90 degrees.
 		 */
@@ -177,7 +177,7 @@ namespace flopoco{
 		*/
 		void setRotated(bool rotateValue);
 
-		/** function that returns true if the asymetrical multiplier is rotated 
+		/** function that returns true if the asymmetrical multiplier is rotated 
 		  * @return true if DSP inputs are swapped
 		*/
 		bool isRotated();		

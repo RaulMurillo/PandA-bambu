@@ -26,6 +26,7 @@
 #include "utils.hpp"
 #include "Operator.hpp"
 #include "OutputIEEE.hpp"
+#include "IEEE/IEEEFloatFormat.h"
 
 using namespace std;
 
@@ -204,6 +205,39 @@ namespace flopoco{
 		return new OutputIEEE(parentOp, target, wEIn, wFIn, wEOut, wFOut, onlyPositiveZeroes);
 	}
 
+	TestList OutputIEEE::unitTest(int index)
+	{
+		// the static list of mandatory tests
+		TestList testStateList;
+		vector<pair<string,string>> paramList;
+
+		if(index == -1)
+		{
+			// The unit tests
+			for (auto formatIn : IEEEFloatFormat::getStandardFormats()) {
+				for (auto formatOut : IEEEFloatFormat::getStandardFormats()) {
+					if (formatIn.wE > formatOut.wE) {
+						// not implemented yet
+						continue;
+					}
+
+					paramList.clear();
+					paramList.push_back(make_pair("wEIn", to_string(formatIn.wE)));
+					paramList.push_back(make_pair("wFIn", to_string(formatIn.wF)));
+					paramList.push_back(make_pair("wEOut", to_string(formatOut.wE)));
+					paramList.push_back(make_pair("wFOut", to_string(formatOut.wF)));
+					testStateList.push_back(paramList);
+				}
+			}
+		}
+		else
+		{
+			// finite number of random test computed out of index
+		}
+
+		return testStateList;
+	}
+
 	void OutputIEEE::registerFactory(){
 		UserInterface::add("OutputIEEE", // name
 						   "Conversion from FloPoCo to IEEE-754-like floating-point formats.",
@@ -215,7 +249,8 @@ namespace flopoco{
                         wFOut(int): output mantissa size in bits;\
                         onlyPositiveZeroes(bool)=false: when true, normalize +0 and -0 to +0",
 						   "", // htmldoc
-						   OutputIEEE::parseArguments
+						   OutputIEEE::parseArguments,
+						   OutputIEEE::unitTest
 		) ;
 	}
 }

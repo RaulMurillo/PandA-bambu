@@ -42,6 +42,7 @@ FPExp
 FPLog
 FPPow
 OutputIEEE
+InputIEEE
 
 IEEEAdd
 IEEEFMA
@@ -78,7 +79,7 @@ FixFFTFullyPA
 IntConstMultShiftAdd
 IntConstMultShiftAddOpt
 IntConstMultShiftAddRPAG
-#IntConstMultShiftAddOptTernary        #requires PAGSuite
+IntConstMultShiftAddOptTernary
 
 PIF2Posit
 Posit2PIF

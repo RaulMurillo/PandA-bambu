@@ -21,8 +21,8 @@ namespace flopoco{
 		 * @param[in]		target		the target device
 		 * @param[in]		MSB			the MSB of the output number for the conversion result
 		 * @param[in]		LSB			the LSB of the output number for the conversion result
-		 * @param[in]		wEI			the with of the exponent in input
-		 * @param[in]		wFI			the with of the fraction in input
+		 * @param[in]		wEI			the width of the exponent in input
+		 * @param[in]		wFI			the width of the fraction in input
 		 * @param[in]		trunc_p			the output is not rounded when trunc_p is true
 		 */
 		 FP2Fix(Operator* parentOp, Target* target, bool SignedO, int MSBO, int LSBO,  int wEI, int wFI, bool trunc_p);

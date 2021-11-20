@@ -27,7 +27,7 @@ namespace flopoco{
 		/**
 		 * The Shifter constructor
 		 * @param[in]		target		the target device
-		 * @param[in]		wX			  the with of the input
+		 * @param[in]		wX			  the width of the input
 		 * @param[in]		maxShift	the maximum shift amount
 		 * @param[in]		direction	can be either Left of Right. Determines the shift direction
 		 * @param[in]		wR	optional size of the shifted output (-1 means: computed) 

@@ -118,7 +118,7 @@ namespace flopoco{
 		// to avoid inserting a register level between them
 		double finalDelay=target->logicDelay(5);
 		if(countType==-1) {
-			vhdl << tab << declare(finalDelay, "z", intpow2(i)-1) << " <= " << nextLevelName << " when ozb='0' else (not "<< nextLevelName << ");" << endl;
+			vhdl << tab << declare(finalDelay, "z", intpow2(i)-1) << " <= " << nextLevelName << " when OZB='0' else (not "<< nextLevelName << ");" << endl;
 			nextLevelName="z";
 			finalDelay=0.0;
 		}

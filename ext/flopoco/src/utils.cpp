@@ -808,7 +808,7 @@ namespace flopoco{
 
 	mpz_class signedToBitVector(mpz_class x, int w){
 		// sanity checks
-		if (  (x > (mpz_class(1) << (w-1))) || (x <= -(mpz_class(1) << (w-1))) ){
+		if (  (x >= (mpz_class(1) << (w-1))) || (x < -(mpz_class(1) << (w-1))) ){
 			ostringstream error;
 			error << "signedToBitVector: input " << x << " out of range for two's complement on " << w << " bits";
 			throw error.str();
@@ -846,5 +846,27 @@ namespace flopoco{
 		  s << std::tolower(elem,loc);
 		return s.str();
 	}
+
+	// MPFRSetExp::MPFRSetExp(mpfr_exp_t emin, mpfr_exp_t emax) {
+	// 	orig_emin = mpfr_get_emin();
+	// 	mpfr_set_emin(emin);
+
+	// 	orig_emax = mpfr_get_emax();
+	// 	mpfr_set_emax(emax);
+	// }
+
+	// MPFRSetExp MPFRSetExp::setupIEEE(int wE, int wF) {
+	// 	// emin and emax are specified for a mantissa in (0.5, 1)
+	// 	// The formula should evaluate to -1073 for doubles, see MPFR doc;
+	// 	int emin = -(1<<(wE-1)) - wF + 3; // -1024 - 52 + 3 
+	// 	// The formula should evaluate mpfr_t mp to 1024 for doubles, see MPFR doc;
+	// 	int emax = (1<<(wE-1));
+	// 	return MPFRSetExp(emin, emax);
+	// }
+
+	// MPFRSetExp::~MPFRSetExp() {
+	// 	mpfr_set_emin(orig_emin);
+	// 	mpfr_set_emax(orig_emax);
+	// }
 	
 }

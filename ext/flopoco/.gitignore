@@ -24,6 +24,7 @@ PiecewisePoly*.cache
 work-obj93.cf
 test.input
 *.vcd
+build/
 
 # Autotest
 TestResults
@@ -39,3 +40,6 @@ doc/flopoco_developer_manual/flopoco_developer_manual.blg
 
 #tata
 fftest
+
+# IDE settings
+*.json
