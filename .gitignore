@@ -76,6 +76,17 @@ ext/sollya/autom4te.cache/
 ext/sollya/config.h.in
 ext/sollya/configure
 ext/sollya/m4/
+ext/abseil-cpp/aclocal.m4
+ext/abseil-cpp/autom4te.cache/
+ext/abseil-cpp/configure
+ext/abseil-cpp/m4/
+ext/sollya/build-aux/
+build
+ext/flopoco/Makefile.am
+ext/flopoco/configure.ac
+ext/flopoco/src/FPExpressions/ExpressionParser.h
+ext/flopoco/src/FPExpressions/FlopocoScanner.h
+ext/flopoco/src/Makefile.am
 QTCreator-PandA-GitHub.creator.user
 lconfig.h.in
 lconfig.h.in~
@@ -90,3 +101,5 @@ obj/
 
 panda_dist/
 panda_release/
+
+lconfig.h.in

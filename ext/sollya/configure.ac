@@ -377,7 +377,11 @@ AC_CHECK_LIB([mpfi], [mpfi_init], [], AC_MSG_ERROR([libmpfi unusable]))
 AC_CHECK_LIB([z], [gzdopen], [], [])
 AC_CHECK_LIB([iconv], [libiconv_open], [], []) # This for providing a statically linked program under Cygwin. See e0d7171f9daf0027e075723d21fb40a864578cd5
 AC_CHECK_LIB([m],[cos])
+AC_CHECK_LIB([lzma], [lzma_code], [], AC_MSG_ERROR([libxml2 unusable because of missing liblzma]))
+AC_CHECK_ICU(32, LIBS="$ICU_LIBS $LIBS", AC_MSG_ERROR([libxml2 unusable because of missing icu]))
+AC_LANG_PUSH([C++])
 AC_CHECK_LIB([xml2], [xmlTextReaderIsEmptyElement], [], AC_MSG_ERROR([libxml2 unusable]))
+AC_LANG_POP([C++])	
 
 # Check that dynamic libraries are available at runtime
 AC_MSG_CHECKING([if libgmp is found at runtime])

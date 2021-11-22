@@ -2,7 +2,8 @@
 <html>
 <head>
 		<link rel="stylesheet" href="flopoco.css">
-			<meta charset="utf-8"> 
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta charset="utf-8"> 
   <title>FloPoCo user manual</title>
 </head>
 
@@ -13,7 +14,11 @@
 
 <h2><a href="flopoco_installation.html"> Installation instructions </a></h2>
 
-<h2><a href="operators_4.1.html"> List of operators with their command-line syntax </a></h2>
+<h2>List of operators with their command-line syntax</h2>
+<ul>
+	<li><a href="operators_5.0.git.html">For current git version 5.0.git </a></li>
+	<li><a href="operators_4.1.html">For version 4.1 </a></li>
+</ul>
 
 <h2>Command-line interface</h2>
 
@@ -176,13 +181,9 @@ Other values are still allowed, including negative wE. Use at your own risk.</p>
 	It makes it possible to assemble sub-component without inserting registers in many situations, thus reducing the latency of complex components.
 	Besides, different application contexts may have different policies (registers on output, or registers on input). <p>
 
-<p>Two command-line options control the pipelining of the FloPoCo operators that follow them.
+<p>The following command-line option controls the pipelining of the FloPoCo operators that follow them.
 
 <dl>
-  <dt><code>pipeline=[yes|no]</code>  (default yes)</dt>
-  <dd>
-		Requires the operators to be pipelined. If <code>no</code>, the operator will be combinatorial. If <code>yes</code>,  registers may be inserted if needed to reach the target frequency. 
-	 </dd>
   <dt><code>frequency=[frequency in MHz]</code></dt>
   <dd>Sets the target frequency. If the <code>pipeline</code> option is set, then FloPoCo will try to pipeline the operator to the given frequency.
 		It will report a warning if it fails -- or if frequency-directed pipelining is not yet implemented for this operator.

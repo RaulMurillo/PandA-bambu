@@ -15,6 +15,7 @@
 
 #include "IEEENumber.hpp"
 #include "utils.hpp"
+#include <TestBenches/MPFRSetExp.hpp>
 
 
 namespace flopoco{

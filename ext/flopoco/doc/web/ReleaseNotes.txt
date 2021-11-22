@@ -209,7 +209,8 @@ framework.
 
 ======================================================================
 16/12/2008
-Version 0.9.1 vastly improves FPAdd, stabilizes FPLargeAcc, and sees an
+Version 0.9.1
+vastly improves FPAdd, stabilizes FPLargeAcc, and sees an
 invasion of Logarithm Number System operators developed by external
 contributor Sylvain Collange.
 

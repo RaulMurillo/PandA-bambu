@@ -32,6 +32,7 @@
 #include <TestBenches/FPNumber.hpp>
 #include <TestBenches/IEEENumber.hpp>
 #include <IntAddSubCmp/IntAdder.hpp>
+#include <TestBenches/MPFRSetExp.hpp>
 
 
 using namespace std;
