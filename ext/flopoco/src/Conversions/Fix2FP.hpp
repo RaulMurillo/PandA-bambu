@@ -21,8 +21,8 @@ namespace flopoco{
 		 * @param[in]		Signed	is the Fix number signed?
 		 * @param[in]		MSB			the MSB of the input number
 		 * @param[in]		LSB			the LSB of the input number
-		 * @param[in]		wER			the with of the exponent for the convertion result
-		 * @param[in]		wFR			the with of the fraction for the convertion result
+		 * @param[in]		wER			the width of the exponent for the convertion result
+		 * @param[in]		wFR			the width of the fraction for the convertion result
 		 */
 		Fix2FP(Operator* parentOp, Target* target, bool Signed, int MSBI, int LSBI, int wER, int wFR);
 

@@ -7,6 +7,8 @@
 #include <gmpxx.h>
 
 #include "Operator.hpp"
+#include "utils.hpp"
+
 
 namespace flopoco{
 

@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="flopoco.css">
+<meta charset="utf-8"> 
+<title>FloPoCo user manual</title>
+</head>
+<body>
+<h1> Operator list for FloPoCo version 5.0.git</h1>
+<h3>Shifters, Leading Zero Counters, etc</h3>
+<dl>
+<dt class="operatorname">Shifter</dt>
+<dd class="operatordescription">A flexible shifter.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wX</code>  (<code class="parametertype">int</code>) </dt><dd>input size in bits</dd>
+<dt> <code class="parametername">maxShift</code>  (<code class="parametertype">int</code>) </dt><dd>maximum shift distance in bits</dd>
+<dt> <code class="parametername">dir</code>  (<code class="parametertype">bool</code>) </dt><dd>0=left, 1=right</dd>
+<span class="optionalparam"> <dt> <code class="parametername">wR</code>  (<code class="parametertype">int</code>)   (optional, default value is -1)</dt><dd>size of the shifted output , -1 means computed, will be equal to wX+maxShift</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">computeSticky</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>if true and wR<wX+maxShift, shifted-out bits are ORed into a sticky bit</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">inputPadBit</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>if true, add an input bit used for left-padding, as in sign extension</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">LZOC</dt>
+<dd class="operatordescription">A leading zero or one counter. The output size is computed.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wIn</code>  (<code class="parametertype">int</code>) </dt><dd>input size in bits</dd>
+<span class="optionalparam"> <dt> <code class="parametername">countType</code>  (<code class="parametertype">int</code>)   (optional, default value is -1)</dt><dd>0 means count zeroes, 1 means count ones, -1 means add an input that defines what to count</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">LZOC3</dt>
+<dd class="operatordescription">A leading zero counter. The output size is computed.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wIn</code>  (<code class="parametertype">int</code>) </dt><dd>input size in bits</dd>
+<span class="optionalparam"> <dt> <code class="parametername">useLargeLut</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>Use max unrouted lut size to build the encoding</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">Normalizer</dt>
+<dd class="operatordescription">A combined leading zero/one counter and left shifter, useful for floating-point normalization.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wX</code>  (<code class="parametertype">int</code>) </dt><dd>input size in bits</dd>
+<dt> <code class="parametername">wR</code>  (<code class="parametertype">int</code>) </dt><dd>output size in bits, with wR <= wX</dd>
+<dt> <code class="parametername">maxShift</code>  (<code class="parametertype">int</code>) </dt><dd>how many bits to count, with maxShift<= wX </dd>
+<span class="optionalparam"> <dt> <code class="parametername">computeSticky</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>if true and wR<wX, a sticky bit is computed out of the discarded bits</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">countType</code>  (<code class="parametertype">int</code>)   (optional, default value is -1)</dt><dd>0 to count zeroes, 1 to count ones, -1 to have a dynamic OZb input that tells what to count</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">ShiftReg</dt>
+<dd class="operatordescription">A plain shift register implementation.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">w</code>  (<code class="parametertype">int</code>) </dt><dd>the size of the input</dd>
+<dt> <code class="parametername">n</code>  (<code class="parametertype">int</code>) </dt><dd>the number of stages in the shift register, also the number of outputs</dd>
+<span class="optionalparam"> <dt> <code class="parametername">reset</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>the reset type (0 for none, 1 for synchronous, 2 for asynchronous)</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">GenericMux</dt>
+<dd class="operatordescription">A Multiplexer</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wIn</code>  (<code class="parametertype">int</code>) </dt><dd>input word size</dd>
+<dt> <code class="parametername">inputCount</code>  (<code class="parametertype">int</code>) </dt><dd>the number of data inputs (NOT counting the select input!)</dd>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">GenericLut</dt>
+<dd class="operatordescription">A simple look up table.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wIn</code>  (<code class="parametertype">int</code>) </dt><dd>input word size</dd>
+<dt> <code class="parametername">wOut</code>  (<code class="parametertype">int</code>) </dt><dd>output word size</dd>
+<dt> <code class="parametername">entityName</code>  (<code class="parametertype">string</code>) </dt><dd>unique name for the LUT</dd>
+<dt> <code class="parametername">inputValues</code>  (<code class="parametertype">string</code>) </dt><dd>colon seperated list of (unsigned) ints specifying the inputs for the LUT</dd>
+<dt> <code class="parametername">outputValues</code>  (<code class="parametertype">string</code>) </dt><dd>colon seperated list of (unsigned) ints specifying the corrisponding outputs</dd>
+</dl></dd>
+</dl>
+<h3>Basic integer operators (pipelined)</h3>
+<dl>
+<dt class="operatorname">Compressor</dt>
+<dd class="operatordescription">A basic compressor.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">columnHeights</code>  (<code class="parametertype">string</code>) </dt><dd>comma separated list of heights for the columns of the compressor, in decreasing order of the weight. For example, columnHeights="2,3" produces a (2,3:4) GPC</dd>
+<span class="optionalparam"> <dt> <code class="parametername">compactView</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>whether the VHDL code is printed in a more compact way, or not</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">IntAdder</dt>
+<dd class="operatordescription">Integer adder. In modern VHDL, integer addition is expressed by a + and one usually needn't define an entity for it. However, this operator will be pipelined if the addition is too large to be performed at the target frequency.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wIn</code>  (<code class="parametertype">int</code>) </dt><dd>input size in bits</dd>
+<span class="optionalparam"> <dt> <code class="parametername">arch</code>  (<code class="parametertype">int</code>)   (optional, default value is -1)</dt><dd>-1 for automatic, 0 for classical, 1 for alternative, 2 for short latency</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">optObjective</code>  (<code class="parametertype">int</code>)   (optional, default value is 2)</dt><dd>0 to optimize for logic, 1 to optimize for register, 2 to optimize for slice/ALM count</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">SRL</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>optimize for shift registers</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">IntDualAddSub</dt>
+<dd class="operatordescription">Pipelined dual adder/subtractor</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wIn</code>  (<code class="parametertype">int</code>) </dt><dd>input size in bits</dd>
+<dt> <code class="parametername">opType</code>  (<code class="parametertype">int</code>) </dt><dd>1=compute X-Y and X+Y, 2=compute X-Y and Y-X</dd>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">IntMultiAdder</dt>
+<dd class="operatordescription">A component adding n integers, bitheap based. If wIn=1 it is also a population count</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">signedIn</code>  (<code class="parametertype">bool</code>) </dt><dd>0=unsigned, 1=signed</dd>
+<dt> <code class="parametername">n</code>  (<code class="parametertype">int</code>) </dt><dd>number of inputs to add</dd>
+<dt> <code class="parametername">wIn</code>  (<code class="parametertype">int</code>) </dt><dd>input size in bits</dd>
+<span class="optionalparam"> <dt> <code class="parametername">wOut</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>output size in bits -- if 0, wOut is computed to be large enough to represent the result</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">DSPBlock</dt>
+<dd class="operatordescription">Implements a DSP block commonly found in FPGAs incl. pre-adders and post-adders computing R = (X1+X2) * Y + Z</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wX</code>  (<code class="parametertype">int</code>) </dt><dd>size of input X (or X1 and X2 if pre-adders are used)</dd>
+<dt> <code class="parametername">wY</code>  (<code class="parametertype">int</code>) </dt><dd>size of input Y</dd>
+<span class="optionalparam"> <dt> <code class="parametername">wZ</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>size of input Z (if post-adder is used)</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">xIsSigned</code>  (<code class="parametertype">bool</code>)   (optional, default value is 0)</dt><dd>input X is signed</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">yIsSigned</code>  (<code class="parametertype">bool</code>)   (optional, default value is 0)</dt><dd>input Y is signed</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">isPipelined</code>  (<code class="parametertype">bool</code>)   (optional, default value is 1)</dt><dd>every stage is pipelined when set to 1</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">usePostAdder</code>  (<code class="parametertype">bool</code>)   (optional, default value is 0)</dt><dd>use post-adders</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">usePreAdder</code>  (<code class="parametertype">bool</code>)   (optional, default value is 0)</dt><dd>use pre-adders</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">preAdderSubtracts</code>  (<code class="parametertype">bool</code>)   (optional, default value is 0)</dt><dd>if true, the pre-adder performs a pre-subtraction</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">IntMultiplier</dt>
+<dd class="operatordescription">A pipelined integer multiplier.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wX</code>  (<code class="parametertype">int</code>) </dt><dd>size of input X</dd>
+<dt> <code class="parametername">wY</code>  (<code class="parametertype">int</code>) </dt><dd>size of input Y</dd>
+<span class="optionalparam"> <dt> <code class="parametername">wOut</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>size of the output if you want a truncated multiplier. 0 for full multiplier</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">signedIO</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>inputs and outputs can be signed or unsigned</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">maxDSP</code>  (<code class="parametertype">int</code>)   (optional, default value is -1)</dt><dd>limits the number of DSP-Tiles used in Multiplier</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">use2xk</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>if true, attempts to use the 2xk-LUT-Multiplier with relatively high efficiency</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">useirregular</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>if true, attempts to use the irregular-LUT-Multipliers with higher area/lut efficiency than the rectangular versions</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">useLUT</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>if true, attempts to use the LUT-Multipliers for tiling</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">useDSP</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>if true, attempts to use the DSP-Multipliers for tiling</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">useKaratsuba</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>if true, attempts to use rectangular Karatsuba for tiling</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">superTile</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>if true, attempts to use the DSP adders to chain sub-multipliers. This may entail lower logic consumption, but higher latency.</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">dspThreshold</code>  (<code class="parametertype">real</code>)   (optional, default value is 0.0)</dt><dd>threshold of relative occupation ratio of a DSP multiplier to be used or not</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">optiTrunc</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>if true, considers the Truncation error dynamicly, instead of defining a hard border for tiling, like in th ARITH paper</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">minStages</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>if true, minimizes stages in combined opt. of tiling an comp., otherwise try to find a sol. with less LUTs and more stages</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">beamRange</code>  (<code class="parametertype">int</code>)   (optional, default value is 3)</dt><dd>range for beam search</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">IntMultiplierLUT</dt>
+<dd class="operatordescription">Implements a LUT multiplier by simply tabulating all results in the LUT, should only be used for very small word sizes</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wX</code>  (<code class="parametertype">int</code>) </dt><dd>size of input X</dd>
+<dt> <code class="parametername">wY</code>  (<code class="parametertype">int</code>) </dt><dd>size of input Y</dd>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">IntKaratsubaRectangular</dt>
+<dd class="operatordescription">Implements a large unsigned Multiplier using rectangular shaped tiles as appears for Xilinx FPGAs. Currently limited to specific, hand-optimized sizes</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wX</code>  (<code class="parametertype">int</code>) </dt><dd>size of input X</dd>
+<dt> <code class="parametername">wY</code>  (<code class="parametertype">int</code>) </dt><dd>size of input Y</dd>
+<span class="optionalparam"> <dt> <code class="parametername">useKaratsuba</code>  (<code class="parametertype">bool</code>)   (optional, default value is 1)</dt><dd>Uses Karatsuba when set to 1, instead a standard tiling without sharing is used.</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">useRectangularTiles</code>  (<code class="parametertype">bool</code>)   (optional, default value is 1)</dt><dd>Uses rectangular tiles when set to 1, otherwise quadratic tiles are used</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">IntSquarer</dt>
+<dd class="operatordescription">An integer squarer.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wIn</code>  (<code class="parametertype">int</code>) </dt><dd>size of input in bits</dd>
+<span class="optionalparam"> <dt> <code class="parametername">wOut</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>size of the output if you want a truncated squarer. 0 for exact (full) squarer</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">signedIn</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>inputs can be signed or unsigned (output always unsigned)</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">BaseMultiplierDSPSuperTilesXilinx</dt>
+<dd class="operatordescription">Implements a DSP block commonly found in FPGAs incl. pre-adders and post-adders computing R = (X1+X2) * Y + Z</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">shape</code>  (<code class="parametertype">int</code>) </dt><dd>Shape ID (1-12) of the DSP-Superblock</dd>
+<span class="optionalparam"> <dt> <code class="parametername">isPipelined</code>  (<code class="parametertype">bool</code>)   (optional, default value is 0)</dt><dd>use pipelining</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">xIsSigned</code>  (<code class="parametertype">bool</code>)   (optional, default value is 0)</dt><dd>input X is signed</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">yIsSigned</code>  (<code class="parametertype">bool</code>)   (optional, default value is 0)</dt><dd>input Y is signed</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">BaseMultiplierXilinx2xk</dt>
+<dd class="operatordescription">Implements a 2xY-LUT-Multiplier that can be realized efficiently on some Xilinx-FPGAs</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wX</code>  (<code class="parametertype">int</code>) </dt><dd>size of input X</dd>
+<dt> <code class="parametername">wY</code>  (<code class="parametertype">int</code>) </dt><dd>size of input Y</dd>
+<span class="optionalparam"> <dt> <code class="parametername">xIsSigned</code>  (<code class="parametertype">bool</code>)   (optional, default value is 0)</dt><dd>input X is signed</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">yIsSigned</code>  (<code class="parametertype">bool</code>)   (optional, default value is 0)</dt><dd>input Y is signed</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">BaseMultiplierIrregularLUTXilinx</dt>
+<dd class="operatordescription">Implements a non rectangular LUT multiplier from a set that yields a relatively high efficiency compared to recangular LUT multipliers 
+  _ _     _        _ _       _     _ _ _    _ _      _ _     _
+ |_|_|_  |_|_     |_|_|_    |_|_  |_|_|_|  |_|_|_   |_|_|   |_|_
+ |_|_|_| |_|_|_     |_|_|   |_|_|   |_|_|  |_|_|_|  |_|_|   |_|_|
+ |_|_|_|   |_|_|              |_|                     |_|   |_|_|
+ shape 1  shape 2 shape 3 shape 4 shape 5  shape 6 shape 7  shape 8
+</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wS</code>  (<code class="parametertype">int</code>) </dt><dd>shape ID</dd>
+<span class="optionalparam"> <dt> <code class="parametername">xSigned</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>input X can be signed or unsigned</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">ySigned</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>input Y can be signed or unsigned</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">BaseMultiplierDSPKaratsuba</dt>
+<dd class="operatordescription">Implements the Karatsuba pattern with DSPs where certain multipliers can be omitted to save DSPs</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wX</code>  (<code class="parametertype">int</code>) </dt><dd>size of input X of a single DSP-block</dd>
+<dt> <code class="parametername">wY</code>  (<code class="parametertype">int</code>) </dt><dd>size of input Y of a single DSP-block</dd>
+<dt> <code class="parametername">n</code>  (<code class="parametertype">int</code>) </dt><dd>size of pattern and number of DSP substitutions</dd>
+</dl></dd>
+</dl>
+<h3>Basic floating-point operators</h3>
+<dl>
+<dt class="operatorname">FPAdd</dt>
+<dd class="operatordescription">A correctly rounded floating-point adder.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wE</code>  (<code class="parametertype">int</code>) </dt><dd>exponent size in bits</dd>
+<dt> <code class="parametername">wF</code>  (<code class="parametertype">int</code>) </dt><dd>mantissa size in bits</dd>
+<span class="optionalparam"> <dt> <code class="parametername">sub</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>implement a floating-point subtractor instead of an adder</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">dualPath</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>use a dual-path algorithm, more expensive but shorter latency</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">onlyPositiveIO</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>optimize for only positive input and output numbers</dd> </span>
+</dl></dd>
+<dd>Single-path is lower hardware, longer latency than dual-path.<br> The difference between single-path and dual-path is well explained in textbooks such as Ercegovac and Lang's <em>Digital Arithmetic</em>, or Muller et al's <em>Handbook of floating-point arithmetic.</em></dd>
+</dl>
+<dl>
+<dt class="operatorname">FPMult</dt>
+<dd class="operatordescription">A floating-point multiplier. The actual FloPoCo component supports different input and output sizes, but this is not available from the command line.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wE</code>  (<code class="parametertype">int</code>) </dt><dd>input exponent size in bits, for X or for both X and Y</dd>
+<dt> <code class="parametername">wF</code>  (<code class="parametertype">int</code>) </dt><dd>input significand fraction size in bits, for X or for both X and Y</dd>
+<span class="optionalparam"> <dt> <code class="parametername">wEY</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>second input exponent size in bits (0 means wEY=wE)</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">wFY</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>second input significand fraction size in bits (0 means wFY=wF)</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">wEOut</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>result exponent size in bits (0 means wEOout=wE)</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">wFOut</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>result significand fraction size in bits (0 means wFOout=wF)</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">correctlyRounded</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>correct (true) or faithful (false) rounding</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">dspThreshold</code>  (<code class="parametertype">real</code>)   (optional, default value is 0.0)</dt><dd>threshold of relative occupation ratio of a DSP multiplier to be used or not</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">FPDiv</dt>
+<dd class="operatordescription">A correctly rounded floating-point division.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wE</code>  (<code class="parametertype">int</code>) </dt><dd>exponent size in bits</dd>
+<dt> <code class="parametername">wF</code>  (<code class="parametertype">int</code>) </dt><dd>mantissa size in bits</dd>
+<span class="optionalparam"> <dt> <code class="parametername">srt</code>  (<code class="parametertype">int</code>)   (optional, default value is 42)</dt><dd>Can be 42, 43 or 87 so far. Default 42 means radix 4 with digits between -2 and 2. Other choices may have a better area/speed trade-offs</dd> </span>
+</dl></dd>
+<dd>The algorithm used here is the division by digit recurrence (SRT). In radix 4, we use a maximally redundant digit set. In radix 8, we use split-digits in [-7,7], and a bit of prescaling.</dd>
+</dl>
+<dl>
+<dt class="operatorname">FPSqrt</dt>
+<dd class="operatordescription">A correctly rounded floating-point square root function.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wE</code>  (<code class="parametertype">int</code>) </dt><dd>exponent size in bits</dd>
+<dt> <code class="parametername">wF</code>  (<code class="parametertype">int</code>) </dt><dd>mantissa size in bits</dd>
+<span class="optionalparam"> <dt> <code class="parametername">method</code>  (<code class="parametertype">int</code>)   (optional, default value is 1)</dt><dd>0 for plain restoring, 1 for nonrestoring method</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">IEEEAdd</dt>
+<dd class="operatordescription">A single-path floating-point adder.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wE</code>  (<code class="parametertype">int</code>) </dt><dd>exponent size in bits</dd>
+<dt> <code class="parametername">wF</code>  (<code class="parametertype">int</code>) </dt><dd>mantissa size in bits</dd>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">IEEEFMA</dt>
+<dd class="operatordescription">A correctly rounded floating-point FMA.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wE</code>  (<code class="parametertype">int</code>) </dt><dd>exponent size in bits</dd>
+<dt> <code class="parametername">wF</code>  (<code class="parametertype">int</code>) </dt><dd>mantissa size in bits</dd>
+</dl></dd>
+</dl>
+<h3>Posit operators</h3>
+<dl>
+<dt class="operatorname">PositAdd</dt>
+<dd class="operatordescription">A correctly rounded posit adder.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">width</code>  (<code class="parametertype">int</code>) </dt><dd>posit size in bits</dd>
+<dt> <code class="parametername">wES</code>  (<code class="parametertype">int</code>) </dt><dd>exponent size in bits</dd>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">PositExp</dt>
+<dd class="operatordescription">A faithful posit exponential function.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">width</code>  (<code class="parametertype">int</code>) </dt><dd>Posit size in bits</dd>
+<dt> <code class="parametername">wES</code>  (<code class="parametertype">int</code>) </dt><dd>exponent size in bits</dd>
+<span class="optionalparam"> <dt> <code class="parametername">d</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>degree of the polynomial. 0 choses a sensible default.</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">k</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>input size to the range reduction table, should be between 5 and 15. 0 choses a sensible default.</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">g</code>  (<code class="parametertype">int</code>)   (optional, default value is -1)</dt><dd>number of guard bits</dd> </span>
+</dl></dd>
+<dd>Parameter d and k control the DSP/RamBlock tradeoff. In both cases, a value of 0 choses a sensible default. Parameter g is mostly for internal use.<br> For all the details, see <a href="bib/flopoco.html#DinechinPasca2010-FPT">this article</a>.</dd>
+</dl>
+<dl>
+<dt class="operatorname">PositFunctionByTable</dt>
+<dd class="operatordescription">Evaluator of function f using a table.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">f</code>  (<code class="parametertype">string</code>) </dt><dd>function to be evaluated between double-quotes, for instance "exp(x*x)"</dd>
+<dt> <code class="parametername">width</code>  (<code class="parametertype">int</code>) </dt><dd>size of the Posit</dd>
+<dt> <code class="parametername">wES</code>  (<code class="parametertype">int</code>) </dt><dd>size of the Posit's exponent.</dd>
+</dl></dd>
+<dd>This operator uses a table to store function values.</dd>
+</dl>
+<h3>Multipliers and dividers by constants</h3>
+<dl>
+<dt class="operatorname">IntConstMult</dt>
+<dd class="operatordescription">Integer multiplier of an unsigned number by a constant using a shift-and-add tree.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wIn</code>  (<code class="parametertype">int</code>) </dt><dd>input size in bits</dd>
+<dt> <code class="parametername">n</code>  (<code class="parametertype">int</code>) </dt><dd>constant to multiply by</dd>
+</dl></dd>
+<dd>An early version of this operator is described in <a href="bib/flopoco.html#BrisebarreMullerDinechin2008:ASAP">this article</a>.</dd>
+</dl>
+<dl>
+<dt class="operatorname">FPConstMult</dt>
+<dd class="operatordescription">Floating-point constant multiplier using the shift-and-add approach.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wE_in</code>  (<code class="parametertype">int</code>) </dt><dd>input exponent width</dd>
+<dt> <code class="parametername">wF_in</code>  (<code class="parametertype">int</code>) </dt><dd>input significand part width</dd>
+<dt> <code class="parametername">wE_out</code>  (<code class="parametertype">int</code>) </dt><dd>output exponent width</dd>
+<dt> <code class="parametername">wF_out</code>  (<code class="parametertype">int</code>) </dt><dd>output significand width</dd>
+<dt> <code class="parametername">constant</code>  (<code class="parametertype">string</code>) </dt><dd>constant in sollya formalism (e.g. "cos(3*pi/2)" or "13176795b-22")</dd>
+<span class="optionalparam"> <dt> <code class="parametername">cst_width</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>constant precision. If set to zero, the actual width will be computed in order to get a faithful result.</dd> </span>
+</dl></dd>
+<dd>An early version of the technique used is described in  <a href="bib/flopoco.html#BrisebarreMullerDinechin2008:ASAP">this article</a>.</dd>
+</dl>
+<dl>
+<dt class="operatorname">FPConstMultRational</dt>
+<dd class="operatordescription">Correctly rounded floating-point multiplier by a rational constant.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wE_in</code>  (<code class="parametertype">int</code>) </dt><dd>input exponent width</dd>
+<dt> <code class="parametername">wF_in</code>  (<code class="parametertype">int</code>) </dt><dd>input significand part width</dd>
+<dt> <code class="parametername">wE_out</code>  (<code class="parametertype">int</code>) </dt><dd>output exponent width</dd>
+<dt> <code class="parametername">wF_out</code>  (<code class="parametertype">int</code>) </dt><dd>output significand width</dd>
+<dt> <code class="parametername">a</code>  (<code class="parametertype">int</code>) </dt><dd>numerator</dd>
+<dt> <code class="parametername">b</code>  (<code class="parametertype">int</code>) </dt><dd>denominator</dd>
+</dl></dd>
+<dd>The technique used is described in  <a href="bib/flopoco.html#Dinechin2012-TCASII">this article</a>.</dd>
+</dl>
+<dl>
+<dt class="operatorname">IntConstDiv</dt>
+<dd class="operatordescription">Integer divider by a small constant.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wIn</code>  (<code class="parametertype">int</code>) </dt><dd>input size in bits</dd>
+<dt> <code class="parametername">d</code>  (<code class="parametertype">intlist</code>) </dt><dd>integer to divide by. Either a small integer, or a colon-separated list of small integers, in which case a composite divider by the product is built</dd>
+<span class="optionalparam"> <dt> <code class="parametername">arch</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>architecture used -- 0 for linear-time, 1 for log-time, 2 for multiply-and-add by the reciprocal</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">computeQuotient</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>if true, the architecture outputs the quotient</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">computeRemainder</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>if true, the architecture outputs the remainder</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">alpha</code>  (<code class="parametertype">int</code>)   (optional, default value is -1)</dt><dd>Algorithm uses radix 2^alpha. -1 choses a sensible default.</dd> </span>
+</dl></dd>
+<dd>This operator is described, for arch=0, in <a href="bib/flopoco.html#dedinechin:2012:ensl-00642145:1">this article</a>, and for arch=1, in <a href="bib/flopoco.html#UgurdagEtAl2016">this article</a>.</dd>
+</dl>
+<dl>
+<dt class="operatorname">FixRealKCM</dt>
+<dd class="operatordescription">Table based real multiplier. Output size is computed</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">signedIn</code>  (<code class="parametertype">bool</code>) </dt><dd>0=unsigned, 1=signed</dd>
+<dt> <code class="parametername">msbIn</code>  (<code class="parametertype">int</code>) </dt><dd>weight associated to most significant bit (including sign bit)</dd>
+<dt> <code class="parametername">lsbIn</code>  (<code class="parametertype">int</code>) </dt><dd>weight associated to least significant bit</dd>
+<dt> <code class="parametername">lsbOut</code>  (<code class="parametertype">int</code>) </dt><dd>weight associated to output least significant bit</dd>
+<dt> <code class="parametername">constant</code>  (<code class="parametertype">string</code>) </dt><dd>constant given in arbitrary-precision decimal, or as a Sollya expression, e.g "log(2)"</dd>
+<span class="optionalparam"> <dt> <code class="parametername">targetUlpError</code>  (<code class="parametertype">real</code>)   (optional, default value is 1.0)</dt><dd>required precision on last bit. Should be strictly greater than 0.5 and lesser than 1</dd> </span>
+</dl></dd>
+<dd>This variant of Ken Chapman's Multiplier is briefly described in <a href="bib/flopoco.html#volkova:hal-01561052">this article</a>.<br> Special constants, such as 0 or powers of two, are handled efficiently.</dd>
+</dl>
+<dl>
+<dt class="operatorname">FixRealShiftAdd</dt>
+<dd class="operatordescription">Table based real multiplier. Output size is computed</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">signedIn</code>  (<code class="parametertype">bool</code>) </dt><dd>0=unsigned, 1=signed</dd>
+<dt> <code class="parametername">msbIn</code>  (<code class="parametertype">int</code>) </dt><dd>weight associated to most significant bit (including sign bit)</dd>
+<dt> <code class="parametername">lsbIn</code>  (<code class="parametertype">int</code>) </dt><dd>weight associated to least significant bit</dd>
+<dt> <code class="parametername">lsbOut</code>  (<code class="parametertype">int</code>) </dt><dd>weight associated to output least significant bit</dd>
+<dt> <code class="parametername">constant</code>  (<code class="parametertype">string</code>) </dt><dd>constant given in arbitrary-precision decimal, or as a Sollya expression, e.g "log(2)"</dd>
+<span class="optionalparam"> <dt> <code class="parametername">targetUlpError</code>  (<code class="parametertype">real</code>)   (optional, default value is 1.0)</dt><dd>required precision on last bit. Should be strictly greater than 0.5 and lesser than 1</dd> </span>
+</dl></dd>
+<dd>This variant of shift-and-add multiplier is briefly described in <a href="bib/flopoco.html#deDinechinEtAl2019-Arith-KCMvsSA">this article</a>.<br> Special constants, such as 0 or powers of two, are handled efficiently.</dd>
+</dl>
+<dl>
+<dt class="operatorname">FixRealConstMult</dt>
+<dd class="operatordescription">Table based real multiplier. Output size is computed</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">signedIn</code>  (<code class="parametertype">bool</code>) </dt><dd>0=unsigned, 1=signed</dd>
+<dt> <code class="parametername">msbIn</code>  (<code class="parametertype">int</code>) </dt><dd>weight associated to most significant bit (including sign bit)</dd>
+<dt> <code class="parametername">lsbIn</code>  (<code class="parametertype">int</code>) </dt><dd>weight associated to least significant bit</dd>
+<dt> <code class="parametername">lsbOut</code>  (<code class="parametertype">int</code>) </dt><dd>weight associated to output least significant bit</dd>
+<dt> <code class="parametername">constant</code>  (<code class="parametertype">string</code>) </dt><dd>constant given in arbitrary-precision decimal, or as a Sollya expression, e.g "log(2)"</dd>
+<span class="optionalparam"> <dt> <code class="parametername">targetUlpError</code>  (<code class="parametertype">real</code>)   (optional, default value is 1.0)</dt><dd>required precision on last bit. Should be strictly greater than 0.5 and lesser than 1</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">method</code>  (<code class="parametertype">string</code>)   (optional, default value is auto)</dt><dd>desired method. Can be 'KCM', 'ShiftAdd' or 'auto' (let FloPoCo decide which operator performs best)</dd> </span>
+</dl></dd>
+<dd>The KCM variant is described in <a href="bib/flopoco.html#volkova:hal-01561052">this article</a>. The Shift-and-Add variant is described  in <a href="bib/flopoco.html#deDinechinEtAl2019-Arith-KCMvsSA">this article</a>.<br> Special constants, such as 0 or powers of two, are handled efficiently.</dd>
+</dl>
+<dl>
+<dt class="operatorname">FixFixConstMult</dt>
+<dd class="operatordescription">Table based real multiplier. Output size is computed</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">signedIn</code>  (<code class="parametertype">bool</code>) </dt><dd>0=unsigned, 1=signed</dd>
+<dt> <code class="parametername">msbIn</code>  (<code class="parametertype">int</code>) </dt><dd>weight associated to most significant bit (including sign bit)</dd>
+<dt> <code class="parametername">lsbIn</code>  (<code class="parametertype">int</code>) </dt><dd>weight associated to least significant bit</dd>
+<dt> <code class="parametername">lsbOut</code>  (<code class="parametertype">int</code>) </dt><dd>weight associated to output least significant bit</dd>
+<dt> <code class="parametername">constant</code>  (<code class="parametertype">string</code>) </dt><dd>constant given in arbitrary-precision decimal, or as a Sollya expression, e.g "log(2)"</dd>
+<span class="optionalparam"> <dt> <code class="parametername">targetUlpError</code>  (<code class="parametertype">real</code>)   (optional, default value is 1.0)</dt><dd>required precision on last bit. Should be strictly greater than 0.5 and lesser than 1</dd> </span>
+</dl></dd>
+<dd>This variant of Ken Chapman's Multiplier is briefly described in <a href="bib/flopoco.html#DinIstoMas2014-SOPCJR">this article</a>.<br> Special constants, such as 0 or powers of two, are handled efficiently.</dd>
+</dl>
+<dl>
+<dt class="operatorname">FixComplexKCM</dt>
+<dd class="operatordescription">Table-based complex multiplier. Inputs are two's complement. Output size is computed</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">msbIn</code>  (<code class="parametertype">int</code>) </dt><dd>weight associated to most significant bit (including sign bit)</dd>
+<dt> <code class="parametername">lsbIn</code>  (<code class="parametertype">int</code>) </dt><dd>weight associated to least significant bit</dd>
+<dt> <code class="parametername">lsbOut</code>  (<code class="parametertype">int</code>) </dt><dd>weight associated to output least significant bit</dd>
+<dt> <code class="parametername">constantRe</code>  (<code class="parametertype">string</code>) </dt><dd>real part of the constant, given as a Sollya expression, e.g "log(2)"</dd>
+<dt> <code class="parametername">constantIm</code>  (<code class="parametertype">string</code>) </dt><dd>imaginary part of the constant, given as a Sollya expression, e.g "log(2)"</dd>
+<span class="optionalparam"> <dt> <code class="parametername">extrabit</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>do we need extra bit for addition</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">IntConstMultShiftAdd</dt>
+<dd class="operatordescription">A component for building constant multipliers based on pipelined adder graphs (PAGs).</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wIn</code>  (<code class="parametertype">int</code>) </dt><dd>Wordsize of pag inputs</dd>
+<dt> <code class="parametername">graph</code>  (<code class="parametertype">string</code>) </dt><dd>Realization string of the pag</dd>
+<span class="optionalparam"> <dt> <code class="parametername">epsilon</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>Allowable error for truncated constant multipliers</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">pipeline</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>Enable pipelining of the pag</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">sync_inout</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>Enable pipeline registers for input and output stage</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">sync_muxes</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>Enable counting mux-only stages as full stage</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">sync_every</code>  (<code class="parametertype">int</code>)   (optional, default value is 1)</dt><dd>Count of stages after which will be pipelined</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">truncations</code>  (<code class="parametertype">string</code>)   (optional, default value is "")</dt><dd>provides the truncations for subvalues</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">IntConstMultShiftAddOpt</dt>
+<dd class="operatordescription">Integer constant multiplication using shift and add in an optimal way (i.e., with minimum number of adders). Works for coefficients up to 524287 (19 bit)</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wIn</code>  (<code class="parametertype">int</code>) </dt><dd>Input word size</dd>
+<dt> <code class="parametername">constant</code>  (<code class="parametertype">int</code>) </dt><dd>constant</dd>
+<span class="optionalparam"> <dt> <code class="parametername">epsilon</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>Allowable error for truncated constant multipliers</dd> </span>
+</dl></dd>
+<dd>Nope.</dd>
+</dl>
+<dl>
+<dt class="operatorname">IntConstMultShiftAddRPAG</dt>
+<dd class="operatordescription">Integer constant multiplication using shift and add using the RPAG algorithm</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wIn</code>  (<code class="parametertype">int</code>) </dt><dd>Input word size</dd>
+<dt> <code class="parametername">constant</code>  (<code class="parametertype">int</code>) </dt><dd>constant</dd>
+<span class="optionalparam"> <dt> <code class="parametername">epsilon</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>Allowable error for truncated constant multipliers</dd> </span>
+</dl></dd>
+<dd>Nope.</dd>
+</dl>
+<dl>
+<dt class="operatorname">IntConstMultShiftAddOptTernary</dt>
+<dd class="operatordescription">Integer constant multiplication using shift and ternary additions in an optimal way (i.e., with minimum number of ternary adders). Works for coefficients up to 4194303 (22 bit)</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wIn</code>  (<code class="parametertype">int</code>) </dt><dd>Input word size</dd>
+<dt> <code class="parametername">constant</code>  (<code class="parametertype">int</code>) </dt><dd>constant</dd>
+</dl></dd>
+<dd>Nope.</dd>
+</dl>
+<h3>Composite fixed-point operators</h3>
+<h3>Elementary functions in fixed- or floating-Point</h3>
+<dl>
+<dt class="operatorname">FPExp</dt>
+<dd class="operatordescription">A faithful floating-point exponential function.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wE</code>  (<code class="parametertype">int</code>) </dt><dd>exponent size in bits</dd>
+<dt> <code class="parametername">wF</code>  (<code class="parametertype">int</code>) </dt><dd>mantissa size in bits</dd>
+<span class="optionalparam"> <dt> <code class="parametername">d</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>degree of the polynomial. 0 choses a sensible default.</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">k</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>input size to the range reduction table, should be between 5 and 15. 0 choses a sensible default.</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">g</code>  (<code class="parametertype">int</code>)   (optional, default value is -1)</dt><dd>number of guard bits</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">fullInput</code>  (<code class="parametertype">bool</code>)   (optional, default value is 0)</dt><dd>input a mantissa of wF+wE+g bits (useful mostly for FPPow)</dd> </span>
+</dl></dd>
+<dd>Parameter d and k control the DSP/RamBlock tradeoff. In both cases, a value of 0 choses a sensible default. Parameter g is mostly for internal use.<br> For all the details, see <a href="bib/flopoco.html#DinechinPasca2010-FPT">this article</a>.</dd>
+</dl>
+<dl>
+<dt class="operatorname">FPLog</dt>
+<dd class="operatordescription">Floating-point logarithm</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wE</code>  (<code class="parametertype">int</code>) </dt><dd>exponent size in bits</dd>
+<dt> <code class="parametername">wF</code>  (<code class="parametertype">int</code>) </dt><dd>mantissa size in bits</dd>
+<span class="optionalparam"> <dt> <code class="parametername">method</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>0 for iterative, 1 for polynomial</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">inTableSize</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>The input size to the tables of the iterative method, in bits, between 6 and 16. 0 choses a a sensible value</dd> </span>
+</dl></dd>
+<dd>For details on the technique used, see <a href="bib/flopoco.html#DetDinPuj2007:Arith">this article</a> and <a href="bib/flopoco.html#2010-RR-FPLog">this research report</a>.</dd>
+</dl>
+<dl>
+<dt class="operatorname">FPPow</dt>
+<dd class="operatordescription">A floating-point power function.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wE</code>  (<code class="parametertype">int</code>) </dt><dd>exponent size in bits for both inputs</dd>
+<dt> <code class="parametername">wF</code>  (<code class="parametertype">int</code>) </dt><dd>mantissa size in bits for both inputs</dd>
+<span class="optionalparam"> <dt> <code class="parametername">type</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>0 for pow, 1 for the powr function introduced in IEEE754-2008</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">FixSinCos</dt>
+<dd class="operatordescription">Computes (1-2^(-w)) sin(pi*x) and (1-2^(-w)) cos(pi*x) for x in -[1,1[, using tables and multipliers.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">lsb</code>  (<code class="parametertype">int</code>) </dt><dd>weight of the LSB of the input and outputs</dd>
+<span class="optionalparam"> <dt> <code class="parametername">method</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>0 for table- and mult-based, 1 for traditional CORDIC, 2 for reduced-iteration CORDIC</dd> </span>
+</dl></dd>
+<dd>For a fixed-point 2's complement input x in [-1,1[, evaluates (1-2^(lsbIn))*{sin,cos}(pi*x). <br>For more details, see <a href="bib/flopoco.html#DinIstSer2013-HEART-SinCos">this article</a>.</dd>
+</dl>
+<dl>
+<dt class="operatorname">FixAtan2</dt>
+<dd class="operatordescription">Computes atan(X/Y) as A=(angle in radian)/pi,  so A in [-1,1).</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">lsb</code>  (<code class="parametertype">int</code>) </dt><dd>weight of the LSB of both inputs and outputs</dd>
+<dt> <code class="parametername">method</code>  (<code class="parametertype">int</code>) </dt><dd>parameter select between: InvMultAtan with approximations of the corresponding degree (0..7), plain CORDIC (8), CORDIC with scaling (9), a method using surface approximation (10), Taylor approximation of order 1 (11) and 2 (12)</dd>
+</dl></dd>
+<dd>For more details, see <a href="bib/flopoco.html#DinIsto2015">this article</a>.</dd>
+</dl>
+<h3>Arbitrary function approximators</h3>
+<dl>
+<dt class="operatorname">FixFunctionByTable</dt>
+<dd class="operatordescription">Evaluator of function f on [0,1) or [-1,1), depending on signedIn, using a table.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">f</code>  (<code class="parametertype">string</code>) </dt><dd>function to be evaluated between double-quotes, for instance "exp(x*x)"</dd>
+<dt> <code class="parametername">signedIn</code>  (<code class="parametertype">bool</code>) </dt><dd>if true the function input range is [-1,1), if false it is [0,1)</dd>
+<dt> <code class="parametername">lsbIn</code>  (<code class="parametertype">int</code>) </dt><dd>weight of input LSB, for instance -8 for an 8-bit input</dd>
+<dt> <code class="parametername">lsbOut</code>  (<code class="parametertype">int</code>) </dt><dd>weight of output LSB</dd>
+</dl></dd>
+<dd>This operator uses a table to store function values.</dd>
+</dl>
+<dl>
+<dt class="operatorname">FixFunctionByMultipartiteTable</dt>
+<dd class="operatordescription">A function evaluator using the multipartite method.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">f</code>  (<code class="parametertype">string</code>) </dt><dd>function to be evaluated between double-quotes, for instance "exp(x*x)"</dd>
+<dt> <code class="parametername">signedIn</code>  (<code class="parametertype">bool</code>) </dt><dd>if true the function input range is [-1,1), if false it is [0,1)</dd>
+<dt> <code class="parametername">lsbIn</code>  (<code class="parametertype">int</code>) </dt><dd>weight of input LSB, for instance -8 for an 8-bit input</dd>
+<dt> <code class="parametername">lsbOut</code>  (<code class="parametertype">int</code>) </dt><dd>weight of output LSB</dd>
+<span class="optionalparam"> <dt> <code class="parametername">nbTO</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>number of Tables of Offsets, between 1 (bipartite) to 4 or 5 for large input sizes -- 0: let the tool choose </dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">compressTIV</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>use Hsiao TIV compression, or not</dd> </span>
+</dl></dd>
+<dd>This operator uses the multipartite table method as introduced in <a href="http://perso.citi-lab.fr/fdedinec/recherche/publis/2005-TC-Multipartite.pdf">this article</a>, with the improvement described in <a href="http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=6998028&tag=1">this article</a>. </dd>
+</dl>
+<dl>
+<dt class="operatorname">FixFunctionBySimplePoly</dt>
+<dd class="operatordescription">Evaluator of function f on [0,1) or [-1,1), using a single polynomial with Horner scheme</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">f</code>  (<code class="parametertype">string</code>) </dt><dd>function to be evaluated between double-quotes, for instance "exp(x*x)"</dd>
+<span class="optionalparam"> <dt> <code class="parametername">signedIn</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>if true the function input range is [-1,1), if false it is [0,1)</dd> </span>
+<dt> <code class="parametername">lsbIn</code>  (<code class="parametertype">int</code>) </dt><dd>weight of input LSB, for instance -8 for an 8-bit input</dd>
+<dt> <code class="parametername">lsbOut</code>  (<code class="parametertype">int</code>) </dt><dd>weight of output LSB</dd>
+</dl></dd>
+<dd>This operator uses a table for coefficients, and Horner evaluation with truncated multipliers sized just right.<br>For more details, see <a href="bib/flopoco.html#DinJolPas2010-poly">this article</a>.</dd>
+</dl>
+<dl>
+<dt class="operatorname">FixFunctionByPiecewisePoly</dt>
+<dd class="operatordescription">Evaluator of function f on [0,1), using a piecewise polynomial of degree d with Horner scheme.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">f</code>  (<code class="parametertype">string</code>) </dt><dd>function to be evaluated between double-quotes, for instance "exp(x*x)"</dd>
+<dt> <code class="parametername">lsbIn</code>  (<code class="parametertype">int</code>) </dt><dd>weight of input LSB, for instance -8 for an 8-bit input</dd>
+<dt> <code class="parametername">lsbOut</code>  (<code class="parametertype">int</code>) </dt><dd>weight of output LSB</dd>
+<dt> <code class="parametername">d</code>  (<code class="parametertype">int</code>) </dt><dd>degree of the polynomial</dd>
+<span class="optionalparam"> <dt> <code class="parametername">approxErrorBudget</code>  (<code class="parametertype">real</code>)   (optional, default value is 0.25)</dt><dd>error budget in ulp for the approximation, between 0 and 0.5</dd> </span>
+</dl></dd>
+<dd>This operator uses a table for coefficients, and Horner evaluation with truncated multipliers sized just right.<br>For more details, see <a href="bib/flopoco.html#DinJolPas2010-poly">this article</a>.</dd>
+</dl>
+<dl>
+<dt class="operatorname">UniformPiecewisePolyApprox</dt>
+<dd class="operatordescription">Helper/Debug feature, does not generate VHDL. Uniformly segmented piecewise polynomial approximation of function f, accurate to targetAcc on [0,1)</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">f</code>  (<code class="parametertype">string</code>) </dt><dd>function to be evaluated between double-quotes, for instance "exp(x*x)"</dd>
+<dt> <code class="parametername">targetAcc</code>  (<code class="parametertype">real</code>) </dt><dd>the target approximation errror of the polynomial WRT the function</dd>
+<dt> <code class="parametername">d</code>  (<code class="parametertype">int</code>) </dt><dd>the degree to use</dd>
+</dl></dd>
+</dl>
+<h3>Conversions between number systems</h3>
+<dl>
+<dt class="operatorname">Fix2FP</dt>
+<dd class="operatordescription">Conversion from FloPoCo floating-point to fixed-point.</dd>
+<dd><em>Parameters:</em> <dl>
+<span class="optionalparam"> <dt> <code class="parametername">signed</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>can be false if all numbers will be positive</dd> </span>
+<dt> <code class="parametername">MSB</code>  (<code class="parametertype">int</code>) </dt><dd>weight of the MSB of the output</dd>
+<dt> <code class="parametername">LSB</code>  (<code class="parametertype">int</code>) </dt><dd>weight of LSB of the input</dd>
+<dt> <code class="parametername">wE</code>  (<code class="parametertype">int</code>) </dt><dd>output exponent size in bits</dd>
+<dt> <code class="parametername">wF</code>  (<code class="parametertype">int</code>) </dt><dd>output mantissa size in bits</dd>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">FP2Fix</dt>
+<dd class="operatordescription">Conversion from FloPoCo floating-point to fixed-point.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wE</code>  (<code class="parametertype">int</code>) </dt><dd>input exponent size in bits</dd>
+<dt> <code class="parametername">wF</code>  (<code class="parametertype">int</code>) </dt><dd>input mantissa size in bits</dd>
+<span class="optionalparam"> <dt> <code class="parametername">signed</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>can be false if all numbers will be positive</dd> </span>
+<dt> <code class="parametername">MSB</code>  (<code class="parametertype">int</code>) </dt><dd>weight of the MSB of the output</dd>
+<dt> <code class="parametername">LSB</code>  (<code class="parametertype">int</code>) </dt><dd>weight of LSB of the output</dd>
+<span class="optionalparam"> <dt> <code class="parametername">trunc</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>true means truncated (cheaper), false means rounded</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">OutputIEEE</dt>
+<dd class="operatordescription">Conversion from FloPoCo to IEEE-754-like floating-point formats.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wEIn</code>  (<code class="parametertype">int</code>) </dt><dd>input exponent size in bits</dd>
+<dt> <code class="parametername">wFIn</code>  (<code class="parametertype">int</code>) </dt><dd>input mantissa size in bits</dd>
+<dt> <code class="parametername">wEOut</code>  (<code class="parametertype">int</code>) </dt><dd>output exponent size in bits</dd>
+<dt> <code class="parametername">wFOut</code>  (<code class="parametertype">int</code>) </dt><dd>output mantissa size in bits</dd>
+<span class="optionalparam"> <dt> <code class="parametername">onlyPositiveZeroes</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>when true, normalize +0 and -0 to +0</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">Posit2FP</dt>
+<dd class="operatordescription">Convert Posit to floating point</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">width</code>  (<code class="parametertype">int</code>) </dt><dd>total size of the encoding</dd>
+<dt> <code class="parametername">es</code>  (<code class="parametertype">int</code>) </dt><dd>exponent field length</dd>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">PIF2Posit</dt>
+<dd class="operatordescription">Converts Posit Intermediate Format to Posits</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">width</code>  (<code class="parametertype">int</code>) </dt><dd>The size of the posit</dd>
+<dt> <code class="parametername">wES</code>  (<code class="parametertype">int</code>) </dt><dd>The exponent size (for the posit)</dd>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">Posit2PIF</dt>
+<dd class="operatordescription">Converts Posits to Posit Intermediate Format</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">width</code>  (<code class="parametertype">int</code>) </dt><dd>The input size</dd>
+<dt> <code class="parametername">wES</code>  (<code class="parametertype">int</code>) </dt><dd>The exponent size</dd>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">PIF2Fix</dt>
+<dd class="operatordescription">Converts Posit Intermediate Format to the FixPoint format used in the exponential</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">width</code>  (<code class="parametertype">int</code>) </dt><dd>The size of the posit</dd>
+<dt> <code class="parametername">wES</code>  (<code class="parametertype">int</code>) </dt><dd>The exponent size (for the posit)</dd>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">Posit2Posit</dt>
+<dd class="operatordescription">This should do nothing</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">width</code>  (<code class="parametertype">int</code>) </dt><dd>The size of the posit</dd>
+<dt> <code class="parametername">wES</code>  (<code class="parametertype">int</code>) </dt><dd>The width of the exponent</dd>
+</dl></dd>
+</dl>
+<h3>Filters and FFTs</h3>
+<dl>
+<dt class="operatorname">FixSOPC</dt>
+<dd class="operatordescription">A fix-point Sum of Product by Constants.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">lsbIn</code>  (<code class="parametertype">int</code>) </dt><dd>input's last significant bit</dd>
+<dt> <code class="parametername">lsbOut</code>  (<code class="parametertype">int</code>) </dt><dd>output's last significant bit</dd>
+<dt> <code class="parametername">coeff</code>  (<code class="parametertype">string</code>) </dt><dd>colon-separated list of real coefficients using Sollya syntax. Example: coeff="1.234567890123:sin(3*pi/8)"</dd>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">FixSOPCfull</dt>
+<dd class="operatordescription">A fix-point Sum of Product by Constants (detailed interface).</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">msbIn</code>  (<code class="parametertype">string</code>) </dt><dd>colon-separated string of ints, input's last significant bit</dd>
+<dt> <code class="parametername">lsbIn</code>  (<code class="parametertype">string</code>) </dt><dd>colon-separated string of ints, input's last significant bit</dd>
+<dt> <code class="parametername">msbOut</code>  (<code class="parametertype">int</code>) </dt><dd>output's most significant bit</dd>
+<dt> <code class="parametername">lsbOut</code>  (<code class="parametertype">int</code>) </dt><dd>output's last significant bit</dd>
+<dt> <code class="parametername">coeff</code>  (<code class="parametertype">string</code>) </dt><dd>colon-separated list of real coefficients using Sollya syntax. Example: coeff="1.234567890123:sin(3*pi/8)"</dd>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">FixFIR</dt>
+<dd class="operatordescription">A fix-point Finite Impulse Filter generator.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">lsbIn</code>  (<code class="parametertype">int</code>) </dt><dd>integer size in bits</dd>
+<dt> <code class="parametername">lsbOut</code>  (<code class="parametertype">int</code>) </dt><dd>integer size in bits</dd>
+<span class="optionalparam"> <dt> <code class="parametername">symmetry</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>0 for normal filter, 1 for symmetric, -1 for antisymmetric. If not 0, only the first half of the coeff list is used.</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">rescale</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>If true, divides all coefficients by 1/sum(|coeff|)</dd> </span>
+<dt> <code class="parametername">coeff</code>  (<code class="parametertype">string</code>) </dt><dd>colon-separated list of real coefficients using Sollya syntax. Example: coeff="1.234567890123:sin(3*pi/8)"</dd>
+</dl></dd>
+<dd>For more details, see <a href="bib/flopoco.html#DinIstoMas2014-SOPCJR">this article</a>.</dd>
+</dl>
+<dl>
+<dt class="operatorname">FixHalfSine</dt>
+<dd class="operatordescription">A generator of fixed-point Half-Sine filters, for inputs between -1 and 1</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">lsbIn</code>  (<code class="parametertype">int</code>) </dt><dd>position of the LSB of the input, e.g. -15 for a 16-bit signed input</dd>
+<dt> <code class="parametername">lsbOut</code>  (<code class="parametertype">int</code>) </dt><dd>position of the LSB of the output</dd>
+<dt> <code class="parametername">n</code>  (<code class="parametertype">int</code>) </dt><dd>filter order (number of taps will be 2n)</dd>
+</dl></dd>
+<dd>For more details, see <a href="bib/flopoco.html#DinIstoMas2014-SOPCJR">this article</a>.</dd>
+</dl>
+<dl>
+<dt class="operatorname">FixRootRaisedCosine</dt>
+<dd class="operatordescription">A generator of fixed-point Root-Raised Cosine filters, for inputs between -1 and 1</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">alpha</code>  (<code class="parametertype">real</code>) </dt><dd>roll-off factor, between 0 and 1</dd>
+<dt> <code class="parametername">lsbIn</code>  (<code class="parametertype">int</code>) </dt><dd>position of the LSB of the input, e.g. -15 for a 16-bit signed input</dd>
+<dt> <code class="parametername">lsbOut</code>  (<code class="parametertype">int</code>) </dt><dd>position of the LSB of the output</dd>
+<dt> <code class="parametername">n</code>  (<code class="parametertype">int</code>) </dt><dd>filter order (number of taps will be 2n+1)</dd>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">FixIIR</dt>
+<dd class="operatordescription">A fix-point Infinite Impulse Response filter generator.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">lsbIn</code>  (<code class="parametertype">int</code>) </dt><dd>input least significant bit</dd>
+<dt> <code class="parametername">lsbOut</code>  (<code class="parametertype">int</code>) </dt><dd>output least significant bit</dd>
+<span class="optionalparam"> <dt> <code class="parametername">H</code>  (<code class="parametertype">real</code>)   (optional, default value is 0)</dt><dd>worst-case peak gain. if 0, it will be computed by the WCPG library</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">Heps</code>  (<code class="parametertype">real</code>)   (optional, default value is 0)</dt><dd>worst-case peak gain of the feedback loop. if 0, it will be computed by the WCPG library</dd> </span>
+<dt> <code class="parametername">coeffa</code>  (<code class="parametertype">string</code>) </dt><dd>colon-separated list of real coefficients using Sollya syntax. Example: coeffa="1.234567890123:sin(3*pi/8)"</dd>
+<dt> <code class="parametername">coeffb</code>  (<code class="parametertype">string</code>) </dt><dd>colon-separated list of real coefficients using Sollya syntax. Example: coeffb="1.234567890123:sin(3*pi/8)"</dd>
+<span class="optionalparam"> <dt> <code class="parametername">buildWorstCaseTestBench</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>if true, the TestBench for this IIR will begin with a stimulation by the worst-case input signal</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">FixIIRShiftAdd</dt>
+<dd class="operatordescription">An Infinite Impulse Response filter generator using IntConstMultShiftAdd (optional).</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">msbIn</code>  (<code class="parametertype">int</code>) </dt><dd>input most significant bit</dd>
+<dt> <code class="parametername">lsbIn</code>  (<code class="parametertype">int</code>) </dt><dd>input least significant bit</dd>
+<dt> <code class="parametername">lsbOut</code>  (<code class="parametertype">int</code>) </dt><dd>output least significant bit</dd>
+<span class="optionalparam"> <dt> <code class="parametername">H</code>  (<code class="parametertype">real</code>)   (optional, default value is 0)</dt><dd>worst-case peak gain. if 0, it will be computed by the WCPG library</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">Heps</code>  (<code class="parametertype">real</code>)   (optional, default value is 0)</dt><dd>worst-case peak gain of the feedback loop. if 0, it will be computed by the WCPG library</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">guardbits</code>  (<code class="parametertype">int</code>)   (optional, default value is -1)</dt><dd>number of guard bits for computation in recursive feedback path (-1: automatic)</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">coeffa</code>  (<code class="parametertype">string</code>)   (optional, default value is -1)</dt><dd>colon-separated list of real coefficients using Sollya syntax. Example: coeffa="1.234567890123:sin(3*pi/8)"</dd> </span>
+<dt> <code class="parametername">coeffb</code>  (<code class="parametertype">string</code>) </dt><dd>colon-separated list of real coefficients using Sollya syntax. Example: coeffb="1.234567890123:sin(3*pi/8)"</dd>
+<span class="optionalparam"> <dt> <code class="parametername">shifta</code>  (<code class="parametertype">int</code>)   (optional, default value is -1)</dt><dd>Num of rightshifts for coeffa (must be positive)</dd> </span>
+<dt> <code class="parametername">shiftb</code>  (<code class="parametertype">int</code>) </dt><dd>Num of rightshifts for coeffb (must be positive)</dd>
+<span class="optionalparam"> <dt> <code class="parametername">method</code>  (<code class="parametertype">string</code>)   (optional, default value is plain)</dt><dd>plain or multiplierless</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">grapha</code>  (<code class="parametertype">string</code>)   (optional, default value is emptya)</dt><dd>graph in rpag format for coeffa</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">graphb</code>  (<code class="parametertype">string</code>)   (optional, default value is emptyb)</dt><dd>graph in rpag format for coeffb</dd> </span>
+</dl></dd>
+</dl>
+<h3>Test Benches</h3>
+<dl>
+<dt class="operatorname">TestBench</dt>
+<dd class="operatordescription">Behavorial test bench for the preceding operator.</dd>
+<dd><em>Parameters:</em> <dl>
+<span class="optionalparam"> <dt> <code class="parametername">n</code>  (<code class="parametertype">int</code>)   (optional, default value is -2)</dt><dd>number of random tests. If n=-2, an exhaustive test is generated (use only for small operators)</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">file</code>  (<code class="parametertype">bool</code>)   (optional, default value is true)</dt><dd>Inputs and outputs are stored in file test.input (lower VHDL compilation time). If false, they are stored in the VHDL</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">Wrapper</dt>
+<dd class="operatordescription">Wraps the preceding operator between registers (for frequency testing).</dd>
+<dd><em>Parameters:</em> <dl>
+</dl></dd>
+</dl>
+<h3>AutoTest</h3>
+<dl>
+<dt class="operatorname">AutoTest</dt>
+<dd class="operatordescription">A tester for operators.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">Operator</code>  (<code class="parametertype">string</code>) </dt><dd>name of the operator to test, All if we need to test all the operators</dd>
+<span class="optionalparam"> <dt> <code class="parametername">Dependences</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>test the operator's dependences</dd> </span>
+</dl></dd>
+</dl>
+<h3>Highly target optimized primitive operators</h3>
+<dl>
+<dt class="operatorname">XilinxAddSub</dt>
+<dd class="operatordescription">An adder/subtractor build of xilinx primitives.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wIn</code>  (<code class="parametertype">int</code>) </dt><dd>The wordsize of the adder</dd>
+<span class="optionalparam"> <dt> <code class="parametername">mode</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>Bitmask for input negation, removes configurability</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">dss</code>  (<code class="parametertype">bool</code>)   (optional, default value is false)</dt><dd>Creates configurable adder with possibility to substract both inputs at same time</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">XilinxComparator</dt>
+<dd class="operatordescription">A comparator build of xilinx primitives.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wIn </code>  (<code class="parametertype">int</code>) </dt><dd>Wordsize of comparator inputs</dd>
+<dt> <code class="parametername">type </code>  (<code class="parametertype">string</code>) </dt><dd>Type of comparator ( gt,ge,lt,le,eq,ne )</dd>
+</dl></dd>
+<dd>Nope.</dd>
+</dl>
+<dl>
+<dt class="operatorname">XilinxTernaryAddSub</dt>
+<dd class="operatordescription">A ternary adder subtractor build of xilinx primitives.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wIn</code>  (<code class="parametertype">int</code>) </dt><dd>The wordsize of the adder</dd>
+<span class="optionalparam"> <dt> <code class="parametername">AddSubBitMask</code>  (<code class="parametertype">int</code>)   (optional, default value is 0)</dt><dd>First bitmask for input negation</dd> </span>
+<span class="optionalparam"> <dt> <code class="parametername">AddSubBitMask2</code>  (<code class="parametertype">int</code>)   (optional, default value is -1)</dt><dd>Second bitmask for configurable input negation</dd> </span>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">XilinxGPC</dt>
+<dd class="operatordescription">Implements Xilinx optimized GPCs                        Available GPC sizes are:                        (6,0,6;5), (6,0,7;5), (6,1,5;5), (6,2,3;5)                        (1,3,2,5;5), (1,4,1,5;5), (1,4,0,6;5), (1,4,0,7;5), (2,1,1,7;5)</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">columnHeights</code>  (<code class="parametertype">string</code>) </dt><dd>comma separated list of heights for the columns of the compressor, in decreasing order of the weight. For example, columnHeights="6,0,6" produces a (6,0,6:5) GPC</dd>
+</dl></dd>
+</dl>
+<dl>
+<dt class="operatorname">XilinxFourToTwoCompressor</dt>
+<dd class="operatordescription">An efficient 4:2 compressor build of xilinx primitives.</dd>
+<dd><em>Parameters:</em> <dl>
+<dt> <code class="parametername">wOut</code>  (<code class="parametertype">int</code>) </dt><dd>The wordsize of the 4:2 compressor</dd>
+<span class="optionalparam"> <dt> <code class="parametername">useLastColumn</code>  (<code class="parametertype">bool</code>)   (optional, default value is 0)</dt><dd>if the 4:2 compressor should additonally compress two bits in the last column, this should be set to true</dd> </span>
+</dl></dd>
+</dl>
+<h3>Miscellaneous</h3>
+<dl>
+<dt class="operatorname">TutorialOperator</dt>
+<dd class="operatordescription">An heavily commented example operator to start with FloPoCo.</dd>
+<dd><em>Parameters:</em> <dl>
+<span class="optionalparam"> <dt> <code class="parametername">param0</code>  (<code class="parametertype">int</code>)   (optional, default value is 16)</dt><dd>A first parameter, here used as the input size</dd> </span>
+<dt> <code class="parametername">param1</code>  (<code class="parametertype">int</code>) </dt><dd>A second parameter, here used as the output size</dd>
+</dl></dd>
+<dd>Feel free to experiment with its code, it will not break anything in FloPoCo. <br> Also see the developper manual in the doc/ directory of FloPoCo.</dd>
+</dl>
+</body>
+</html>

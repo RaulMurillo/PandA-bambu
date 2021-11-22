@@ -62,7 +62,7 @@
 #include "utils.hpp"
 #include <gmpxx.h>
 
-#include "FPAddSub/FPAddSinglePath.hpp"
+#include "FPAddSub/FPAdd.hpp"
 #include "FPgt_expr.hpp"
 
 #include "custom_map.hpp"
@@ -94,7 +94,7 @@ namespace flopoco
       name << "FPgt_expr_" << wE << "_" << wF;
       setName(name.str());
 
-      setCopyrightString("Fabrizio Ferrandi (2011-2018)");
+      setCopyrightString("Fabrizio Ferrandi (2011-2018), Raul Murillo (2021)");
 
       /* Set up the IO signals */
 
@@ -103,16 +103,15 @@ namespace flopoco
       addOutput("R");
 
       /*	VHDL code description	*/
-      vhdl << tab << declare(getTarget()->logicDelay(1), "nY", wE + wF + 3) << "  <= Y" << range(wE + wF + 2, wE + wF + 1) << " & not(Y" << of(wE + wF) << ") & Y" << range(wE + wF - 1, 0) << ";" << endl;
-
       ostringstream paramR, inmapR, outmapR;
       paramR << "wE=" << wE;
       paramR << " wF=" << wF;
+      paramR << " sub=true";
 
-      inmapR << "X=>X, Y=>nY";
+      inmapR << "X=>X, Y=>Y";
       outmapR << "R=>valueDiff";
 
-      newInstance("FPAddSinglePath", "value_difference", paramR.str(), inmapR.str(), outmapR.str());
+      newInstance("FPAdd", "value_difference", paramR.str(), inmapR.str(), outmapR.str());
 
       vhdl << tab << declare(getTarget()->logicDelay(2), "R0", 1, false) << " <= '1' when (valueDiff" << of(wE + wF) << "='0') and (valueDiff" << range(wE + wF + 2, wE + wF + 1) << " /= \"00\") else '0';" << endl;
       vhdl << tab << "R <= R0;" << endl;

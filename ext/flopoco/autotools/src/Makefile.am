@@ -13,6 +13,12 @@ CLEANFILES = $(BUILT_SOURCES) lex.yy.c *.output
 noinst_LTLIBRARIES = libflopoco.la
 
 noinst_HEADERS = \
+		Operator.hpp \
+		UserInterface.hpp \
+		Signal.hpp \
+		Target.hpp \
+		utils.hpp \
+		FlopocoStream.hpp \
 		TargetModel.hpp \
 		TutorialOperator.hpp \
 		Instance.hpp \
@@ -116,7 +122,6 @@ noinst_HEADERS = \
 		Trigs/Fix2DNorm.hpp \
 		Trigs/FixAtan2ByBivariateApprox.hpp \
 		Trigs/ConstDiv3ForSinPoly.hpp \
-		UserInterface.hpp \
 		OperatorContext.hpp \
 		PrimitiveComponents/Intel/Intel_LCELL.hpp \
 		PrimitiveComponents/GenericAddSub.hpp \
@@ -198,7 +203,6 @@ noinst_HEADERS = \
 		Targets/Old/CycloneV.hpp \
 		Targets/Old/Virtex5.hpp \
 		AutoTest/AutoTest.hpp \
-		Signal.hpp \
 		random/moment_correction/systems/symmetric_quintic_system.hpp \
 		random/moment_correction/systems/symmetric_heptic_system.hpp \
 		random/moment_correction/systems/cubic_system.hpp \
@@ -216,7 +220,6 @@ noinst_HEADERS = \
 		random/utils/gsl_utils.hpp \
 		random/utils/conversions.hpp \
 		random/utils/find_roots_gsl.hpp \
-		utils.hpp \
 		OperatorPipeline/structure_donnees/File.hpp \
 		OperatorPipeline/structure_donnees/OPOperation.hpp \
 		OperatorPipeline/structure_donnees/OPVariable.hpp \
@@ -259,8 +262,6 @@ noinst_HEADERS = \
 		FPComposite/LargeAccToFP.hpp \
 		FPComposite/FPDotProduct.hpp \
 		FPComposite/FP2DNorm.hpp \
-		Operator.hpp \
-		Target.hpp \
 		Attic/FPPipeline.hpp \
 		IntMult/FixMultAdd.hpp \
 		IntMult/BaseMultiplierDSPSuperTilesXilinx.hpp \
@@ -312,7 +313,6 @@ noinst_HEADERS = \
 		FPAddSub/FPAddDualPath.hpp \
 		FPAddSub/FPAdd.hpp \
 		FPAddSub/FPAddSub.hpp \
-		FlopocoStream.hpp \
 		IEEE/IEEEAdd.hpp \
 		IEEE/IEEEFMA.hpp \
 		IEEE/IEEEFloatFormat.h \
@@ -341,6 +341,7 @@ noinst_HEADERS = \
 		TestBenches/TestCase.hpp \
 		TestBenches/PositNumber.hpp \
 		TestBenches/FPNumber.hpp \
+		TestBenches/MPFRSetExp.hpp \
 		FPMultSquare/FPMult.hpp \
 		FPMultSquare/FPSquare.hpp \
 		FPMultSquare/FPMultKaratsuba.hpp \
@@ -375,6 +376,7 @@ libflopoco_la_SOURCES = \
 		TestBenches/PositNumber.cpp \
 		TestBenches/Wrapper.cpp \
 		TestBenches/TestBench.cpp \
+		TestBenches/MPFRSetExp.cpp \
 		BitHeap/Bit.cpp \
 		BitHeap/Compressor.cpp \
 		BitHeap/BitHeap.cpp \
@@ -515,7 +517,6 @@ libflopoco_la_SOURCES = \
 		PrimitiveComponents/Intel/Intel_LCELL.cpp \
 		Tools/Plane.cpp \
 		Tools/Point.cpp \
-		TutorialOperator.cpp \
 		Complex/FixFFT.cpp \
 		Conversions/PIF2Posit.cpp \
 		Conversions/Posit2PIF.cpp \
