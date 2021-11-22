@@ -179,44 +179,78 @@ flopoco_wrapper::flopoco_wrapper(int
       signed_p(false)
 {
    // Get the target architecture
-   if("Spartan-3" == FU_target) /// does not exist so we use Virtex 6 target
+   if("Spartan-3" == FU_target)
+   { /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
-   else if("Virtex-4" == FU_target) /// does not exist so we use Virtex 6 target
+   }
+   else if("Virtex-4" == FU_target)
+   { /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
-   else if("Virtex-5" == FU_target) /// does not exist so we use Virtex 6 target
+   }
+   else if("Virtex-5" == FU_target)
+   { /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
+   }
    else if("Virtex-6" == FU_target)
+   {
       target = new flopoco::Virtex6();
-   else if("Virtex-7" == FU_target) /// does not exist so we use Virtex 6 target
+   }
+   else if(FU_target.find("Virtex-7") != std::string::npos)
+   { /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
-   else if("Zynq" == FU_target)
+   }
+   else if(FU_target.find("Zynq") != std::string::npos)
+   { /// does not exist so we use Virtex 6 target
       target = new flopoco::Zynq7000();
-   else if("Zynq-VVD" == FU_target)
-      target = new flopoco::Zynq7000();
-   else if("Zynq-YOSYS-VVD" == FU_target)
-      target = new flopoco::Zynq7000();
-   else if("Virtex-7-VVD" == FU_target) /// does not exist so we use Virtex 6 target
+   }
+   else if(FU_target.find("Artix-7") != std::string::npos)
+   { /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
-   else if("Artix-7-VVD" == FU_target) /// does not exist so we use Virtex 6 target
+   }
+   else if(FU_target.find("CycloneII") != std::string::npos)
+   { /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
-   else if(FU_target.find("CycloneII") != std::string::npos) /// does not exist so we use Virtex 6 target
+   }
+   else if(FU_target.find("CycloneV") != std::string::npos)
+   { /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
-   else if(FU_target.find("CycloneV") != std::string::npos) /// does not exist so we use Virtex 6 target
-      target = new flopoco::Virtex6();
-   else if(FU_target.find("StratixII") != std::string::npos) /// does not exist so we use StratixV target
+   }
+   else if(FU_target.find("StratixII") != std::string::npos)
+   { /// does not exist so we use Stratix V target
       target = new flopoco::StratixV();
-   else if(FU_target.find("StratixIII") != std::string::npos) /// does not exist so we use StratixV target
+   }
+   else if(FU_target.find("StratixIII") != std::string::npos)
+   { /// does not exist so we use Stratix V target
       target = new flopoco::StratixV();
-   else if(FU_target.find("StratixIV") != std::string::npos) /// does not exist so we use StratixV target
+   }
+   else if(FU_target.find("StratixIV") != std::string::npos)
+   { /// does not exist so we use Stratix V target
       target = new flopoco::StratixV();
+   }
    else if(FU_target.find("StratixV") != std::string::npos)
+   {
       target = new flopoco::StratixV();
-   else if(FU_target.find("LatticeECP3") != std::string::npos) /// does not exist so we use Virtex 6 target
+   }
+   else if(FU_target.find("LatticeECP3") != std::string::npos)
+   { /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
-   else if("NG-medium" == FU_target) /// does not exist so we use Virtex 6 target
+   }
+   else if(FU_target.find("LatticeECP5") != std::string::npos)
+   { /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
-   else if("NG-large" == FU_target) /// does not exist so we use Virtex 6 target
+   }
+   else if("NG-medium" == FU_target)
+   {
       target = new flopoco::Virtex6();
+   }
+   else if("NG-large" == FU_target)
+   {
+      target = new flopoco::Virtex6();
+   }
+   else if(FU_target.find("Generic") != std::string::npos)
+   {
+      target = new flopoco::Virtex6();
+   }
    else
    {
       THROW_UNREACHABLE("Non supported target architecture: " + FU_target);
