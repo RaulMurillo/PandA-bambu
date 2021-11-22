@@ -5,3 +5,5 @@ Remarks:
  "plain" means a simpler installation with a reduced number of dependencies.
  "bionic" means Ubuntu 18.04
  "focal"  means Ubuntu 20.04  (both are Long-Term Releases)
+
+The demise of the Inria Gforge means that older versions are no longer available. We'll try to gather the relevant TGZs somewhere.

@@ -40,6 +40,7 @@
  *
  * @author Daniele Mastrandrea <daniele.mastrandrea@mail.polimi.it>
  * @author Fabrizio Ferrandi <fabrizio.ferrandi@polimi.it>
+ * @author Raul Murillo <ramuri01@ucm.es>
  * $Date$
  * Last modified by $Author$
  *
@@ -65,7 +66,7 @@
 /// Default extension for generated files
 #define FILE_EXT ".vhdl"
 /// Name of the stored Functional Unit
-#define ENCODE_NAME(FU_name, FU_prec_in, FU_prec_out, pipe_parameter) FU_name + "_" + STR(FU_prec_in) + "_" + STR(FU_prec_out) + (pipe_parameter != "" ? "_" + pipe_parameter : "")
+#define ENCODE_NAME(FU_name, FU_prec_in, FU_prec_out, pipe_parameter) ((FU_name) + "_" + STR(FU_prec_in) + "_" + STR(FU_prec_out) + ((pipe_parameter) != "" ? "_" + (pipe_parameter) : ""))
 /// Additional bits in FloPoCo encoding with reference to IEEE-754 standard
 #define FLOPOCO_ADDITIONAL_BITS 2
 /// Prefix for the wrapper to the inputs
@@ -144,6 +145,9 @@ class flopoco_wrapper
       UT_POW,
       UT_UNKNOWN
    } unit_type;
+   /// format type
+   using format_type = enum { FT_FLOAT,
+                              FT_POSIT };
 
    unit_type type;
 
@@ -151,7 +155,12 @@ class flopoco_wrapper
 
    std::vector<flopoco::Operator*> oplist;
 
-   flopoco::Target* target;
+   flopoco::Target *target;
+
+   format_type format;
+   unsigned int width_;
+   unsigned int wES_;
+   bool from_float_;
 
    /**
     * Returns one of the generated Functional Units
@@ -203,7 +212,7 @@ class flopoco_wrapper
     * Constructor
     * @param debug is the current debug level
     */
-   flopoco_wrapper(int _debug_level, const std::string& FU_target);
+   flopoco_wrapper(int _debug_level, const std::string &FU_target, const std::string &FU_format, const unsigned int width, const unsigned int wES, const bool from_float);
 
    /**
     * Destructor

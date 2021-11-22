@@ -219,6 +219,9 @@ Parameter::Parameter(const std::string& _program_name, int _argc, char** const _
    BOOST_PP_SEQ_FOR_EACH(OPTION_NAME, BOOST_PP_EMPTY, SYNTHESIS_OPTIONS)
    BOOST_PP_SEQ_FOR_EACH(OPTION_NAME, BOOST_PP_EMPTY, TREE_PANDA_GCC_OPTIONS)
    BOOST_PP_SEQ_FOR_EACH(OPTION_NAME, BOOST_PP_EMPTY, ZEBU_OPTIONS)
+#if HAVE_FLOPOCO
+   BOOST_PP_SEQ_FOR_EACH(OPTION_NAME, BOOST_PP_EMPTY, FLOPOCO_OPTIONS)
+#endif
    // This part has been added since boost macro does not expand correctly
    std::map<enum enum_option, std::string>::iterator it, it_end = option_name.end();
    for(it = option_name.begin(); it != it_end; it++)

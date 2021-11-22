@@ -251,7 +251,10 @@
 #define INPUT_OPT_FIND_MAX_CFG_TRANSFORMATIONS (1 + OPT_EXPERIMENTAL_SETUP)
 #define OPT_FIXED_SCHED (1 + INPUT_OPT_FIND_MAX_CFG_TRANSFORMATIONS)
 #define OPT_FLOPOCO (1 + OPT_FIXED_SCHED)
-#define OPT_GENERATE_VCD (1 + OPT_FLOPOCO)
+#define OPT_POSIT_WIDTH (1 + OPT_FLOPOCO)
+#define OPT_POSIT_ES (1 + OPT_POSIT_WIDTH)
+#define OPT_FROM_FLOAT (1 + OPT_POSIT_ES)
+#define OPT_GENERATE_VCD (1 + OPT_FROM_FLOAT)
 #define OPT_GENERATION (1 + OPT_GENERATE_VCD)
 #define OPT_HLS_DIV (1 + OPT_GENERATION)
 #define OPT_HLS_FPDIV (1 + OPT_HLS_DIV)
@@ -786,8 +789,17 @@ void BambuParameter::PrintHelp(std::ostream& os) const
       << "        Bambu uses as default a faithfully rounded version of softfloat with rounding mode equal to round to nearest even.\n\n"
       << "        This is the default for bambu.\n\n"
 #if HAVE_FLOPOCO
-      << "    --flopoco\n"
-      << "        Enable the flopoco-based implementation of floating-point operations.\n\n"
+      << "    --flopoco=<datatype>\n"
+      << "        Enable the flopoco-based implementation of floating-point or posit arithmetic operations.\n"
+      << "             float - use the floating-point format (default)\n"
+      << "             posit - use the posit arithmetic format\n\n"
+      << "    --width=<value>\n"
+      << "        If using posit format, the total bitwidth of the operands (default=32).\n\n"
+      << "    --wES=<value>\n"
+      << "        If using posit format, the size of the exponent field (default=2).\n\n"
+      << "    --from_float\n"
+      << "        If using posit format, indicates the input/output data is expected in\n"
+      << "        floating-point format, so it requires data conversion.\n\n"
 #endif
       << "    --softfloat-subnormal\n"
       << "        Enable the soft-based implementation of floating-point operations with subnormals support.\n\n"
@@ -1169,7 +1181,10 @@ int BambuParameter::Exec()
       {"disable-reg-init-value", no_argument, nullptr, OPT_DISABLE_REG_INIT_VALUE},
       {"soft-float", no_argument, nullptr, OPT_SOFT_FLOAT},
 #if HAVE_FLOPOCO
-      {"flopoco", no_argument, nullptr, OPT_FLOPOCO},
+      {"flopoco", optional_argument, nullptr, OPT_FLOPOCO},
+      {"width", optional_argument, nullptr, OPT_POSIT_WIDTH},
+      {"wES", optional_argument, nullptr, OPT_POSIT_ES},
+      {"from_float", no_argument, nullptr, OPT_FROM_FLOAT},
 #endif
       {"softfloat-subnormal", no_argument, nullptr, OPT_SOFTFLOAT_SUBNORMAL},
       {"libm-std-rounding", no_argument, nullptr, OPT_LIBM_STD_ROUNDING},
@@ -1935,6 +1950,24 @@ int BambuParameter::Exec()
          case OPT_FLOPOCO:
          {
             setOption(OPT_soft_float, false);
+            setOption(OPT_flopoco, "float");
+            if(optarg && std::string(optarg) == "posit")
+               setOption(OPT_flopoco, optarg);
+            break;
+         }
+         case OPT_POSIT_WIDTH:
+         {
+            setOption(OPT_width, optarg);
+            break;
+         }
+         case OPT_POSIT_ES:
+         {
+            setOption(OPT_wES, optarg);
+            break;
+         }
+         case OPT_FROM_FLOAT:
+         {
+            setOption(OPT_from_float, true);
             break;
          }
 #endif
@@ -3773,6 +3806,12 @@ void BambuParameter::SetDefaults()
    setOption(OPT_gcc_defines, defines);
 
    setOption(OPT_soft_float, true);
+#if HAVE_FLOPOCO
+   setOption(OPT_flopoco, "float");
+   setOption(OPT_width, 32);
+   setOption(OPT_wES, 2);
+   setOption(OPT_from_float, false);
+#endif
    setOption(OPT_hls_div, "nr1");
    setOption(OPT_hls_fpdiv, "SRT4");
    setOption(OPT_max_ulp, 1.0);

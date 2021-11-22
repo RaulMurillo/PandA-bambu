@@ -49,6 +49,7 @@
 #include "config_HAVE_DESIGN_ANALYSIS_BUILT.hpp"
 #include "config_HAVE_DIOPSIS.hpp"
 #include "config_HAVE_EXPERIMENTAL.hpp"
+#include "config_HAVE_FLOPOCO.hpp"
 #include "config_HAVE_FROM_AADL_ASN_BUILT.hpp"
 #include "config_HAVE_FROM_ARCH_BUILT.hpp"
 #include "config_HAVE_FROM_C_BUILT.hpp"
@@ -127,6 +128,10 @@ enum class DiopsisInstrumentWriter_Type;
        find_max_cfg_transformations)(generate_taste_architecture)(initial_internal_address)(mem_delay_read)(mem_delay_write)(memory_banks_number)(mixed_design)(no_parse_c_python)(num_accelerators)(post_rescheduling)(technology_file)(                      \
        testbench_extra_gcc_flags)(timing_violation_abort)(top_design_name)(visualizer)(serialize_output)(use_ALUs)
 
+#if HAVE_FLOPOCO
+#define FLOPOCO_OPTIONS (flopoco)(width)(wES)(from_float)
+#endif
+
 #define FRAMEWORK_OPTIONS                                                                                                                                                                                                                                     \
    (architecture)(benchmark_name)(cat_args)(cfg_max_transformations)(compatible_compilers)(compute_size_of)(configuration_name)(debug_level)(default_compiler)(dot_directory)(dump_profiling_data)(file_costs)(file_input_data)(host_compiler)(ilp_max_time)( \
        ilp_solver)(input_file)(input_format)(model_costs)(no_clean)(no_parse_files)(no_return_zero)(output_file)(output_level)(output_temporary_directory)(output_directory)(panda_parameter)(parse_pragma)(pretty_print)(print_dot)(profiling_file)(         \
@@ -175,6 +180,9 @@ enum enum_option
        BOOST_PP_SEQ_FOR_EACH(OPTIONS_ENUM, BOOST_PP_EMPTY, GCC_OPTIONS) BOOST_PP_SEQ_FOR_EACH(OPTIONS_ENUM, BOOST_PP_EMPTY, GECCO_OPTIONS) BOOST_PP_SEQ_FOR_EACH(OPTIONS_ENUM, BOOST_PP_EMPTY, KOALA_OPTIONS)
            BOOST_PP_SEQ_FOR_EACH(OPTIONS_ENUM, BOOST_PP_EMPTY, SPIDER_OPTIONS) BOOST_PP_SEQ_FOR_EACH(OPTIONS_ENUM, BOOST_PP_EMPTY, SYNTHESIS_OPTIONS) BOOST_PP_SEQ_FOR_EACH(OPTIONS_ENUM, BOOST_PP_EMPTY, TREE_PANDA_GCC_OPTIONS)
                BOOST_PP_SEQ_FOR_EACH(OPTIONS_ENUM, BOOST_PP_EMPTY, ZEBU_OPTIONS)
+#if HAVE_FLOPOCO
+BOOST_PP_SEQ_FOR_EACH(OPTIONS_ENUM, BOOST_PP_EMPTY, FLOPOCO_OPTIONS)
+#endif
 };
 
 class OptionMap : public std::map<std::string, std::string>
