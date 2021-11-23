@@ -93,6 +93,7 @@ Quire2Posit
 PIFAdd
 PositAdd
 PositAddSub
+PositAdder
 PIF2Fix
 PositExp
 PositFunctionByTable

@@ -22,7 +22,6 @@
 #include "PositDecoder.hpp"
 #include "ShiftersEtc/Normalizer.hpp"
 // #include "TestBenches/PositNumber.hpp"
-// #include "TestBenches/IEEENumber.hpp"
 
 using namespace std;
 
@@ -79,7 +78,7 @@ namespace flopoco
 		vhdl << tab << declare(0., "remainP", width_ - 1) << " <= X" << range(width_ - 2, 0) << ";" << endl;
 
 		vhdl << tab << declare(getTarget()->eqConstComparatorDelay(width_ - 1), "special", 1, false) << " <= "
-			 << "'1' when remainP = 0 else '0';" << endl;
+			 << "'1' when (remainP = " << zg(width_ - 1) << ") else '0';" << endl;
 		vhdl << tab << declare(getTarget()->logicDelay(2), "is_zero", 1, false) << " <= not(s) AND special;" << endl; // 1 if X is zero
 		vhdl << tab << declare(getTarget()->logicDelay(2), "is_NAR", 1, false) << "<= s AND special;" << endl;		  // 1 if X is infinity
 

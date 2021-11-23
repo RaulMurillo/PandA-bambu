@@ -22,7 +22,6 @@
 #include "PositFastDecoder.hpp"
 #include "ShiftersEtc/Normalizer.hpp"
 // #include "TestBenches/PositNumber.hpp"
-// #include "TestBenches/IEEENumber.hpp"
 
 using namespace std;
 

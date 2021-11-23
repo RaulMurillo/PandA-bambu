@@ -24,8 +24,7 @@
 #include "Posit/Encoder/PositFastEncoder.hpp"
 // #include "IntAddSubCmp/IntAdder.hpp"
 #include "IntMult/IntMultiplier.hpp"
-// #include "TestBenches/PositNumber.hpp"
-// #include "TestBenches/IEEENumber.hpp"
+#include "TestBenches/PositNumber.hpp"
 
 using namespace std;
 
@@ -96,6 +95,9 @@ namespace flopoco
 		// vhdl << declare(getTarget()->logicDelay(2), "XY_z", 1, false) << " <= X_z OR Y_z;" << endl;
 		// vhdl << declare(getTarget()->logicDelay(2), "XY_nar", 1, false) << " <= X_nar OR Y_nar;" << endl;
 		vhdl << tab << declare(getTarget()->logicDelay(2), "XY_nzn", 1, false) << " <= X_nzn AND Y_nzn;" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(2), "X_nar", 1, false) << " <= X_sgn AND NOT(X_nzn);" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(2), "Y_nar", 1, false) << " <= Y_sgn AND NOT(Y_nzn);" << endl;
+
 
 		int multSize = 2 * (wF_ + 2);
 		// addComment("Multiply the fractions (using naive * operator, may improve in the future)");
@@ -145,7 +147,7 @@ namespace flopoco
 		addFullComment("Generate final posit");
 		//====================================================================|
 		vhdl << tab << declare(getTarget()->logicDelay(2), "XY_finalSgn", 1, false) << " <= "
-			 << "XY_sgn when XY_nzn = '1' else (X_sgn AND NOT(X_nzn)) OR (Y_sgn AND NOT(Y_nzn));" << endl;
+			 << "XY_sgn when XY_nzn = '1' else (X_nar OR Y_nar);" << endl;
 
 		vhdl << tab << declare("XY_frac", wF_) << " <= XY_normF" << range(multSize - 4, multSize - 4 - wF_ + 1) << ";" << endl;
 		vhdl << tab << declare("grd", 1, false) << " <= XY_normF" << of(multSize - 4 - wF_) << ";" << endl;
@@ -163,7 +165,127 @@ namespace flopoco
 
 	PositMult::~PositMult() {}
 
-	void PositMult::emulate(TestCase *tc) {}
+	void PositMult::emulate(TestCase *tc)
+	{
+		/* Get I/O values */
+		mpz_class svX = tc->getInputValue("X");
+		mpz_class svY = tc->getInputValue("Y");
+		
+		/* Compute correct value */
+		PositNumber posx(width_, wES_, svX);
+		PositNumber posy(width_, wES_, svY);
+		mpfr_t x, y, r;
+		mpfr_init2(x, 1000*width_ -2);
+		mpfr_init2(y, 1000*width_ -2);
+		mpfr_init2(r, 1000*width_ -2);
+		posx.getMPFR(x);
+		posy.getMPFR(y);
+		mpfr_mul(r, x, y, GMP_RNDN);
+		
+		// Set outputs
+		PositNumber posr(width_, wES_, r);
+		mpz_class svR = posr.getSignalValue();
+		tc->addExpectedOutput("R", svR);
+		
+		// clean up
+		mpfr_clears(x, y, r, NULL);
+	}
+
+	void PositMult::buildStandardTestCases(TestCaseList* tcl)
+	{
+		TestCase *tc;
+		mpz_class x, y;
+
+		// 1*1
+		x = mpz_class(1) << (width_ - 2);
+		y = mpz_class(1) << (width_ - 2);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// 1*0
+		x = mpz_class(1) << (width_ - 2);
+		y = mpz_class(0);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// -1*-1
+		x = mpz_class(3) << (width_ - 2);
+		y = mpz_class(3) << (width_ - 2);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// -1*1
+		x = mpz_class(3) << (width_ - 2);
+		y = mpz_class(1) << (width_ - 2);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// nan*1
+		x = mpz_class(1) << (width_ - 1);
+		y = mpz_class(1) << (width_ - 2);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// nan*0
+		x = mpz_class(1) << (width_ - 1);
+		y = mpz_class(0);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// maxvalue*maxvalue
+		x = (mpz_class(1) << (width_ - 1))-1;
+		y = (mpz_class(1) << (width_ - 1))-1;
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// maxvalue*-maxvalue
+		x = (mpz_class(1) << (width_ - 1))-1;
+		y = (mpz_class(1) << (width_ - 1))+1;
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// -minvalue*maxvalue
+		x = (mpz_class(1) << (width_))-1;
+		y = (mpz_class(1) << (width_ - 1))-1;
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// maxvalue*minvalue
+		x = (mpz_class(1) << (width_ - 1))-1;
+		y = mpz_class(1);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+	}
 
 	OperatorPtr PositMult::parseArguments(OperatorPtr parentOp, Target *target, vector<string> &args)
 	{

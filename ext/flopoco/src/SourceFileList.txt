@@ -181,6 +181,7 @@ Conversions/Quire2Posit
 Posit/Add/PIFAdd
 Posit/Add/PositAdd
 Posit/Add/PositAddSub
+Posit/Add/PositAdder
 Posit/Exp/PIF2Fix
 Posit/Exp/PositExp
 Posit/Fun/PositFunction

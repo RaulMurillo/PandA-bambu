@@ -20,8 +20,6 @@
 #include <gmpxx.h>
 
 #include "PositAssign.hpp"
-// #include "TestBenches/PositNumber.hpp"
-// #include "TestBenches/IEEENumber.hpp"
 
 using namespace std;
 

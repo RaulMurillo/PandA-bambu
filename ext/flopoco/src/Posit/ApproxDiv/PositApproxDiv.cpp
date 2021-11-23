@@ -22,7 +22,6 @@
 #include "PositApproxDiv.hpp"
 #include "Posit/Mult/PositMult.hpp"
 // #include "TestBenches/PositNumber.hpp"
-// #include "TestBenches/IEEENumber.hpp"
 
 using namespace std;
 

@@ -132,7 +132,7 @@
 #include "Targets/Virtex6.hpp"
 #include "Targets/Zynq7000.hpp"
 /// Posit operators
-#include "Posit/Add/PositAddSub.hpp"
+#include "Posit/Add/PositAdder.hpp"
 #include "Posit/Mult/PositMult.hpp"
 #include "Posit/ApproxDiv/PositApproxDiv.hpp"
 #include "Posit/Cmp/PositComparator.hpp"
@@ -534,12 +534,10 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
    }
    else if (format == FT_POSIT)
    {
-      if (width_ > 0){
-         width = width_;
+      if (width_ == 0){
+         width_ = FU_prec_in;
       }
-      else{
-         width = FU_prec_in;
-      }
+      width = width_;
       wES = wES_;
 
       PRINT_DBG_MEX(DEBUG_LEVEL_PEDANTIC, debug_level, "Creating FloPoCo operator for Posit unit " + FU_type + "(" + STR(width) + "-" + STR(wES) + "-" + pipe_parameter + ")");
@@ -552,18 +550,18 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
       if ("FPAdder" == FU_type)
       {
          type = flopoco_wrapper::UT_ADD;
-         op = new flopoco::PositAddSub(nullptr, target, static_cast<int>(width), static_cast<int>(wES), 0);
+         op = new flopoco::PositAdder(nullptr, target, static_cast<int>(width), static_cast<int>(wES), 0);
       }
       else if ("FPSub" == FU_type)
       {
          type = flopoco_wrapper::UT_SUB;
-         op = new flopoco::PositAddSub(nullptr, target, static_cast<int>(width), static_cast<int>(wES), 1);
+         op = new flopoco::PositAdder(nullptr, target, static_cast<int>(width), static_cast<int>(wES), 1);
       }
       else if ("FPAddSub" == FU_type)
       {
          // TODO: Currently using Posit subtraction;
          type = flopoco_wrapper::UT_ADDSUB;
-         op = new flopoco::PositAddSub(nullptr, target, static_cast<int>(width), static_cast<int>(wES), 1);
+         op = new flopoco::PositAdder(nullptr, target, static_cast<int>(width), static_cast<int>(wES), 1);
       }
       else if ("FPMultiplier" == FU_type)
       {

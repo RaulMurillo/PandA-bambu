@@ -21,7 +21,6 @@
 
 #include "PositComparator.hpp"
 // #include "TestBenches/PositNumber.hpp"
-// #include "TestBenches/IEEENumber.hpp"
 
 using namespace std;
 
@@ -84,7 +83,7 @@ namespace flopoco
 
 		addInput("X", width_);
 		addInput("Y", width_);
-		addOutput("R", width_);
+		addOutput("R");
 
 		addFullComment("Start of vhdl generation");
 

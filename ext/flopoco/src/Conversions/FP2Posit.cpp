@@ -96,7 +96,7 @@ namespace flopoco
 			int trunc_bits = wFF - (wF_ + 1);
 			vhdl << "I" << range(wFF - 1, trunc_bits) << ";" << endl;
 			vhdl << tab << declare(getTarget()->eqConstComparatorDelay(trunc_bits), "trunc_sticky", 1, false) << " <= "
-				 << "'0' when I" << range(trunc_bits - 1, 0) << " = \"" << string(trunc_bits, '0') << "\" else '1';" << endl;
+				 << "'0' when (I" << range(trunc_bits - 1, 0) << " = " << zg(trunc_bits) << ") else '1';" << endl;
 		}
 		else
 		{ // Simple case, pad with 0's
@@ -112,8 +112,8 @@ namespace flopoco
 		// vhdl << declare(getTarget()->eqConstComparatorDelay(wEF),"is_NaN", 1, false) << "<= '1' when biased_exp = \"" << string(wEF,'1') << "\" else '0';" << endl;
 
 		// Do not consider subnormal numbers
-		vhdl << tab << declare(getTarget()->eqConstComparatorDelay(wEF), "is_zero", 1, false) << "<= '1' when biased_exp = \"" << string(wEF, '0') << "\" else '0';" << endl;
-		vhdl << tab << declare(getTarget()->eqConstComparatorDelay(wEF), "is_NaN", 1, false) << "<= '1' when biased_exp = \"" << string(wEF, '1') << "\" else '0';" << endl;
+		vhdl << tab << declare(getTarget()->eqConstComparatorDelay(wEF), "is_zero", 1, false) << "<= '1' when (biased_exp = " << zg(wEF) << ") else '0';" << endl;
+		vhdl << tab << declare(getTarget()->eqConstComparatorDelay(wEF), "is_NaN", 1, false) << "<= '1' when (biased_exp = " << og(wEF) << ") else '0';" << endl;
 
 		addComment("Compute unbiased exponent");
 		const uint64_t bias = (1 << (wEF - 1)) - 1;
@@ -123,8 +123,8 @@ namespace flopoco
 			vhdl << tab << declare(getTarget()->adderDelay(wEF), "unbiased_exp", wEF) << " <= biased_exp - " << bias << ";" << endl;
 			// If a 32-bit number is representable with 16 bits, i.e., in the range [-32768,+32767] (32768 = 2^15), then the 32-15=17 msbs will all be the same.
 			int esMSB = wEF - wE_;
-			vhdl << tab << declare(getTarget()->eqConstComparatorDelay(esMSB + 1), "notTooBig", 1, false) << " <= '1' when unbiased_exp" << range(wEF - 1, wE_ - 1) << " = \"" << string(esMSB + 1, '0') << "\" else '0';" << endl;
-			vhdl << tab << declare(getTarget()->eqConstComparatorDelay(esMSB + 1), "notTooSmall", 1, false) << " <= '1' when unbiased_exp" << range(wEF - 1, wE_ - 1) << " = \"" << string(esMSB + 1, '1') << "\" else '0';" << endl;
+			vhdl << tab << declare(getTarget()->eqConstComparatorDelay(esMSB + 1), "notTooBig", 1, false) << " <= '1' when (unbiased_exp" << range(wEF - 1, wE_ - 1) << " = " << zg(esMSB + 1) << ") else '0';" << endl;
+			vhdl << tab << declare(getTarget()->eqConstComparatorDelay(esMSB + 1), "notTooSmall", 1, false) << " <= '1' when (unbiased_exp" << range(wEF - 1, wE_ - 1) << " = " << og(esMSB + 1) << ") else '0';" << endl;
 			vhdl << tab << declare(getTarget()->logicDelay(2), "expFit", 1, false) << " <= notTooBig or notTooSmall;" << endl;
 
 			vhdl << tab << "with expFit select " << declare(getTarget()->logicDelay(wE_ + wF_ + 1), "exponent", wE_) << " <= " << endl

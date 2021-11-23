@@ -26,7 +26,6 @@
 #include "IntMult/IntMultiplier.hpp"
 #include "IntAddSubCmp/IntAdder.hpp"
 // #include "TestBenches/PositNumber.hpp"
-// #include "TestBenches/IEEENumber.hpp"
 
 using namespace std;
 
@@ -248,7 +247,7 @@ namespace flopoco
 		// Special case
 		vhdl << tab << declare("zeros", wQuire_ - 1) << " <= (others => '0');" << endl;
 		vhdl << tab << declare(getTarget()->eqConstComparatorDelay(wQuire_ - 1), "C_nar", 1, false) << " <= "
-			 << "C" << of(wQuire_ - 1) << " when C" << range(wQuire_ - 2, 0) << " = zeros else '0';" << endl;
+			 << "C" << of(wQuire_ - 1) << " when (C" << range(wQuire_ - 2, 0) << " = zeros) else '0';" << endl;
 		vhdl << tab << declare(getTarget()->logicDelay(2), "ABC_nar", 1, false) << " <= "
 			 << "AB_nar OR C_nar;" << endl;
 

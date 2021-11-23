@@ -1,5 +1,5 @@
-#ifndef PositMult_HPP
-#define PositMult_HPP
+#ifndef PositAdder_HPP
+#define PositAdder_HPP
 
 #include <vector>
 #include <sstream>
@@ -12,7 +12,7 @@
 
 namespace flopoco
 {
-	class PositMult : public Operator
+	class PositAdder : public Operator
 	{
 	public:
 		/**
@@ -22,12 +22,12 @@ namespace flopoco
 		 * @param[in]	width		the total width of the input posits
 		 * @param[in]	wES			the exponent field size of the input posits
 		 */
-		PositMult(OperatorPtr parentOp, Target *target, int width, int wES);
+		PositAdder(OperatorPtr parentOp, Target *target, int width, int wES, bool sub=false);
 
 		/**
-		 * PositMult destructor
+		 * PositAdder destructor
 		 */
-		~PositMult();
+		~PositAdder();
 
 		/** Factory method that parses arguments and calls the constructor */
 		static OperatorPtr parseArguments(OperatorPtr parentOp, Target *target, vector<string> &args);
@@ -45,6 +45,7 @@ namespace flopoco
 		int wES_;
 		int wE_;
 		int wF_;
+		bool sub_;
 	};
 }
 #endif

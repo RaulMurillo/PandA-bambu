@@ -319,6 +319,7 @@ noinst_HEADERS = \
 		Posit/Posit2Posit.hpp \
 		Posit/Add/PIFAdd.hpp \
 		Posit/Add/PositAdd.hpp \
+		Posit/Add/PositAdder.hpp \
 		Posit/Add/PositAddSub.hpp \
 		Posit/Exp/PIF2Fix.hpp \
 		Posit/Exp/PositExp.hpp \
@@ -530,6 +531,7 @@ libflopoco_la_SOURCES = \
 		Conversions/Quire2Posit.cpp \
 		Posit/Add/PIFAdd.cpp \
 		Posit/Add/PositAdd.cpp \
+		Posit/Add/PositAdder.cpp \
 		Posit/Add/PositAddSub.cpp \
 		Posit/Exp/PIF2Fix.cpp \
 		Posit/Exp/PositExp.cpp \

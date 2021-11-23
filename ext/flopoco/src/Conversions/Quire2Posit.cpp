@@ -119,7 +119,7 @@ namespace flopoco{
         // First bit of tmpFrac is not from final fraction
         vhdl << tab << declare("frac", wF_) << " <= tmpFrac" << range(pRange - 2, pRange - wF_ - 1) << ";" << endl;
         vhdl << tab << declare("rnd", 1, false) << " <= tmpFrac" << of(pRange - wF_ - 2) << ";" << endl;
-        vhdl << tab << declare(getTarget()->eqComparatorDelay(pRange - wF_ - 2), "stkBit", 1, false) << " <= "
+        vhdl << tab << declare(getTarget()->eqConstComparatorDelay(pRange - wF_ - 2), "stkBit", 1, false) << " <= "
              << "'0' when (tmpFrac" << range(pRange - wF_ - 3, 0) << " = " << zg(pRange - wF_ - 2) << ") else '1';" << endl;
         vhdl << tab << declare(getTarget()->logicDelay(2), "stk", 1, false) << " <= stkBit OR stkTmp;" << endl;
 

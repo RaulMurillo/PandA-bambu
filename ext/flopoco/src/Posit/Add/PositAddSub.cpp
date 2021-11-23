@@ -26,7 +26,6 @@
 #include "ShiftersEtc/Normalizer.hpp"
 // #include "IntAddSubCmp/IntAdder.hpp"
 // #include "TestBenches/PositNumber.hpp"
-// #include "TestBenches/IEEENumber.hpp"
 
 using namespace std;
 

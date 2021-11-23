@@ -83,7 +83,7 @@ namespace flopoco
 		vhdl << tab << declare(.0, "encoding", widthP - 1) << " <= I" << range(widthP - 2, 0) << ";" << endl;
 
 		vhdl << tab << declare(getTarget()->eqConstComparatorDelay(widthP - 1), "isZN", 1, false) << " <= "
-			 << "'1' when encoding=\"" << string(widthP - 1, '0') << "\" else '0';" << endl;
+			 << "'1' when (encoding = " << zg(widthP - 1) << ") else '0';" << endl;
 		vhdl << tab << declare(getTarget()->logicDelay(2), "isNAR", 1, false) << " <= sign AND isZN;" << endl;
 		vhdl << tab << declare(getTarget()->logicDelay(2), "isZero", 1, false) << " <= NOT(sign) AND isZN;" << endl;
 
@@ -157,7 +157,7 @@ namespace flopoco
 			vhdl << tab << declare(.0, "guard", 1, false) << " <= shiftedResult" << of(truncBits - 1) << ";" << endl;
 			if (truncBits > 1)
 			{
-				vhdl << tab << declare(getTarget()->eqConstComparatorDelay(truncBits - 1), "sticky", 1, false) << " <= '0' when shiftedResult" << range(truncBits - 2, 0) << "=\"" << string(truncBits - 1, '0') << "\" else '1';" << endl;
+				vhdl << tab << declare(getTarget()->eqConstComparatorDelay(truncBits - 1), "sticky", 1, false) << " <= '0' when (shiftedResult" << range(truncBits - 2, 0) << " = " << zg(truncBits - 1) << ") else '1';" << endl;
 				vhdl << tab << declare(getTarget()->logicDelay(3), "round_bit", 1, false) << " <= guard and (sticky or lsb);" << endl;
 			}
 			else
