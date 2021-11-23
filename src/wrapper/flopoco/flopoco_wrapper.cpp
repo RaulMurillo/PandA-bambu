@@ -1178,8 +1178,16 @@ void flopoco_wrapper::outputPortDeclaration(const std::string& FU_prefix, const 
       }
       else //(format == flopoco_wrapper::FT_POSIT)
       {
-         n_bits_in = width_;
-         n_bits_out = width_;
+         if (type == flopoco_wrapper::UT_compare_expr)
+         {
+            n_bits_in = width_;
+            n_bits_out = 1;
+         }
+         else
+         {
+            n_bits_in = width_;
+            n_bits_out = width_;
+         }
       }
    }
    else if(in_wrap == c_type)
