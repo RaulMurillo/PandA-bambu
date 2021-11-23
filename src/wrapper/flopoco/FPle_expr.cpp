@@ -100,7 +100,7 @@ namespace flopoco
 
       addFPInput("X", wE, wF);
       addFPInput("Y", wE, wF);
-      addOutput("R");
+      addOutput("R", 1);
 
       /*	VHDL code description	*/
       ostringstream paramR, inmapR, outmapR;
@@ -114,7 +114,7 @@ namespace flopoco
       newInstance("FPAdd", "value_difference", paramR.str(), inmapR.str(), outmapR.str());
 
       vhdl << tab << declare(getTarget()->logicDelay(2), "R0", 1, false) << " <= '1' when (valueDiff" << of(wE + wF) << "='0' or (valueDiff" << range(wE + wF + 2, wE + wF + 1) << " = \"00\")) else '0';" << endl;
-      vhdl << tab << "R <= R0;" << endl;
+      vhdl << tab << "R(0) <= R0;" << endl;
    }
 
    FPle_expr::~FPle_expr() = default;
