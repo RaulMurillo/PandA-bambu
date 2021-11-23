@@ -3808,7 +3808,7 @@ void BambuParameter::SetDefaults()
    setOption(OPT_soft_float, true);
 #if HAVE_FLOPOCO
    setOption(OPT_flopoco, "float");
-   setOption(OPT_width, 32);
+   setOption(OPT_width, 0);
    setOption(OPT_wES, 2);
    setOption(OPT_from_float, false);
 #endif

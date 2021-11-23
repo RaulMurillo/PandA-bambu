@@ -56,6 +56,10 @@
 #define INPUT_OPT_CHARACTERIZE (1 + TOOL_OPT_BASE)
 #define INPUT_OPT_TARGET_DATAFILE (1 + INPUT_OPT_CHARACTERIZE)
 #define INPUT_OPT_TARGET_SCRIPTFILE (1 + INPUT_OPT_TARGET_DATAFILE)
+#define OPT_FLOPOCO (1 + INPUT_OPT_TARGET_SCRIPTFILE)
+#define OPT_POSIT_WIDTH (1 + OPT_FLOPOCO)
+#define OPT_POSIT_ES (1 + OPT_POSIT_WIDTH)
+#define OPT_FROM_FLOAT (1 + OPT_POSIT_ES)
 
 #include "utility.hpp"
 
@@ -95,6 +99,19 @@ void EucalyptusParameter::PrintHelp(std::ostream& os) const
       << "    --export-ip-core=<name>         Generates the HDL description of the specified component.\n"
       << "    --output=<file>                 Specifies the name of the output file.\n"
 #endif
+#if HAVE_FLOPOCO
+      << "    --flopoco=<datatype>\n"
+      << "        Enable the flopoco-based implementation of floating-point or posit arithmetic operations.\n"
+      << "             float - use the floating-point format (default)\n"
+      << "             posit - use the posit arithmetic format\n\n"
+      << "    --width=<value>\n"
+      << "        If using posit format, the total bitwidth of the operands (default=32).\n\n"
+      << "    --wES=<value>\n"
+      << "        If using posit format, the size of the exponent field (default=2).\n\n"
+      << "    --from_float\n"
+      << "        If using posit format, indicates the input/output data is expected in\n"
+      << "        floating-point format, so it requires data conversion.\n\n"
+#endif
       << "\n"
       << std::endl;
 }
@@ -129,6 +146,12 @@ int EucalyptusParameter::Exec()
       {"target-device", required_argument, nullptr, 0},
       {"target-scriptfile", required_argument, nullptr, INPUT_OPT_TARGET_SCRIPTFILE},
       {"writer", required_argument, nullptr, 'w'},
+#if HAVE_FLOPOCO
+      {"flopoco", optional_argument, nullptr, OPT_FLOPOCO},
+      {"width", optional_argument, nullptr, OPT_POSIT_WIDTH},
+      {"wES", optional_argument, nullptr, OPT_POSIT_ES},
+      {"from_float", no_argument, nullptr, OPT_FROM_FLOAT},
+#endif
       {nullptr, 0, nullptr, 0}
    };
 
@@ -165,6 +188,30 @@ int EucalyptusParameter::Exec()
             setOption(OPT_target_device_script, optarg);
             break;
          }
+#if HAVE_FLOPOCO
+         case OPT_FLOPOCO:
+         {
+            setOption(OPT_flopoco, "float");
+            if(optarg && std::string(optarg) == "posit")
+               setOption(OPT_flopoco, optarg);
+            break;
+         }
+         case OPT_POSIT_WIDTH:
+         {
+            setOption(OPT_width, optarg);
+            break;
+         }
+         case OPT_POSIT_ES:
+         {
+            setOption(OPT_wES, optarg);
+            break;
+         }
+         case OPT_FROM_FLOAT:
+         {
+            setOption(OPT_from_float, true);
+            break;
+         }
+#endif
          /// output options
          case 'w':
          {
@@ -327,5 +374,11 @@ void EucalyptusParameter::SetDefaults()
    setOption(OPT_level_reset, false);
 #if HAVE_EXPERIMENTAL
    setOption(OPT_mixed_design, true);
+#endif
+#if HAVE_FLOPOCO
+   setOption(OPT_flopoco, "float");
+   setOption(OPT_width, 0);
+   setOption(OPT_wES, 2);
+   setOption(OPT_from_float, false);
 #endif
 }

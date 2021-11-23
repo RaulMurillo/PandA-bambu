@@ -534,7 +534,12 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
    }
    else if (format == FT_POSIT)
    {
-      width = width_;
+      if (width_ > 0){
+         width = width_;
+      }
+      else{
+         width = FU_prec_in;
+      }
       wES = wES_;
 
       PRINT_DBG_MEX(DEBUG_LEVEL_PEDANTIC, debug_level, "Creating FloPoCo operator for Posit unit " + FU_type + "(" + STR(width) + "-" + STR(wES) + "-" + pipe_parameter + ")");
