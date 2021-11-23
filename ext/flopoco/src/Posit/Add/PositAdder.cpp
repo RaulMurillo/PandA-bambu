@@ -194,20 +194,14 @@ namespace flopoco
 		vhdl << tab << declare("grd_bit", 1, false) << " <= grd_tmp;" << endl;
 		vhdl << tab << declare("rnd_bit", 1, false) << " <= rnd_tmp;" << endl;
 		vhdl << tab << declare("stk_bit", 1, false) << " <= stk_tmp;" << endl;
-		
-		vhdl << tab << declare(getTarget()->eqConstComparatorDelay(wF_ + 3), "is_not_zero", 1, false) << " <= '0' when ((add_frac & grd_tmp & rnd_tmp & stk_tmp) = " << zg(wF_ + 3)<< ") else '1';" << endl;
-		vhdl << tab << declare(getTarget()->logicDelay(2), "is_nar", 1, false) << " <= X_nar OR Y_nar;" << endl;
-		vhdl << tab << declare(getTarget()->logicDelay(2), "XY_nzn", 1, false) << " <= is_not_zero AND NOT(is_nar);" << endl;
-		vhdl << tab << declare(getTarget()->logicDelay(2), "sign", 1, false) << " <= is_nar OR (is_not_zero AND add_frac" << of(wF_ + 2) << ");" << endl;
 
 		addComment("Normalization of fraction");
 		vhdl << tab << declare("count_type", 1, false) << " <= add_frac" << of(wF_ + 2) << ";" << endl;
 		vhdl << tab << declare("add_frac_shift", wF_ + 5) << " <= add_frac" << range(wF_ + 1, 0) << " & grd_bit & rnd_bit & stk_bit;" << endl;
 		ostringstream param_norm, inmap_norm, outmap_norm;
-		// int wCount = intlog2(wF_ + 5);
 		param_norm << "wX=" << wF_ + 5;
 		param_norm << " wR=" << wF_ + 5;
-		param_norm << " maxShift=" << wF_ + 5;
+		param_norm << " maxShift=" << wF_ + 5 - 1;	// Not sure if count -1 is ok; exhaustive test (> 8-bits) is needed (for sure  maxShift=wF_ + 5 is correct)
 		param_norm << " countType=" << -1;
 
 		inmap_norm << "X=>add_frac_shift,OZb=>count_type";
@@ -218,13 +212,19 @@ namespace flopoco
 						param_norm.str(),
 						inmap_norm.str(),
 						outmap_norm.str());
+		int wCount = lzocs->getCountWidth();
 
 		addComment("Correct final exponent");
-		vhdl << tab << declare(getTarget()->adderDelay(wE_ + 1), "add_sf", wE_ + 1) << " <= (larger_sf" << of(wE_-1) << " & larger_sf) - count + 1;" << endl;
+		vhdl << tab << declare(getTarget()->adderDelay(wE_ + 1), "add_sf", wE_ + 1) << " <= (larger_sf" << of(wE_-1) << " & larger_sf) - (" << zg(wE_ + 1 - wCount) << " & count) + 1;" << endl;
 
 		//=========================================================================|
 		addFullComment("Data Rounding & Encoding");
 		// ========================================================================|
+		vhdl << tab << declare(getTarget()->eqConstComparatorDelay(intlog2(wF_ + 5)), "is_not_zero", 1, false) << " <= count_type when (count = " << og(wCount) << ") else '1';" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(2), "is_nar", 1, false) << " <= X_nar OR Y_nar;" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(2), "XY_nzn", 1, false) << " <= is_not_zero AND NOT(is_nar);" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(2), "sign", 1, false) << " <= is_nar OR (is_not_zero AND add_frac" << of(wF_ + 2) << ");" << endl;
+
 		vhdl << tab << declare("norm_frac", wF_) << " <= norm_frac_tmp" << range(wF_+3,4) << ";" << endl;
 		vhdl << tab << declare("grd", 1, false) << " <= norm_frac_tmp" << of(3) << ";" << endl;
 		vhdl << tab << declare(getTarget()->logicDelay(3), "stk", 1, false) << " <= norm_frac_tmp(2) OR norm_frac_tmp(1) OR norm_frac_tmp(0);" << endl;
