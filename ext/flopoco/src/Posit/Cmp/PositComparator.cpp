@@ -83,7 +83,7 @@ namespace flopoco
 
 		addInput("X", width_);
 		addInput("Y", width_);
-		addOutput("R");
+		addOutput("R", 1);
 
 		addFullComment("Start of vhdl generation");
 
@@ -111,7 +111,7 @@ namespace flopoco
 		default:
 			throw std::string("PositComparator Constructor: invalid criteria. Expecting an int between -2 and 2");
 		}
-		vhdl << tab << "R <= cmp_r;" << endl;
+		vhdl << tab << "R(0) <= cmp_r;" << endl;
 	};
 
 	PositComparator::~PositComparator() {}
