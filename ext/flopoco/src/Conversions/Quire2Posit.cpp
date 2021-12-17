@@ -130,7 +130,7 @@ namespace flopoco{
         vhdl << tab << declare(getTarget()->adderDelay(wE_+1), "sfTmp", wE_+1) << " <= "
              << "maxExp - (" << zg(wE_ + 1 - lzocs->getCountWidth()) << " & intExp);" << endl;
 
-        vhdl << tab << declare(getTarget()->logicDelay(), "sf", wE_+1) << " <= "
+        vhdl << tab << declare(getTarget()->logicDelay(1), "sf", wE_+1) << " <= "
              << "sfTmp when ovf='0' else maxExp;" << endl;
 
         //====================================================================|

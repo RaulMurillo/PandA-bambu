@@ -86,7 +86,7 @@ namespace flopoco
 		addFullComment("Get absolute value of the Posit");
 		//====================================================================|
 		vhdl << tab << declare(0., "v_sign", width_ - 1) << " <= (others => s);" << endl;
-		vhdl << tab << declare(getTarget()->logicDelay(width_ - 1) + getTarget()->adderDelay(width_ - 1), "p_abs", width_ - 1) << " <= (v_sign XOR remainP) + s;" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(2) + getTarget()->adderDelay(width_ - 1), "p_abs", width_ - 1) << " <= (v_sign XOR remainP) + s;" << endl;
 
 		//====================================================================|
 		addFullComment("Count leading zeros/ones of regime & shift it out");
@@ -105,7 +105,7 @@ namespace flopoco
 		addFullComment("Determine the scaling factor - regime & exp");
 		// ========================================================================|
 		int wCount = lzocs->getCountWidth();
-		vhdl << tab << declare(getTarget()->logicDelay(wCount), "k", regSize) << " <= " << endl
+		vhdl << tab << declare(getTarget()->logicDelay(1), "k", regSize) << " <= " << endl
 			 << tab << tab << zg(regSize - wCount) << " & regLength when rc = '1' else" << endl
 			 << tab << tab << og(regSize - wCount) << " & NOT(regLength);" << endl;
 

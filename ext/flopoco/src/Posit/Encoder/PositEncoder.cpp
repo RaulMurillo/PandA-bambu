@@ -86,7 +86,7 @@ namespace flopoco
 		vhdl << tab << declare("k", regSize) << " <= SF" << range(wE_ - 1, wES_) << ";" << endl;
 		vhdl << tab << declare("rc", 1, false) << " <= SF" << of(wE_) << ";" << endl;
 		vhdl << tab << declare("v_rc", regSize) << " <= (others => rc) ;" << endl;
-		vhdl << tab << declare(getTarget()->logicDelay(regSize), "offset_tmp", regSize) << " <= k XOR v_rc;" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(2), "offset_tmp", regSize) << " <= k XOR v_rc;" << endl;
 
 		addComment("Check for regime overflow");
 		uint32_t maxShift = width_ - 2;
@@ -147,7 +147,7 @@ namespace flopoco
 		// ========================================================================|
 		addComment("Two's complement if posit is negative");
 		vhdl << tab << declare("vSign", width_ - 1) << " <= (others => Sign);" << endl;
-		vhdl << tab << declare(getTarget()->logicDelay(width_ - 1) + getTarget()->adderDelay(width_ - 1), "final_p", width_ - 1) << " <= "
+		vhdl << tab << declare(getTarget()->logicDelay(2) + getTarget()->adderDelay(width_ - 1), "final_p", width_ - 1) << " <= "
 			 << "(vSign XOR rounded_p) + Sign;" << endl;
 
 		// Assign final result

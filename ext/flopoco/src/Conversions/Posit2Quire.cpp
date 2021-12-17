@@ -109,15 +109,15 @@ namespace flopoco{
 		addFullComment("Determine the scaling factor - regime & exp");
 		// ========================================================================|
         int unsignedRegSize = lzocs->getCountWidth();
-        vhdl << tab << declare(getTarget()->logicDelay(), "neg_sf", 1, false) << " <= '0' when (rc /= sgn) else '1';" << endl;
-        vhdl << tab << declare(getTarget()->logicDelay(unsignedRegSize), "k", unsignedRegSize) << " <= "
+        vhdl << tab << declare(getTarget()->logicDelay(1), "neg_sf", 1, false) << " <= '0' when (rc /= sgn) else '1';" << endl;
+        vhdl << tab << declare(getTarget()->logicDelay(1), "k", unsignedRegSize) << " <= "
              << "regLength when neg_sf='0' else NOT(regLength);" << endl;
 
 		if (wES_ > 0)
         {
 			vhdl << tab << declare("exp", wES_) << " <= shiftedPosit" << range(wF_ + wES_ - 1, wF_) << ";" << endl;
             vhdl << tab << declare("sgnVect", wES_) << " <= (others => sgn);" << endl;
-            vhdl << tab << declare(getTarget()->logicDelay(wES_), "actualExp", wES_) << " <= (sgnVect XOR exp);" << endl;
+            vhdl << tab << declare(getTarget()->logicDelay(2), "actualExp", wES_) << " <= (sgnVect XOR exp);" << endl;
             vhdl << tab << declare("sf", unsignedRegSize+wES_) << " <= k & actualExp;" << endl;
         }
         else
@@ -134,18 +134,18 @@ namespace flopoco{
         vhdl << tab << declare(getTarget()->adderDelay(intlog2(maxExp)) + getTarget()->logicDelay(), "sfBiased", intlog2(maxExp)) << " <= "
              << "std_logic_vector(\"" << unsignedBinary(maxExp, intlog2(maxExp)) << "\" - unsigned(sf)) when neg_sf='0' else NOT(sf);" << endl;
 
-        vhdl << tab << declare(getTarget()->logicDelay(), "paddedFrac", maxExp + 1 + wF_) << " <= NOT(sgn) & shiftedPosit" << range(wF_ - 1, 0) << " & " << zg(maxExp) << ";" << endl;
+        vhdl << tab << declare(getTarget()->logicDelay(1), "paddedFrac", maxExp + 1 + wF_) << " <= NOT(sgn) & shiftedPosit" << range(wF_ - 1, 0) << " & " << zg(maxExp) << ";" << endl;
         newInstance("Shifter",
                     "Frac_RightShifter",
                     "wX=" + to_string(maxExp + 1 + wF_) + " wR=" + to_string(maxExp + 1 + wF_) + " maxShift=" + to_string(maxExp) + " dir=1 inputPadBit=true",
                     "X=>paddedFrac, S=>sfBiased, padBit=>sgn",
                     "R=>fixedPosit");
 
-        vhdl << tab << declare(getTarget()->logicDelay(), "quirePosit", 2*(maxExp + 1) + wF_) << " <= "
+        vhdl << tab << declare(getTarget()->logicDelay(1), "quirePosit", 2*(maxExp + 1) + wF_) << " <= "
              << "(fixedPosit & " << zg(maxExp + 1) << ") when neg_sf='0' else "
              << "((" << 2*(maxExp + 1) + wF_ - 1 << " downto " << maxExp + 1 + wF_ << " => sgn) & fixedPosit);" << endl;
 
-        vhdl << tab << declare(getTarget()->logicDelay(), "quire", wQuire_-1) << " <= "
+        vhdl << tab << declare(getTarget()->logicDelay(1), "quire", wQuire_-1) << " <= "
             << "((" << wQuire_-2 << " downto " << 3*maxExp + 1 << " => sgn) & " // generate carry bits & pad with 0's
             << "quirePosit & (" << maxExp-wF_-2 << " downto 0 => '0')) when nzn='1' else (others => '0');" << endl;
 

@@ -110,8 +110,8 @@ namespace flopoco
 		//      << "std_logic_vector(signed(A_sgn & NOT(A_sgn) & A_f) * signed(B_sgn & NOT(B_sgn) & B_f));" << endl;
 
 		// Another approach - using FloPoCo IntMultiplier
-		vhdl << tab << declare(getTarget()->logicDelay(), "AA_f", wF_ + 2) << " <= A_sgn & NOT(A_sgn) & A_f;" << endl;
-		vhdl << tab << declare(getTarget()->logicDelay(), "BB_f", wF_ + 2) << " <= B_sgn & NOT(B_sgn) & B_f;" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(1), "AA_f", wF_ + 2) << " <= A_sgn & NOT(A_sgn) & A_f;" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(1), "BB_f", wF_ + 2) << " <= B_sgn & NOT(B_sgn) & B_f;" << endl;
 		newInstance("IntMultiplier",
 					"FracMultiplier",
 					"wX=" + to_string(wF_ + 2) + " wY=" + to_string(wF_ + 2) + " wOut=" + to_string(multSize) + " signedIO=true",
@@ -197,13 +197,13 @@ namespace flopoco
 		//      << "std_logic_vector(unsigned(NOT(AB_effectiveSF)));" << endl;
 
 		// Another aproach - shift only in the integer/frac part of the quire
-		vhdl << tab << declare(getTarget()->logicDelay(wE_), "adderInput", intlog2(2 * maxExp)) << " <= ";
+		vhdl << tab << declare(getTarget()->logicDelay(1), "adderInput", intlog2(2 * maxExp)) << " <= ";
 		if (wE_ < intlog2(2 * maxExp))
 		{
 			vhdl << "(" << intlog2(2 * maxExp) - 1 << " downto " << wE_ << " => NOT(neg_sf)) & ";
 		}
 		vhdl << "NOT(AB_effectiveSF);" << endl;
-		vhdl << tab << declare(getTarget()->logicDelay(), "adderBias", intlog2(2 * maxExp)) << " <= \"" << unsignedBinary(2 * maxExp, intlog2(2 * maxExp)) << "\" when neg_sf='0' else "
+		vhdl << tab << declare(getTarget()->logicDelay(1), "adderBias", intlog2(2 * maxExp)) << " <= \"" << unsignedBinary(2 * maxExp, intlog2(2 * maxExp)) << "\" when neg_sf='0' else "
 			 << og(wE_) << ";" << endl;
 		vhdl << tab << declare("ob", 1, false) << " <= '1';" << endl;
 		newInstance("IntAdder",
@@ -212,7 +212,7 @@ namespace flopoco
 					"X=>adderInput,Y=>adderBias,Cin=>ob",
 					"R=>AB_sfBiased");
 
-		vhdl << tab << declare(getTarget()->logicDelay(), "paddedFrac", 2 * (maxExp + 1 + wF_)) << " <= "
+		vhdl << tab << declare(getTarget()->logicDelay(1), "paddedFrac", 2 * (maxExp + 1 + wF_)) << " <= "
 			 << "(NOT(AB_sgn) & AB_normF & " << zg(2 * maxExp) << ") when neg_sf='0' else "
 			 << "((" << 2 * (maxExp + 1 + wF_) - 1 << " downto " << 2 * maxExp << " => AB_sgn) & NOT(AB_sgn) & AB_normF & " << zg(2 * maxExp - 2 * (1 + wF_)) << ");" << endl;
 
@@ -222,11 +222,11 @@ namespace flopoco
 					"X=>paddedFrac, S=>AB_sfBiased, padBit=>AB_sgn",
 					"R=>fixedPosit");
 
-		vhdl << tab << declare(getTarget()->logicDelay(), "quirePosit", 4 * maxExp + 1) << " <= "
+		vhdl << tab << declare(getTarget()->logicDelay(1), "quirePosit", 4 * maxExp + 1) << " <= "
 			 << "(fixedPosit & " << zg(2 * (maxExp - 1 - wF_) + 1) << ") when neg_sf='0' else "
 			 << "((" << 4 * maxExp << " downto " << 2 * (maxExp + 1 + wF_) << " => AB_sgn) & fixedPosit);" << endl;
 
-		vhdl << tab << declare(getTarget()->logicDelay(), "AB_quire", wQuire_) << " <= "
+		vhdl << tab << declare(getTarget()->logicDelay(1), "AB_quire", wQuire_) << " <= "
 			 << "((" << wQuire_ - 1 << " downto " << 4 * maxExp + 1 << " => AB_sgn) & " // generate carry bits & pad with 0's
 			 << "quirePosit) when AB_nzn='1' else AB_nar & (" << wQuire_ - 2 << " downto 0 => '0');" << endl;
 
@@ -251,7 +251,7 @@ namespace flopoco
 		vhdl << tab << declare(getTarget()->logicDelay(2), "ABC_nar", 1, false) << " <= "
 			 << "AB_nar OR C_nar;" << endl;
 
-		vhdl << tab << declare(getTarget()->logicDelay(), "result", wQuire_) << " <= "
+		vhdl << tab << declare(getTarget()->logicDelay(1), "result", wQuire_) << " <= "
 			 << "ABC_add when ABC_nar='0' else ('1' & zeros);" << endl;
 
 		vhdl << tab << "R <= result;" << endl;

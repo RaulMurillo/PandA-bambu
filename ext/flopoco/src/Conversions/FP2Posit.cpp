@@ -83,7 +83,7 @@ namespace flopoco
 		vhdl << tab << declare(.0, "sign", 1, false) << " <= I" << of(widthI - 1) << ";" << endl;
 
 		// vhdl << "with sign select " <<
-		// 	declare(getTarget()->logicDelay(widthI), "absI", widthI - 1) << " <= " << endl <<
+		// 	declare(getTarget()->logicDelay(1), "absI", widthI - 1) << " <= " << endl <<
 		// 	tab <<  "I" << range(widthI - 2, 0) << " when '0'," << endl <<
 		// 	tab << "not(I" << range(widthI - 2, 0) << ") + 1 when '1'," << endl <<
 		// 	tab << "\"" << string(widthI - 1, '-') << "\" when others;" << endl;
@@ -127,7 +127,7 @@ namespace flopoco
 			vhdl << tab << declare(getTarget()->eqConstComparatorDelay(esMSB + 1), "notTooSmall", 1, false) << " <= '1' when (unbiased_exp" << range(wEF - 1, wE_ - 1) << " = " << og(esMSB + 1) << ") else '0';" << endl;
 			vhdl << tab << declare(getTarget()->logicDelay(2), "expFit", 1, false) << " <= notTooBig or notTooSmall;" << endl;
 
-			vhdl << tab << "with expFit select " << declare(getTarget()->logicDelay(wE_ + wF_ + 1), "exponent", wE_) << " <= " << endl
+			vhdl << tab << "with expFit select " << declare(getTarget()->logicDelay(1), "exponent", wE_) << " <= " << endl
 				 << tab << tab << "unbiased_exp" << range(wE_ - 1, 0) << " when '1'," << endl
 				 << tab << tab << "unbiased_exp" << of(wE_ - 1) << " & \"" << string(wE_ - 1, '1') << "\" when '0'," << endl
 				 << tab << tab << "\"" << string(wE_, '-') << "\" when others;" << endl;
@@ -151,7 +151,7 @@ namespace flopoco
 		vhdl << tab << declare(0., "bin_regime", wCount) << " <= exponent" << range(wE_ - 2, wESP) << ";" << endl;
 		vhdl << tab << declare(0., "first_regime", 1, false) << " <= exponent" << of(wE_ - 1) << ";" << endl;
 
-		vhdl << tab << "with first_regime select " << declare(getTarget()->logicDelay(wCount), "regime", wCount) << " <= " << endl
+		vhdl << tab << "with first_regime select " << declare(getTarget()->logicDelay(1), "regime", wCount) << " <= " << endl
 			 << tab << tab << "bin_regime when '0', " << endl
 			 << tab << tab << "not bin_regime when '1', " << endl
 			 << tab << tab << "\"" << string(wCount, '-') << "\" when others;" << endl;
@@ -201,7 +201,7 @@ namespace flopoco
 
 		vhdl << tab << declare(getTarget()->adderDelay(widthP - 1), "rounded_reg_exp_frac", widthP - 1) << " <= truncated_posit + round_bit;" << endl;
 
-		vhdl << tab << "with sign select " << declare(getTarget()->logicDelay(widthP - 1), "rounded_posit", widthP) << " <= " << endl
+		vhdl << tab << "with sign select " << declare(getTarget()->logicDelay(1), "rounded_posit", widthP) << " <= " << endl
 			 << tab << tab << "sign & rounded_reg_exp_frac when '0'," << endl
 			 << tab << tab << "sign & not(rounded_reg_exp_frac) + 1 when '1'," << endl
 			 << tab << tab << "\"" << string(widthP, '-') << "\" when others;" << endl;

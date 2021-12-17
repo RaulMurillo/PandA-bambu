@@ -91,7 +91,7 @@ namespace flopoco
 		addFullComment("Regime extraction");
 		//====================================================================|
 		vhdl << tab << "with sign select "
-			 << declare(getTarget()->logicDelay(widthP), "absoluteEncoding", widthP - 1) << " <= " << endl
+			 << declare(getTarget()->logicDelay(1), "absoluteEncoding", widthP - 1) << " <= " << endl
 			 << tab << tab << "encoding when '0'," << endl
 			 << tab << tab << "not(encoding) + 1 when '1'," << endl
 			 << tab << tab << "\"" << string(widthP - 1, '-') << "\" when others;" << endl;
@@ -110,7 +110,7 @@ namespace flopoco
 		newInstance("Normalizer", "lzoc", param.str(), inmap.str(), outmap.str());
 
 		vhdl << tab << "with exponentSign select "
-			 << declare(getTarget()->logicDelay(wCount), "rangeExp", wCount + 1) << " <= " << endl
+			 << declare(getTarget()->logicDelay(1), "rangeExp", wCount + 1) << " <= " << endl
 			 << tab << tab << "('1' & not (lzCount)) when '0'," << endl
 			 << tab << tab << "('0' & lzCount) when '1'," << endl
 			 << tab << tab << "\"" << string(wCount + 1, '-') << "\" when others;" << endl;
@@ -131,7 +131,7 @@ namespace flopoco
 		if (wEF_ > wE_)
 		{
 			addComment("Pad exponent");
-			vhdl << tab << "with exponentSign select " << declare(getTarget()->logicDelay(), "exponentPad", wEF_ - wE_) << " <= " << endl
+			vhdl << tab << "with exponentSign select " << declare(getTarget()->logicDelay(1), "exponentPad", wEF_ - wE_) << " <= " << endl
 				 << tab << tab << "\"" << string(wEF_ - wE_, '1') << "\" when '0'," << endl
 				 << tab << tab << "\"" << string(wEF_ - wE_, '0') << "\" when '1'," << endl
 				 << tab << tab << "\"" << string(wEF_ - wE_, '-') << "\" when others;" << endl;
@@ -169,7 +169,7 @@ namespace flopoco
 		}
 
 		addComment("Final result");
-		vhdl << tab << "with isZN select " << declare(getTarget()->logicDelay(), "finalSignExp", wEF_ + 1) << " <= " << endl
+		vhdl << tab << "with isZN select " << declare(getTarget()->logicDelay(1), "finalSignExp", wEF_ + 1) << " <= " << endl
 				<< tab << tab << "(others => isNAR) when '1'," << endl	// sign does not matter
 				<< tab << tab << "(sign & exponent) when '0'," << endl
 				<< tab << tab << "\"" << string(wEF_ + 1, '-') << "\" when others;" << endl;

@@ -92,7 +92,7 @@ namespace flopoco
 		//=========================================================================|
 		addFullComment("Determine the scaling factor - regime & exp");
 		// ========================================================================|
-		vhdl << tab << declare(getTarget()->logicDelay(lzocs->getCountWidth()), "k", regSize) << " <= "
+		vhdl << tab << declare(getTarget()->logicDelay(1), "k", regSize) << " <= "
 			 << zg(regSize - lzocs->getCountWidth()) << " & regLength when rc /= sgn else " // k = len(reg)-1
 			 << og(regSize - lzocs->getCountWidth()) << " & NOT(regLength);" << endl;		// k = -len(reg)
 
@@ -100,8 +100,8 @@ namespace flopoco
 		{
 			// vhdl << tab << declare("exp", wES_) << " <=  shiftedPosit" << range(wF_ + wES_ - 1, wF_) << ";" << endl;
 			vhdl << tab << declare("sgnVect", wES_) << " <= (others => sgn);" << endl;
-			// vhdl << tab << declare(getTarget()->logicDelay(wES_), "actualExp", wES_) << " <=  (sgnVect XOR exp);" << endl;
-			vhdl << tab << declare(getTarget()->logicDelay(wES_), "exp", wES_) << " <= shiftedPosit" << range(wF_ + wES_ - 1, wF_) << " XOR sgnVect;" << endl;
+			// vhdl << tab << declare(getTarget()->logicDelay(2), "actualExp", wES_) << " <=  (sgnVect XOR exp);" << endl;
+			vhdl << tab << declare(getTarget()->logicDelay(2), "exp", wES_) << " <= shiftedPosit" << range(wF_ + wES_ - 1, wF_) << " XOR sgnVect;" << endl;
 		}
 		vhdl << tab << declare("pSF", wE_) << " <= k";
 		if (wES_ > 0)

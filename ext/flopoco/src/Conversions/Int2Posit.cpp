@@ -158,7 +158,7 @@ namespace flopoco
         if (wES_ > 0)
         {
             vhdl << tab << declare("sgnVect", wES_) << " <= (others => sgn);" << endl;
-            vhdl << tab << declare(getTarget()->logicDelay(wES_), "expBits", wES_) << " <= "
+            vhdl << tab << declare(getTarget()->logicDelay(2), "expBits", wES_) << " <= "
                  << "sf" << range(wES_ - 1, 0) << " XOR sgnVect;" << endl;
         }
 

@@ -76,18 +76,18 @@ namespace flopoco
 		//====================================================================|
 		vhdl << tab << declare("rc", 1, false) << " <= SF(SF'high);" << endl;
 		vhdl << tab << declare("rcVect", regSize) << " <= (others => rc);" << endl;
-		vhdl << tab << declare(getTarget()->logicDelay(regSize), "k", regSize) << " <= "
+		vhdl << tab << declare(getTarget()->logicDelay(2), "k", regSize) << " <= "
 			 << "SF" << range(wE_ - 1, wES_) << " XOR rcVect;" << endl;
 		if (wES_ > 0)
 		{
 			vhdl << tab << declare("sgnVect", wES_) << " <= (others => Sign);" << endl;
-			vhdl << tab << declare(getTarget()->logicDelay(wES_), "exp", wES_) << " <= SF" << range(wES_ - 1, 0) << " XOR sgnVect;" << endl;
+			vhdl << tab << declare(getTarget()->logicDelay(2), "exp", wES_) << " <= SF" << range(wES_ - 1, 0) << " XOR sgnVect;" << endl;
 		}
 		addComment("Check for regime overflow");
 		vhdl << tab << declare(getTarget()->eqConstComparatorDelay(regSize), "ovf", 1, false) << " <= "
 			 << "'1' when (k > \"" << unsignedBinary(width_ - 3, regSize) << "\") else '0';" << endl;
 
-		vhdl << tab << declare(getTarget()->logicDelay(), "regValue", regSize - 1) << " <= "
+		vhdl << tab << declare(getTarget()->logicDelay(1), "regValue", regSize - 1) << " <= "
 			 << "k" << range(regSize - 2, 0) << " when ovf = '0' else "
 			 << "\"" << unsignedBinary(width_ - 2, regSize - 1) << "\";" << endl;
 
@@ -95,7 +95,7 @@ namespace flopoco
 		addFullComment("Generate regime - shift out exponent and fraction");
 		//====================================================================|
 		vhdl << tab << declare(getTarget()->logicDelay(2), "regNeg", 1, false) << " <= Sign XOR rc;" << endl;
-		vhdl << tab << declare(getTarget()->logicDelay(), "padBit", 1, false) << " <= NOT(regNeg);" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(1), "padBit", 1, false) << " <= NOT(regNeg);" << endl;
 
 		vhdl << tab << declare("inputShifter", width_ - 1) << " <= regNeg ";
 		if (wES_ > 0)

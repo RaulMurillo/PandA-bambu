@@ -114,7 +114,7 @@ namespace flopoco{
         //=========================================================================|
 		addFullComment("Determine the scaling factor - regime & exp");
 		// ========================================================================|
-        vhdl << tab << declare(getTarget()->logicDelay(lzocs->getCountWidth()), "k", sizeRegime) << " <= "
+        vhdl << tab << declare(getTarget()->logicDelay(1), "k", sizeRegime) << " <= "
                 << zg(sizeRegime - lzocs->getCountWidth()) << " & regLength when rc /= '0' else "
                 << og(sizeRegime - lzocs->getCountWidth()) << " & NOT(regLength);" << endl;
 
@@ -133,7 +133,7 @@ namespace flopoco{
 		addFullComment("Extract fraction");
 		// ========================================================================|
         // Discard negated regime bit and exponent bits (if any)
-		vhdl << tab << declare(getTarget()->logicDelay(), "sgnFrac", wF_+1) << " <= '1' & shiftedPosit" << range(wF_ - 1, 0) << ";" << endl;
+		vhdl << tab << declare("sgnFrac", wF_+1) << " <= '1' & shiftedPosit" << range(wF_ - 1, 0) << ";" << endl;
 
         //=========================================================================|
 		addFullComment("Shift out fraction according to scaling factor");
@@ -152,7 +152,7 @@ namespace flopoco{
                 << "\"" << unsignedBinary(widthO_-1, wE_) << "\" - sf;" << endl; 
 
             vhdl << tab << declare("ovf", 1, false) << " <= shiftVal_tmp(shiftVal_tmp'high);" << endl;    // Overflow
-            vhdl << tab << declare(getTarget()->logicDelay(2) + getTarget()->eqConstComparatorDelay(lzocs->getCountWidth()), "undf", 1, false) << " <= "
+            vhdl << tab << declare(getTarget()->logicDelay(3) + getTarget()->eqConstComparatorDelay(lzocs->getCountWidth()), "undf", 1, false) << " <= "
                 << "'0' when ((regLength = " << zg(lzocs->getCountWidth()) << ") OR (rc /= '0')) else '1';" << endl;  // 1 if Underflow, useful to get final sign bit
 
             vhdl << tab << declare("shiftVal", sizeRightShift) << " <= shiftVal_tmp" << range(sizeRightShift-1, 0) << ";" << endl;
@@ -201,7 +201,7 @@ namespace flopoco{
             vhdl << tab << declare(getTarget()->logicDelay(4), "result", widthO_) << " <= intNumber when (zn OR ovf OR undf OR sgn) = '0' else (" << zg(widthO_) << ");" << endl;
         }
         else{
-            vhdl << tab << declare(getTarget()->logicDelay(1), "result", widthO_) << " <= intNumber when (zn or sgn) = '0' else (" << zg(widthO_) << ");" << endl;
+            vhdl << tab << declare(getTarget()->logicDelay(2), "result", widthO_) << " <= intNumber when (zn or sgn) = '0' else (" << zg(widthO_) << ");" << endl;
         }
 
         vhdl << tab << "R <= result;" << endl;

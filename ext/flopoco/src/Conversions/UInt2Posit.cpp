@@ -154,15 +154,14 @@ namespace flopoco
 
         if (wES_ > 0)
         {
-            vhdl << tab << declare(getTarget()->logicDelay(wES_), "expBits", wES_) << " <= "
-                 << "sf" << range(wES_ - 1, 0) << ";" << endl;
+            vhdl << tab << declare("expBits", wES_) << " <= sf" << range(wES_ - 1, 0) << ";" << endl;
         }
 
         //=========================================================================|
         addFullComment("Shift out fraction according to scaling factor");
         //=========================================================================|
 
-        vhdl << tab << declare(getTarget()->logicDelay(1), "padBit", 1, false) << " <= '1';" << endl;
+        vhdl << tab << declare("padBit", 1, false) << " <= '1';" << endl;
 
         // An extra padBit must be (left) appended after Shifter - this saves some area & power
         vhdl << tab << declare("paddedFrac", paddedSize) << " <= '0'";
@@ -218,7 +217,7 @@ namespace flopoco
                  << "validFrac + round;" << endl;
         }
 
-        vhdl << tab << declare(getTarget()->logicDelay(2), "result", width_ - 1) << " <= "
+        vhdl << tab << declare(getTarget()->logicDelay(1), "result", width_ - 1) << " <= "
              << "positNumber when nzn = '1' else (nzn & " << zg(width_ - 2) << ");" << endl;
         vhdl << tab << "R <= '0' & result;" << endl;
 

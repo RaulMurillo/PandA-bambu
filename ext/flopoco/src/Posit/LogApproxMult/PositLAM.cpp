@@ -24,7 +24,7 @@
 #include "Posit/Encoder/PositEncoder.hpp"
 #include "ShiftersEtc/Shifters.hpp"
 // #include "IntAddSubCmp/IntAdder.hpp"
-// #include "TestBenches/PositNumber.hpp"
+#include "TestBenches/PositNumber.hpp"
 // #include "TestBenches/IEEENumber.hpp"
 
 using namespace std;
@@ -123,7 +123,127 @@ namespace flopoco
 
 	PositLAM::~PositLAM() {}
 
-	void PositLAM::emulate(TestCase *tc) {}
+	void PositLAM::emulate(TestCase *tc)
+	{
+		/* Get I/O values */
+		mpz_class svX = tc->getInputValue("X");
+		mpz_class svY = tc->getInputValue("Y");
+		
+		/* Compute correct value */
+		PositNumber posx(width_, wES_, svX);
+		PositNumber posy(width_, wES_, svY);
+		mpfr_t x, y, r;
+		mpfr_init2(x, 1000*width_ -2);
+		mpfr_init2(y, 1000*width_ -2);
+		mpfr_init2(r, 1000*width_ -2);
+		posx.getMPFR(x);
+		posy.getMPFR(y);
+		mpfr_mul(r, x, y, GMP_RNDN);
+		
+		// Set outputs
+		PositNumber posr(width_, wES_, r);
+		mpz_class svR = posr.getSignalValue();
+		tc->addExpectedOutput("R", svR);
+		
+		// clean up
+		mpfr_clears(x, y, r, NULL);
+	}
+
+	void PositLAM::buildStandardTestCases(TestCaseList* tcl)
+	{
+		TestCase *tc;
+		mpz_class x, y;
+
+		// 1*1
+		x = mpz_class(1) << (width_ - 2);
+		y = mpz_class(1) << (width_ - 2);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// 1*0
+		x = mpz_class(1) << (width_ - 2);
+		y = mpz_class(0);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// -1*-1
+		x = mpz_class(3) << (width_ - 2);
+		y = mpz_class(3) << (width_ - 2);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// -1*1
+		x = mpz_class(3) << (width_ - 2);
+		y = mpz_class(1) << (width_ - 2);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// nan*1
+		x = mpz_class(1) << (width_ - 1);
+		y = mpz_class(1) << (width_ - 2);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// nan*0
+		x = mpz_class(1) << (width_ - 1);
+		y = mpz_class(0);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// maxvalue*maxvalue
+		x = (mpz_class(1) << (width_ - 1))-1;
+		y = (mpz_class(1) << (width_ - 1))-1;
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// maxvalue*-maxvalue
+		x = (mpz_class(1) << (width_ - 1))-1;
+		y = (mpz_class(1) << (width_ - 1))+1;
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// -minvalue*maxvalue
+		x = (mpz_class(1) << (width_))-1;
+		y = (mpz_class(1) << (width_ - 1))-1;
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// maxvalue*minvalue
+		x = (mpz_class(1) << (width_ - 1))-1;
+		y = mpz_class(1);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+	}
 
 	OperatorPtr PositLAM::parseArguments(OperatorPtr parentOp, Target *target, vector<string> &args)
 	{

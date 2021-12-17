@@ -38,6 +38,8 @@ namespace flopoco
 		/** emulate() function to be shared by various implementations */
 		void emulate(TestCase *tc);
 
+		void buildStandardTestCases(TestCaseList* tcl);
+
 	private:
 		int width_;
 		int wES_;

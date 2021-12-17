@@ -100,9 +100,9 @@ namespace flopoco
 					"Sign=>Y_sgn,SF=>Y_sf,Frac=>Y_f,NZN=>Y_nzn");
 
 		addFullComment("Check for Zeros and NaRs");
-		vhdl << tab << declare(getTarget()->logicDelay(1), "X_not_zero", 1, false) << " <= X_sgn OR X_nzn;" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(2), "X_not_zero", 1, false) << " <= X_sgn OR X_nzn;" << endl;
 		vhdl << tab << declare(getTarget()->logicDelay(2), "X_nar", 1, false) << " <= X_sgn AND NOT(X_nzn);" << endl;
-		vhdl << tab << declare(getTarget()->logicDelay(1), "Y_not_zero", 1, false) << " <= Y_sgn OR Y_nzn;" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(2), "Y_not_zero", 1, false) << " <= Y_sgn OR Y_nzn;" << endl;
 		vhdl << tab << declare(getTarget()->logicDelay(2), "Y_nar", 1, false) << " <= Y_sgn AND NOT(Y_nzn);" << endl;
 
 		//=========================================================================|
@@ -223,7 +223,7 @@ namespace flopoco
 		vhdl << tab << declare(getTarget()->eqConstComparatorDelay(intlog2(wF_ + 5)), "is_not_zero", 1, false) << " <= count_type when (count = " << og(wCount) << ") else '1';" << endl;
 		vhdl << tab << declare(getTarget()->logicDelay(2), "is_nar", 1, false) << " <= X_nar OR Y_nar;" << endl;
 		vhdl << tab << declare(getTarget()->logicDelay(2), "XY_nzn", 1, false) << " <= is_not_zero AND NOT(is_nar);" << endl;
-		vhdl << tab << declare(getTarget()->logicDelay(2), "sign", 1, false) << " <= is_nar OR (is_not_zero AND add_frac" << of(wF_ + 2) << ");" << endl;
+		vhdl << tab << declare(getTarget()->logicDelay(3), "sign", 1, false) << " <= is_nar OR (is_not_zero AND add_frac" << of(wF_ + 2) << ");" << endl;
 
 		vhdl << tab << declare("norm_frac", wF_) << " <= norm_frac_tmp" << range(wF_+3,4) << ";" << endl;
 		vhdl << tab << declare("grd", 1, false) << " <= norm_frac_tmp" << of(3) << ";" << endl;
