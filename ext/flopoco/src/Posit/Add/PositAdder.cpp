@@ -166,7 +166,7 @@ namespace flopoco
 
 		ostringstream param1, inmap1, outmap1;
 		param1 << "wX=" << wF_ + 4;
-		param1 << " maxShift=" << wF_ + 4; // Is there a lower maximum length to shift?
+		param1 << " maxShift=" << wF_ + 4;
 		param1 << " wR=" << wF_ + 4;
 		param1 << " dir=" << Shifter::Right;
 		param1 << " computeSticky=true";
@@ -200,7 +200,7 @@ namespace flopoco
 		vhdl << tab << declare("add_frac_shift", wF_ + 5) << " <= add_frac" << range(wF_ + 1, 0) << " & grd_bit & rnd_bit & stk_bit;" << endl;
 		ostringstream param_norm, inmap_norm, outmap_norm;
 		param_norm << "wX=" << wF_ + 5;
-		param_norm << " wR=" << wF_ + 5;
+		param_norm << " wR=" << wF_ + 5;//wF_ + 5;
 		param_norm << " maxShift=" << wF_ + 5 - 1;	// Not sure if count -1 is ok; exhaustive test (> 8-bits) is needed (for sure  maxShift=wF_ + 5 is correct)
 		param_norm << " countType=" << -1;
 

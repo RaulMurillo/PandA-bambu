@@ -21,7 +21,7 @@
 
 #include "PositApproxDiv.hpp"
 #include "Posit/Mult/PositMult.hpp"
-// #include "TestBenches/PositNumber.hpp"
+#include "TestBenches/PositNumber.hpp"
 
 using namespace std;
 
@@ -71,8 +71,8 @@ namespace flopoco
 		//====================================================================|
 		addFullComment("Compute approximate reciprocal of Y");
 		//====================================================================|
-		// Add '0' at begining to check if Y is 0/NaR, so recipY should be NaR
-		vhdl << tab << declare(getTarget()->logicDelay(width_ - 1) + getTarget()->adderDelay(width_), "compY", width_) << " <= std_logic_vector(unsigned('0' & not(Y" << range(width_ - 2, 0) << ")) + 1);" << endl;
+		// Add '0' at begining to check if Y is 0/NaR, sso recipY should be NaRo recipY should be NaR
+		vhdl << tab << declare(getTarget()->logicDelay(1) + getTarget()->adderDelay(width_), "compY", width_) << " <= ('0' & not(Y" << range(width_ - 2, 0) << ")) + 1;" << endl;
 		vhdl << tab << declare(getTarget()->logicDelay(2), "recipY", width_) << " <= (Y(Y'high) OR compY(compY'high)) & compY" << range(width_-2, 0) << ";" << endl;
 
 		//====================================================================|
@@ -89,7 +89,128 @@ namespace flopoco
 
 	PositApproxDiv::~PositApproxDiv() {}
 
-	void PositApproxDiv::emulate(TestCase *tc) {}
+	void PositApproxDiv::emulate(TestCase *tc)
+	{
+		/* Get I/O values */
+		mpz_class svX = tc->getInputValue("X");
+		mpz_class svY = tc->getInputValue("Y");
+		
+		/* Compute correct value */
+		PositNumber posx(width_, wES_, svX);
+		PositNumber posy(width_, wES_, svY);
+		mpfr_t x, y, r;
+		mpfr_init2(x, 1000*width_ -2);
+		mpfr_init2(y, 1000*width_ -2);
+		mpfr_init2(r, 1000*width_ -2);
+		posx.getMPFR(x);
+		posy.getMPFR(y);
+		mpfr_div(r, x, y, GMP_RNDN);
+		
+		// Set outputs
+		PositNumber posr(width_, wES_, r);
+		mpz_class svR = posr.getSignalValue();
+		tc->addExpectedOutput("R", svR);
+		
+		// clean up
+		mpfr_clears(x, y, r, NULL);
+	}
+
+	void PositApproxDiv::buildStandardTestCases(TestCaseList* tcl)
+	{
+		TestCase *tc;
+		mpz_class x, y;
+
+		// 1*1
+		x = mpz_class(1) << (width_ - 2);
+		y = mpz_class(1) << (width_ - 2);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// 1*0
+		x = mpz_class(1) << (width_ - 2);
+		y = mpz_class(0);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// -1*-1
+		x = mpz_class(3) << (width_ - 2);
+		y = mpz_class(3) << (width_ - 2);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// -1*1
+		x = mpz_class(3) << (width_ - 2);
+		y = mpz_class(1) << (width_ - 2);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// nan*1
+		x = mpz_class(1) << (width_ - 1);
+		y = mpz_class(1) << (width_ - 2);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// nan*0
+		x = mpz_class(1) << (width_ - 1);
+		y = mpz_class(0);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// maxvalue*maxvalue
+		x = (mpz_class(1) << (width_ - 1))-1;
+		y = (mpz_class(1) << (width_ - 1))-1;
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// maxvalue*-maxvalue
+		x = (mpz_class(1) << (width_ - 1))-1;
+		y = (mpz_class(1) << (width_ - 1))+1;
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// -minvalue*maxvalue
+		x = (mpz_class(1) << (width_))-1;
+		y = (mpz_class(1) << (width_ - 1))-1;
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+
+		// maxvalue*minvalue
+		x = (mpz_class(1) << (width_ - 1))-1;
+		y = mpz_class(1);
+		tc = new TestCase(this);
+		tc->addInput("X", x);
+		tc->addInput("Y", y);
+		emulate(tc);
+		tcl->add(tc);
+	}
+
 
 	OperatorPtr PositApproxDiv::parseArguments(OperatorPtr parentOp, Target *target, vector<string> &args)
 	{

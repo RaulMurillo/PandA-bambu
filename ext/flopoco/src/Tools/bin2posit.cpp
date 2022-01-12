@@ -32,14 +32,14 @@
 #include <cstdlib>
 
 #include"../utils.hpp"
-#include"TestBenches/IEEENumber.hpp"
+#include"TestBenches/PositNumber.hpp"
 using namespace std;
 using namespace flopoco;
 
 
 static void usage(char *name){
-  cerr << endl << "Usage: "<<name<<" wE wF x" << endl ;
-  cerr << "  x is a binary string of (wE+wF+1) bits, in IEEE format" << endl ;
+  cerr << endl << "Usage: "<<name<<" width wES x" << endl ;
+  cerr << "  x is a binary string of width bits and wES exponent bits, in Posit format" << endl ;
   exit (EXIT_FAILURE);
 }
 
@@ -58,8 +58,8 @@ int check_strictly_positive(char* s, char* cmd) {
 int main(int argc, char* argv[] )
 {
   if(argc != 4) usage(argv[0]);
-  int wE = check_strictly_positive(argv[1], argv[0]);
-  int wF = check_strictly_positive(argv[2], argv[0]);
+  int width = check_strictly_positive(argv[1], argv[0]);
+  int wES = check_strictly_positive(argv[2], argv[0]);
   char* x = argv[3];
 
   char *p=x;
@@ -73,17 +73,17 @@ int main(int argc, char* argv[] )
 		z=(z<<1)+(*p=='0'?0:1);
     p++; l++;
   }
-  if(l != wE+wF+1) {
-    cerr<<"ERROR: binary string of size "<< l <<", should be of size "<<wE+wF+1<<endl;
+  if(l != width) {
+    cerr<<"ERROR: binary string of size "<< l <<", should be of size "<< width <<endl;
     usage(argv[0]);
   }
 
 
 	//	cerr << unsignedBinary(z, wE+wF+1) << endl;
-	IEEENumber ieeex(wE, wF, z);
+  PositNumber posx(width, wES, z);
 	mpfr_t mpfx;
-	mpfr_init2(mpfx, wF+1);
-	ieeex.getMPFR(mpfx);
+	mpfr_init2(mpfx, width-wES-2);
+	posx.getMPFR(mpfx);
 
 	// output on enough bits
   mpfr_out_str (stdout, // std out
