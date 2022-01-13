@@ -1134,7 +1134,7 @@ void flopoco_wrapper::outputSignals(const std::string& FU_name_stored, std::ostr
       n_bits_out = width_;
    }
 
-   if(type == flopoco_wrapper::UT_IFIX2FP or type == flopoco_wrapper::UT_UFIX2FP or type == flopoco_wrapper::UT_FP2IFIX)
+   if(type == flopoco_wrapper::UT_IFIX2FP or type == flopoco_wrapper::UT_UFIX2FP)
    {
       if(prec_in != prec_out)
          PP(os, "signal I_temp : std_logic_vector(" + STR(std::max(prec_in, prec_out) - 1) + " downto 0);\n");
@@ -1146,7 +1146,7 @@ void flopoco_wrapper::outputSignals(const std::string& FU_name_stored, std::ostr
          Signals += "wireIn" + STR(i + 1) + (i + 1 != n_in_elements ? ", " : "");
       PP(os, "signal " + Signals + " : std_logic_vector(" + STR(n_bits_in - 1) + " downto 0);\n");
    }
-   if(type == flopoco_wrapper::UT_FP2UFIX or type == flopoco_wrapper::UT_FP2IFIX or type == flopoco_wrapper::UT_IFIX2FP)
+   if(type == flopoco_wrapper::UT_FP2UFIX or type == flopoco_wrapper::UT_FP2IFIX)
    {
       Signals = "";
       for(unsigned int j = 0; j < p_out.size(); j++)
