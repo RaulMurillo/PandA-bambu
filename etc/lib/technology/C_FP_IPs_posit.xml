@@ -295,7 +295,7 @@
     </template>
     <template>
       <name>fp_plus_expr_FU</name>
-      <operation operation_name="plus_expr" supported_types="REAL:32,64" pipe_parameters="*:100,300,500,700" commutative="1"/>
+      <operation operation_name="plus_expr" supported_types="REAL:32,64" pipe_parameters="*:100,200,300,400,500,700" commutative="1"/>
       <circuit>
         <component_o id="fp_plus_expr_FU">
           <description>This component is part of the BAMBU/PANDA IP LIBRARY</description>
@@ -330,7 +330,7 @@
     </template>
     <template>
       <name>fp_minus_expr_FU</name>
-      <operation operation_name="minus_expr" supported_types="REAL:32,64" pipe_parameters="*:100,300,500,700"/>
+      <operation operation_name="minus_expr" supported_types="REAL:32,64" pipe_parameters="*:100,200,300,400,500,700"/>
       <circuit>
         <component_o id="fp_minus_expr_FU">
           <description>This component is part of the BAMBU/PANDA IP LIBRARY</description>
@@ -365,7 +365,7 @@
     </template>
     <template>
       <name>fp_mult_expr_FU</name>
-      <operation operation_name="mult_expr" supported_types="REAL:32,64" pipe_parameters="*:200,400,500,700" commutative="1"/>
+      <operation operation_name="mult_expr" supported_types="REAL:32,64" pipe_parameters="*:200,300,400,500,600,700" commutative="1"/>
       <circuit>
         <component_o id="fp_mult_expr_FU">
           <description>This component is part of the BAMBU/PANDA IP LIBRARY</description>
