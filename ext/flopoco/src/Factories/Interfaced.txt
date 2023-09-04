@@ -105,9 +105,13 @@ PositFastEncoder
 PositMult
 PositMAC
 PositApproxDiv
+PositDiv
+PositSqrt
 PositLAM
 PositComparator
 PositAssign
 
 #FixFunctionByVaryingPiecewisePoly # to revive soon
 #SRTDivNbBitsMin
+FixDiv
+

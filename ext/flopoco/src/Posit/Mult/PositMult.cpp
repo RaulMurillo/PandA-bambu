@@ -33,9 +33,9 @@ namespace flopoco
 
 #define DEBUGVHDL 0
 
-	PositMult::PositMult(OperatorPtr parentOp, Target *target, int width, int wES) : Operator(parentOp, target), width_(width), wES_(wES)
+	PositMult::PositMult(OperatorPtr parentOp, Target *target, int width, int wES, float dspOccupationThreshold) : Operator(parentOp, target), width_(width), wES_(wES), dspOccupationThreshold(dspOccupationThreshold)
 	{
-		setCopyrightString("Raul Murillo (2021)");
+		setCopyrightString("Raul Murillo (2021-2022)");
 		ostringstream name;
 		srcFileName = "PositMult";
 		// Signed multiplication needs this library
@@ -115,7 +115,7 @@ namespace flopoco
 		vhdl << tab << declare(getTarget()->logicDelay(1), "YY_f", wF_ + 2) << " <= Y_sgn & NOT(Y_sgn) & Y_f;" << endl;
 		newInstance("IntMultiplier",
 					"FracMultiplier",
-					"wX=" + to_string(wF_ + 2) + " wY=" + to_string(wF_ + 2) + " wOut=" + to_string(multSize) + " signedIO=true",
+					"wX=" + to_string(wF_ + 2) + " wY=" + to_string(wF_ + 2) + " wOut=" + to_string(multSize) + " signedIO=true" + " dspThreshold="+to_string(dspOccupationThreshold),
 					"X=>XX_f, Y=>YY_f",
 					"R=>XY_f");
 
@@ -290,9 +290,11 @@ namespace flopoco
 	OperatorPtr PositMult::parseArguments(OperatorPtr parentOp, Target *target, vector<string> &args)
 	{
 		int width, wES;
+		double dspOccupationThreshold=0.0;
 		UserInterface::parseStrictlyPositiveInt(args, "width", &width);
 		UserInterface::parsePositiveInt(args, "wES", &wES);
-		return new PositMult(parentOp, target, width, wES);
+		UserInterface::parseFloat(args, "dspThreshold", &dspOccupationThreshold);
+		return new PositMult(parentOp, target, width, wES, dspOccupationThreshold);
 	}
 
 	void PositMult::registerFactory()
@@ -302,7 +304,8 @@ namespace flopoco
 						   "Posit",
 						   "", //seeAlso
 						   "width(int): posit size in bits;\
-                            wES(int): posit exponent size in bits",
+						   wES(int): posit exponent size in bits;\
+						   dspThreshold(real)=0.0: threshold of relative occupation ratio of a DSP multiplier to be used or not",
 						   "", // htmldoc
 						   PositMult::parseArguments);
 	}

@@ -194,9 +194,13 @@ Posit/Encoder/PositFastEncoder
 Posit/Mult/PositMult
 Posit/MAC/PositMAC
 Posit/ApproxDiv/PositApproxDiv
+Posit/Div/PositDiv
+Posit/Sqrt/PositSqrt
 Posit/LogApproxMult/PositLAM
 Posit/Cmp/PositComparator
 Posit/PositAssign
 
 #FixFunctions/VaryingPiecewisePolyApprox
 #FixFunctions/FixFunctionByVaryingPiecewisePoly
+FixFunctions/FixDiv
+

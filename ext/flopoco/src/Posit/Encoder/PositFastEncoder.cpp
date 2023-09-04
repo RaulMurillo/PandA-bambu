@@ -32,7 +32,7 @@ namespace flopoco
 
 	PositFastEncoder::PositFastEncoder(OperatorPtr parentOp, Target *target, int width, int wES) : Operator(parentOp, target), width_(width), wES_(wES)
 	{
-		setCopyrightString("Raul Murillo (2021)");
+		setCopyrightString("Raul Murillo (2021-2022)");
 		ostringstream name;
 		srcFileName = "PositFastEncoder";
 

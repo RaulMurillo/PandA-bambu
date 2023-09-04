@@ -1,5 +1,5 @@
-#ifndef PositMult_HPP
-#define PositMult_HPP
+#ifndef PositSqrt_HPP
+#define PositSqrt_HPP
 
 #include <vector>
 #include <sstream>
@@ -12,7 +12,7 @@
 
 namespace flopoco
 {
-	class PositMult : public Operator
+	class PositSqrt : public Operator
 	{
 	public:
 		/**
@@ -23,12 +23,13 @@ namespace flopoco
 		 * @param[in]	wES			the exponent field size of the input posits
 		 * @param[in]   dspOccupationThreshold	the threshold of relative occupation ratio of a DSP multiplier
 		 */
-		PositMult(OperatorPtr parentOp, Target *target, int width, int wES, float dspOccupationThreshold = 0.0);
+		// PositSqrt(OperatorPtr parentOp, Target *target, int width, int wES, int iters, bool useGoldschmidt, float dspOccupationThreshold = 0.0, int LUT_out=10);
+		PositSqrt(OperatorPtr parentOp, Target *target, int width, int wES, float dspOccupationThreshold = 0.0);
 
 		/**
-		 * PositMult destructor
+		 * PositSqrt destructor
 		 */
-		~PositMult();
+		~PositSqrt();
 
 		/** Factory method that parses arguments and calls the constructor */
 		static OperatorPtr parseArguments(OperatorPtr parentOp, Target *target, vector<string> &args);
@@ -46,6 +47,9 @@ namespace flopoco
 		int wES_;
 		int wE_;
 		int wF_;
+		int iters_;
+		int LUT_out_;
+		bool useGoldschmidt_;
 		float dspOccupationThreshold; /**< threshold of relative occupation ratio of a DSP multiplier to be used or not */
 	};
 }

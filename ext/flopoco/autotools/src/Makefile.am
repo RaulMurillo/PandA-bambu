@@ -331,6 +331,8 @@ noinst_HEADERS = \
 		Posit/Encoder/PositFastEncoder.hpp \
 		Posit/Mult/PositMult.hpp \
 		Posit/MAC/PositMAC.hpp \
+		Posit/Div/PositDiv.hpp \
+		Posit/Sqrt/PositSqrt.hpp \
 		Posit/ApproxDiv/PositApproxDiv.hpp \
 		Posit/LogApproxMult/PositLAM.hpp \
 		Posit/Cmp/PositComparator.hpp \
@@ -350,6 +352,7 @@ noinst_HEADERS = \
 		Tools/FloorplanningHelper.hpp \
 		Tools/Plane.hpp \
 		Tools/Point.hpp \
+		FixFunctions/FixDiv.hpp \
 		FixConstant.hpp
 
 libflopoco_la_SOURCES = \

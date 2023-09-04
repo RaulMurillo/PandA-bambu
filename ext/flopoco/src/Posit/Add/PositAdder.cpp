@@ -36,7 +36,7 @@ namespace flopoco
 
 	PositAdder::PositAdder(OperatorPtr parentOp, Target *target, int width, int wES, bool sub) : Operator(parentOp, target), width_(width), wES_(wES), sub_(sub)
 	{
-		setCopyrightString("Raul Murillo (2021)");
+		setCopyrightString("Raul Murillo (2021-2022)");
 		srcFileName = "PositAdder";
 		ostringstream name;
 		if(sub_)

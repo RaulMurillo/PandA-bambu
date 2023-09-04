@@ -100,20 +100,20 @@
 
 /// FloPoCo include
 #undef DEBUG
-#include "Operator.hpp"
-#include "UserInterface.hpp"
 #include "FPAddSub/FPAddSinglePath.hpp"
-#include "FPMultSquare/FPMult.hpp"
 #include "FPDivSqrt/FPDiv.hpp"
 #include "FPDivSqrt/FPSqrt.hpp"
+#include "FPMultSquare/FPMult.hpp"
+#include "Operator.hpp"
+#include "UserInterface.hpp"
 // #include "FPDivSqrt/FPSqrtPoly.hpp"
-#include "ExpLog/FPPow.hpp"
-#include "ExpLog/FPExp.hpp"
-#include "ExpLog/FPLog.hpp"
-#include "Conversions/InputIEEE.hpp"
-#include "Conversions/OutputIEEE.hpp"
 #include "Conversions/FP2Fix.hpp"
 #include "Conversions/Fix2FP.hpp"
+#include "Conversions/InputIEEE.hpp"
+#include "Conversions/OutputIEEE.hpp"
+#include "ExpLog/FPExp.hpp"
+#include "ExpLog/FPLog.hpp"
+#include "ExpLog/FPPow.hpp"
 #include "FPAssign.hpp"
 #include "FPge_expr.hpp"
 #include "FPgt_expr.hpp"
@@ -132,13 +132,15 @@
 #include "Targets/Virtex6.hpp"
 #include "Targets/Zynq7000.hpp"
 /// Posit operators
-#include "Posit/Add/PositAdder.hpp"
-#include "Posit/Mult/PositMult.hpp"
-#include "Posit/ApproxDiv/PositApproxDiv.hpp"
-#include "Posit/Cmp/PositComparator.hpp"
-#include "Posit/PositAssign.hpp"
 #include "Conversions/FP2Posit.hpp"
 #include "Conversions/Posit2FP.hpp"
+#include "Posit/Add/PositAdder.hpp"
+#include "Posit/ApproxDiv/PositApproxDiv.hpp"
+#include "Posit/Cmp/PositComparator.hpp"
+#include "Posit/Div/PositDiv.hpp"
+#include "Posit/Mult/PositMult.hpp"
+#include "Posit/PositAssign.hpp"
+#include "Posit/Sqrt/PositSqrt.hpp"
 
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
 #pragma GCC diagnostic pop
@@ -160,16 +162,12 @@ namespace flopoco
    bool combinatorialOperator;
 } // namespace flopoco
 
-flopoco_wrapper::flopoco_wrapper(int 
+flopoco_wrapper::flopoco_wrapper(int
 #ifndef NDEBUG
-                                 _debug_level
+                                     _debug_level
 #endif
                                  ,
-                                 const std::string &FU_target,
-                                 const std::string &FU_format,
-                                 const unsigned int width,
-                                 const unsigned int wES,
-                                 const bool from_float)
+                                 const std::string& FU_target, const std::string& FU_format, const unsigned int width, const unsigned int wES, const bool from_float)
     :
 #ifndef NDEBUG
       debug_level(_debug_level),
@@ -179,7 +177,7 @@ flopoco_wrapper::flopoco_wrapper(int
       signed_p(false)
 {
    // Get the target architecture
-   if("Spartan-3" == FU_target) /// does not exist so we use Virtex 6 target
+   if("Spartan-3" == FU_target)     /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
    else if("Virtex-4" == FU_target) /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
@@ -195,27 +193,27 @@ flopoco_wrapper::flopoco_wrapper(int
       target = new flopoco::Zynq7000();
    else if("Zynq-YOSYS-VVD" == FU_target)
       target = new flopoco::Zynq7000();
-   else if("Virtex-7-VVD" == FU_target) /// does not exist so we use Virtex 6 target
+   else if("Virtex-7-VVD" == FU_target)                       /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
-   else if("Artix-7-VVD" == FU_target) /// does not exist so we use Virtex 6 target
+   else if("Artix-7-VVD" == FU_target)                        /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
-   else if(FU_target.find("CycloneII") != std::string::npos) /// does not exist so we use Virtex 6 target
+   else if(FU_target.find("CycloneII") != std::string::npos)  /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
-   else if(FU_target.find("CycloneV") != std::string::npos) /// does not exist so we use Virtex 6 target
+   else if(FU_target.find("CycloneV") != std::string::npos)   /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
-   else if(FU_target.find("StratixII") != std::string::npos) /// does not exist so we use StratixV target
+   else if(FU_target.find("StratixII") != std::string::npos)  /// does not exist so we use StratixV target
       target = new flopoco::StratixV();
    else if(FU_target.find("StratixIII") != std::string::npos) /// does not exist so we use StratixV target
       target = new flopoco::StratixV();
-   else if(FU_target.find("StratixIV") != std::string::npos) /// does not exist so we use StratixV target
+   else if(FU_target.find("StratixIV") != std::string::npos)  /// does not exist so we use StratixV target
       target = new flopoco::StratixV();
    else if(FU_target.find("StratixV") != std::string::npos)
       target = new flopoco::StratixV();
    else if(FU_target.find("LatticeECP3") != std::string::npos) /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
-   else if("NG-medium" == FU_target) /// does not exist so we use Virtex 6 target
+   else if("NG-medium" == FU_target)                           /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
-   else if("NG-large" == FU_target) /// does not exist so we use Virtex 6 target
+   else if("NG-large" == FU_target)                            /// does not exist so we use Virtex 6 target
       target = new flopoco::Virtex6();
    else
    {
@@ -223,11 +221,11 @@ flopoco_wrapper::flopoco_wrapper(int
    }
 
    // Get the arithmetic format
-   if ("float" == FU_format)
+   if("float" == FU_format)
    {
       format = flopoco_wrapper::FT_FLOAT;
    }
-   else if ("posit" == FU_format)
+   else if("posit" == FU_format)
    {
       format = flopoco_wrapper::FT_POSIT;
    }
@@ -248,13 +246,13 @@ flopoco_wrapper::flopoco_wrapper(int
    double unusedHardMultThreshold = 0.7;
    bool registerLargeTables = false;
    bool tableCompression = false;
-   bool plainVHDL = true;
+   bool plainVHDL = false;
    bool generateFigures = false;
-   bool useTargetOptimizations = true;
+   bool useTargetOptimizations = false;
    string compression = "heuristicMaxEff";
    string ilpSolver = "Gurobi";
-   int ilpTimeout = 0;                     //timeout disabled
-   string tiling = "heuristicBasicTiling"; //should be heuristicBeamSearchTiling in future
+   int ilpTimeout = 0;                     // timeout disabled
+   string tiling = "heuristicBasicTiling"; // should be heuristicBeamSearchTiling in future
 
    target->setFrequency(1e6 * targetFrequencyMHz);
    target->setUseHardMultipliers(useHardMult);
@@ -323,40 +321,40 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
    THROW_ASSERT(n_mant_in > 0 && n_exp_in > 0, "Unsupported significand and exponent values.");
    THROW_ASSERT(n_mant_out > 0 && n_exp_out > 0, "Unsupported significand and exponent values.");
 
-   if (format == FT_FLOAT)
+   if(format == FT_FLOAT)
    {
       PRINT_DBG_MEX(DEBUG_LEVEL_PEDANTIC, debug_level, "Creating FloPoCo operator for Floating-point unit " + FU_type + "(" + STR(FU_prec_in) + "-" + STR(FU_prec_out) + "-" + pipe_parameter + ")");
 
       // Get the Functional Unit, sets correct name, then adds to resources
       // TODO: Use parseArguments() method implemented in new FloPoCo Operators
       type = flopoco_wrapper::UT_UNKNOWN;
-      if ("FPAdder" == FU_type)
+      if("FPAdder" == FU_type)
       {
          type = flopoco_wrapper::UT_ADD;
          // op = new flopoco::FPAddSinglePath(target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), static_cast<int>(n_exp_out), static_cast<int>(n_mant_out));
          op = new flopoco::FPAddSinglePath(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in));
       }
-      else if ("FPSub" == FU_type)
+      else if("FPSub" == FU_type)
       {
          type = flopoco_wrapper::UT_SUB;
          op = new flopoco::FPAddSinglePath(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in));
       }
-      else if ("FPAddSub" == FU_type)
+      else if("FPAddSub" == FU_type)
       {
          type = flopoco_wrapper::UT_ADDSUB;
          op = new flopoco::FPAddSinglePath(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in));
       }
-      else if ("FPMultiplier" == FU_type)
+      else if("FPMultiplier" == FU_type)
       {
          type = flopoco_wrapper::UT_MULT;
          op = new flopoco::FPMult(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), static_cast<int>(n_exp_out), static_cast<int>(n_mant_out));
       }
-      else if ("FPDiv" == FU_type)
+      else if("FPDiv" == FU_type)
       {
          type = flopoco_wrapper::UT_DIV;
          op = new flopoco::FPDiv(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in));
       }
-      else if ("FPExp" == FU_type)
+      else if("FPExp" == FU_type)
       {
          type = flopoco_wrapper::UT_EXP;
          op = new flopoco::FPExp(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), 0, 0, -1, false);
@@ -367,12 +365,12 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
       //    type = flopoco_wrapper::UT_SQRT;
       //    op = new flopoco::FPSqrtPoly(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), false, 3 /*degree*/);
       // }
-      else if ("FPSqrt" == FU_type)
+      else if("FPSqrt" == FU_type)
       {
          type = flopoco_wrapper::UT_SQRT;
          op = new flopoco::FPSqrt(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in));
       }
-      else if ("Fix2FP_32_32" == FU_type)
+      else if("Fix2FP_32_32" == FU_type)
       {
          signed_p = true;
          type = flopoco_wrapper::UT_IFIX2FP;
@@ -380,7 +378,7 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
          DECODE_BITS(FU_prec_out, n_mant_out, n_exp_out);
          op = new flopoco::Fix2FP(nullptr, target, signed_p, static_cast<int>(FU_prec_in) - 1, 0, static_cast<int>(n_exp_out), static_cast<int>(n_mant_out));
       }
-      else if ("Fix2FP_32_64" == FU_type)
+      else if("Fix2FP_32_64" == FU_type)
       {
          signed_p = true;
          type = flopoco_wrapper::UT_IFIX2FP;
@@ -388,7 +386,7 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
          DECODE_BITS(FU_prec_out, n_mant_out, n_exp_out);
          op = new flopoco::Fix2FP(nullptr, target, signed_p, static_cast<int>(FU_prec_in) - 1, 0, static_cast<int>(n_exp_out), static_cast<int>(n_mant_out));
       }
-      else if ("Fix2FP_64_32" == FU_type)
+      else if("Fix2FP_64_32" == FU_type)
       {
          signed_p = true;
          FU_prec_out = 32;
@@ -396,7 +394,7 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
          DECODE_BITS(FU_prec_out, n_mant_out, n_exp_out);
          op = new flopoco::Fix2FP(nullptr, target, signed_p, static_cast<int>(FU_prec_in) - 1, 0, static_cast<int>(n_exp_out), static_cast<int>(n_mant_out));
       }
-      else if ("Fix2FP_64_64" == FU_type)
+      else if("Fix2FP_64_64" == FU_type)
       {
          signed_p = true;
          type = flopoco_wrapper::UT_IFIX2FP;
@@ -404,35 +402,35 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
          DECODE_BITS(FU_prec_out, n_mant_out, n_exp_out);
          op = new flopoco::Fix2FP(nullptr, target, signed_p, static_cast<int>(FU_prec_in) - 1, 0, static_cast<int>(n_exp_out), static_cast<int>(n_mant_out));
       }
-      else if ("UFix2FP_32_32" == FU_type)
+      else if("UFix2FP_32_32" == FU_type)
       {
          type = flopoco_wrapper::UT_UFIX2FP;
          FU_prec_out = 32;
          DECODE_BITS(FU_prec_out, n_mant_out, n_exp_out);
          op = new flopoco::Fix2FP(nullptr, target, signed_p, static_cast<int>(FU_prec_in) - 1, 0, static_cast<int>(n_exp_out), static_cast<int>(n_mant_out));
       }
-      else if ("UFix2FP_32_64" == FU_type)
+      else if("UFix2FP_32_64" == FU_type)
       {
          type = flopoco_wrapper::UT_UFIX2FP;
          FU_prec_out = 64;
          DECODE_BITS(FU_prec_out, n_mant_out, n_exp_out);
          op = new flopoco::Fix2FP(nullptr, target, signed_p, static_cast<int>(FU_prec_in) - 1, 0, static_cast<int>(n_exp_out), static_cast<int>(n_mant_out));
       }
-      else if ("UFix2FP_64_32" == FU_type)
+      else if("UFix2FP_64_32" == FU_type)
       {
          type = flopoco_wrapper::UT_UFIX2FP;
          FU_prec_out = 32;
          DECODE_BITS(FU_prec_out, n_mant_out, n_exp_out);
          op = new flopoco::Fix2FP(nullptr, target, signed_p, static_cast<int>(FU_prec_in) - 1, 0, static_cast<int>(n_exp_out), static_cast<int>(n_mant_out));
       }
-      else if ("UFix2FP_64_64" == FU_type)
+      else if("UFix2FP_64_64" == FU_type)
       {
          type = flopoco_wrapper::UT_UFIX2FP;
          FU_prec_out = 64;
          DECODE_BITS(FU_prec_out, n_mant_out, n_exp_out);
          op = new flopoco::Fix2FP(nullptr, target, signed_p, static_cast<int>(FU_prec_in) - 1, 0, static_cast<int>(n_exp_out), static_cast<int>(n_mant_out));
       }
-      else if ("FP2Fix_32_32" == FU_type)
+      else if("FP2Fix_32_32" == FU_type)
       {
          signed_p = true;
          type = flopoco_wrapper::UT_FP2IFIX;
@@ -440,14 +438,14 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
          DECODE_BITS(FU_prec_in, n_mant_in, n_exp_in);
          op = new flopoco::FP2Fix(nullptr, target, signed_p, static_cast<int>(FU_prec_out) - 1, 0, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), true);
       }
-      else if ("FP2Fix_32_u32" == FU_type)
+      else if("FP2Fix_32_u32" == FU_type)
       {
          type = flopoco_wrapper::UT_FP2UFIX;
          FU_prec_in = 32;
          DECODE_BITS(FU_prec_in, n_mant_in, n_exp_in);
          op = new flopoco::FP2Fix(nullptr, target, signed_p, static_cast<int>(FU_prec_out) - 1, 0, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), true);
       }
-      else if ("FP2Fix_32_64" == FU_type)
+      else if("FP2Fix_32_64" == FU_type)
       {
          signed_p = true;
          type = flopoco_wrapper::UT_FP2IFIX;
@@ -455,14 +453,14 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
          DECODE_BITS(FU_prec_in, n_mant_in, n_exp_in);
          op = new flopoco::FP2Fix(nullptr, target, signed_p, static_cast<int>(FU_prec_out) - 1, 0, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), true);
       }
-      else if ("FP2Fix_32_u64" == FU_type)
+      else if("FP2Fix_32_u64" == FU_type)
       {
          type = flopoco_wrapper::UT_FP2UFIX;
          FU_prec_in = 32;
          DECODE_BITS(FU_prec_in, n_mant_in, n_exp_in);
          op = new flopoco::FP2Fix(nullptr, target, signed_p, static_cast<int>(FU_prec_out) - 1, 0, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), true);
       }
-      else if ("FP2Fix_64_32" == FU_type)
+      else if("FP2Fix_64_32" == FU_type)
       {
          signed_p = true;
          type = flopoco_wrapper::UT_FP2IFIX;
@@ -470,14 +468,14 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
          DECODE_BITS(FU_prec_in, n_mant_in, n_exp_in);
          op = new flopoco::FP2Fix(nullptr, target, signed_p, static_cast<int>(FU_prec_out) - 1, 0, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), true);
       }
-      else if ("FP2Fix_64_u32" == FU_type)
+      else if("FP2Fix_64_u32" == FU_type)
       {
          type = flopoco_wrapper::UT_FP2UFIX;
          FU_prec_in = 64;
          DECODE_BITS(FU_prec_in, n_mant_in, n_exp_in);
          op = new flopoco::FP2Fix(nullptr, target, signed_p, static_cast<int>(FU_prec_out) - 1, 0, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), true);
       }
-      else if ("FP2Fix_64_64" == FU_type)
+      else if("FP2Fix_64_64" == FU_type)
       {
          signed_p = true;
          type = flopoco_wrapper::UT_FP2IFIX;
@@ -485,44 +483,44 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
          DECODE_BITS(FU_prec_in, n_mant_in, n_exp_in);
          op = new flopoco::FP2Fix(nullptr, target, signed_p, static_cast<int>(FU_prec_out) - 1, 0, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), true);
       }
-      else if ("FP2Fix_64_u64" == FU_type)
+      else if("FP2Fix_64_u64" == FU_type)
       {
          type = flopoco_wrapper::UT_FP2UFIX;
          FU_prec_in = 64;
          DECODE_BITS(FU_prec_in, n_mant_in, n_exp_in);
          op = new flopoco::FP2Fix(nullptr, target, signed_p, static_cast<int>(FU_prec_out) - 1, 0, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), true);
       }
-      else if ("FF_CONV" == FU_type)
+      else if("FF_CONV" == FU_type)
       {
          type = flopoco_wrapper::UT_FF_CONV;
          op = new flopoco::FPAssign(nullptr, target, static_cast<int>(n_exp_out), static_cast<int>(n_mant_out));
       }
-      else if ("FPgt_expr" == FU_type)
+      else if("FPgt_expr" == FU_type)
       {
          type = flopoco_wrapper::UT_compare_expr;
          op = new flopoco::FPgt_expr(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in));
       }
-      else if ("FPlt_expr" == FU_type)
+      else if("FPlt_expr" == FU_type)
       {
          type = flopoco_wrapper::UT_compare_expr;
          op = new flopoco::FPlt_expr(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in));
       }
-      else if ("FPge_expr" == FU_type)
+      else if("FPge_expr" == FU_type)
       {
          type = flopoco_wrapper::UT_compare_expr;
          op = new flopoco::FPge_expr(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in));
       }
-      else if ("FPle_expr" == FU_type)
+      else if("FPle_expr" == FU_type)
       {
          type = flopoco_wrapper::UT_compare_expr;
          op = new flopoco::FPle_expr(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in));
       }
-      else if ("FPLog" == FU_type)
+      else if("FPLog" == FU_type)
       {
          type = flopoco_wrapper::UT_LOG;
          op = new flopoco::FPLog(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in));
       }
-      else if ("FPPow" == FU_type)
+      else if("FPPow" == FU_type)
       {
          type = flopoco_wrapper::UT_POW;
          op = new flopoco::FPPow(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), 0);
@@ -532,9 +530,10 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
          THROW_UNREACHABLE("Not supported FU: " + FU_type);
       }
    }
-   else if (format == FT_POSIT)
+   else if(format == FT_POSIT)
    {
-      if (width_ == 0){
+      if(width_ == 0)
+      {
          width_ = FU_prec_in;
       }
       width = width_;
@@ -547,32 +546,32 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
       // Get the Functional Unit, sets correct name, then adds to resources
       // TODO: Use parseArguments() method implemented in new FloPoCo Operators
       type = flopoco_wrapper::UT_UNKNOWN;
-      if ("FPAdder" == FU_type)
+      if("FPAdder" == FU_type)
       {
          type = flopoco_wrapper::UT_ADD;
          op = new flopoco::PositAdder(nullptr, target, static_cast<int>(width), static_cast<int>(wES), 0);
       }
-      else if ("FPSub" == FU_type)
+      else if("FPSub" == FU_type)
       {
          type = flopoco_wrapper::UT_SUB;
          op = new flopoco::PositAdder(nullptr, target, static_cast<int>(width), static_cast<int>(wES), 1);
       }
-      else if ("FPAddSub" == FU_type)
+      else if("FPAddSub" == FU_type)
       {
          // TODO: Currently using Posit subtraction;
          type = flopoco_wrapper::UT_ADDSUB;
          op = new flopoco::PositAdder(nullptr, target, static_cast<int>(width), static_cast<int>(wES), 1);
       }
-      else if ("FPMultiplier" == FU_type)
+      else if("FPMultiplier" == FU_type)
       {
          type = flopoco_wrapper::UT_MULT;
          op = new flopoco::PositMult(nullptr, target, static_cast<int>(width), static_cast<int>(wES));
       }
       /* Not supported yet, but using an approximate version */
-      else if ("FPDiv" == FU_type)
+      else if("FPDiv" == FU_type)
       {
          type = flopoco_wrapper::UT_DIV;
-         op = new flopoco::PositApproxDiv(nullptr, target, static_cast<int>(width), static_cast<int>(wES));
+         op = new flopoco::PositDiv(nullptr, target, static_cast<int>(width), static_cast<int>(wES), 0, false);
       }
       /* Not supported yet */
       // else if ("FPExp" == FU_type)
@@ -586,12 +585,11 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
       //    type = flopoco_wrapper::UT_SQRT;
       //    op = new flopoco::FPSqrtPoly(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), false, 3 /*degree*/);
       // }
-      /* Not supported yet */
-      // else if ("FPSqrt" == FU_type)
-      // {
-      //    type = flopoco_wrapper::UT_SQRT;
-      //    op = new flopoco::FPSqrt(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in));
-      // }
+      else if("FPSqrt" == FU_type)
+      {
+         type = flopoco_wrapper::UT_SQRT;
+         op = new flopoco::PositSqrt(nullptr, target, static_cast<int>(width), static_cast<int>(wES));
+      }
       /* The following conversions are not supported yet */
       // else if ("Fix2FP_32_32" == FU_type)
       // {
@@ -713,27 +711,27 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
       //    DECODE_BITS(FU_prec_in, n_mant_in, n_exp_in);
       //    op = new flopoco::FP2Fix(nullptr, target, signed_p, static_cast<int>(FU_prec_out) - 1, 0, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), true);
       // }
-      else if ("FF_CONV" == FU_type)
+      else if("FF_CONV" == FU_type)
       {
          type = flopoco_wrapper::UT_FF_CONV;
          op = new flopoco::PositAssign(nullptr, target, static_cast<int>(width), static_cast<int>(wES));
       }
-      else if ("FPgt_expr" == FU_type)
+      else if("FPgt_expr" == FU_type)
       {
          type = flopoco_wrapper::UT_compare_expr;
          op = new flopoco::PositComparator(nullptr, target, static_cast<int>(width), static_cast<int>(wES), 2);
       }
-      else if ("FPlt_expr" == FU_type)
+      else if("FPlt_expr" == FU_type)
       {
          type = flopoco_wrapper::UT_compare_expr;
          op = new flopoco::PositComparator(nullptr, target, static_cast<int>(width), static_cast<int>(wES), -2);
       }
-      else if ("FPge_expr" == FU_type)
+      else if("FPge_expr" == FU_type)
       {
          type = flopoco_wrapper::UT_compare_expr;
          op = new flopoco::PositComparator(nullptr, target, static_cast<int>(width), static_cast<int>(wES), 1);
       }
-      else if ("FPle_expr" == FU_type)
+      else if("FPle_expr" == FU_type)
       {
          type = flopoco_wrapper::UT_compare_expr;
          op = new flopoco::PositComparator(nullptr, target, static_cast<int>(width), static_cast<int>(wES), -1);
@@ -768,13 +766,13 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
    FUs[WRAPPED_PREFIX + FU_name_stored] = op;
    FU_to_prec.insert(make_pair(FU_name_stored, std::pair<unsigned int, unsigned int>(FU_prec_in, FU_prec_out)));
 
-   if (format == FT_FLOAT)
+   if(format == FT_FLOAT)
    {
       // Adds two additional Functional Units to perform conversion
       // from FloCoCo encoding to IEEE-754 number format and viceversa
-      if (type != flopoco_wrapper::UT_IFIX2FP and type != flopoco_wrapper::UT_UFIX2FP)
+      if(type != flopoco_wrapper::UT_IFIX2FP and type != flopoco_wrapper::UT_UFIX2FP)
       {
-         if (type == flopoco_wrapper::UT_FF_CONV)
+         if(type == flopoco_wrapper::UT_FF_CONV)
          {
             op = new flopoco::InputIEEE(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), static_cast<int>(n_exp_out), static_cast<int>(n_mant_out));
          }
@@ -788,7 +786,7 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
          op->applySchedule();
          FUs[IN_WRAP_PREFIX + FU_name_stored] = op;
       }
-      if (type != flopoco_wrapper::UT_FP2UFIX and type != flopoco_wrapper::UT_FP2IFIX and type != flopoco_wrapper::UT_compare_expr)
+      if(type != flopoco_wrapper::UT_FP2UFIX and type != flopoco_wrapper::UT_FP2IFIX and type != flopoco_wrapper::UT_compare_expr)
       {
          op = new flopoco::OutputIEEE(nullptr, target, static_cast<int>(n_exp_out), static_cast<int>(n_mant_out), static_cast<int>(n_exp_out), static_cast<int>(n_mant_out), true);
          OPLIST.push_back(op);
@@ -798,16 +796,16 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
          FUs[OUT_WRAP_PREFIX + FU_name_stored] = op;
       }
    }
-   else if (format == FT_POSIT)
+   else if(format == FT_POSIT)
    {
       // Adds two additional Functional Units to perform conversion
       // from Posit encoding to IEEE-754 number format and viceversa
       // This is a temporal solution to pass testbenches
-      if (type != flopoco_wrapper::UT_IFIX2FP and type != flopoco_wrapper::UT_UFIX2FP)
+      if(type != flopoco_wrapper::UT_IFIX2FP and type != flopoco_wrapper::UT_UFIX2FP)
       {
-         if (from_float_)
+         if(from_float_)
          {
-            if (type == flopoco_wrapper::UT_FF_CONV)
+            if(type == flopoco_wrapper::UT_FF_CONV)
             {
                // Currently there is no module to cast from a posit format to another with different width/exponent size
                op = new flopoco::FP2Posit(nullptr, target, static_cast<int>(n_exp_in), static_cast<int>(n_mant_in), static_cast<int>(width), static_cast<int>(wES));
@@ -828,9 +826,9 @@ void flopoco_wrapper::add_FU(const std::string& FU_type, unsigned int FU_prec_in
          op->applySchedule();
          FUs[IN_WRAP_PREFIX + FU_name_stored] = op;
       }
-      if (type != flopoco_wrapper::UT_FP2UFIX and type != flopoco_wrapper::UT_FP2IFIX and type != flopoco_wrapper::UT_compare_expr)
+      if(type != flopoco_wrapper::UT_FP2UFIX and type != flopoco_wrapper::UT_FP2IFIX and type != flopoco_wrapper::UT_compare_expr)
       {
-         if (from_float_)
+         if(from_float_)
          {
             op = new flopoco::Posit2FP(nullptr, target, static_cast<int>(width), static_cast<int>(wES), static_cast<int>(n_exp_out), static_cast<int>(n_mant_out));
          }
@@ -985,11 +983,11 @@ void flopoco_wrapper::outputPortMap(const std::string& FU_name_stored, std::ostr
    mapping = "";
    for(unsigned int i = 0; i < p_wrapped_in.size(); i++)
    {
-      if (type == flopoco_wrapper::UT_ADDSUB && i == 1 && format == flopoco_wrapper::FT_FLOAT)
+      if(type == flopoco_wrapper::UT_ADDSUB && i == 1 && format == flopoco_wrapper::FT_FLOAT)
       {
          mapping += p_wrapped_in.at(i) + " => wire_ADDSUB, ";
       }
-      else if (type == flopoco_wrapper::UT_SUB && i == 1 && format == flopoco_wrapper::FT_FLOAT)
+      else if(type == flopoco_wrapper::UT_SUB && i == 1 && format == flopoco_wrapper::FT_FLOAT)
       {
          mapping += p_wrapped_in.at(i) + " => wire_SUB, ";
       }
@@ -1019,11 +1017,11 @@ void flopoco_wrapper::outputPortMap(const std::string& FU_name_stored, std::ostr
       mapping += ", " + p_clock + "=> " + std::string(CLOCK_PORT_NAME);
    }
 
-   if (type == flopoco_wrapper::UT_ADDSUB && format == flopoco_wrapper::FT_FLOAT)
+   if(type == flopoco_wrapper::UT_ADDSUB && format == flopoco_wrapper::FT_FLOAT)
    {
       PP(os, "wire_ADDSUB <= wireIn2(" + STR(n_bits_in + 1) + " downto " + STR(n_bits_in) + ") & (wireIn2(" + STR(n_bits_in - 1) + ") xor sel_minus_expr) & wireIn2(" + STR(n_bits_in - 2) + " downto 0);\n");
    }
-   else if (type == flopoco_wrapper::UT_SUB && format == flopoco_wrapper::FT_FLOAT)
+   else if(type == flopoco_wrapper::UT_SUB && format == flopoco_wrapper::FT_FLOAT)
    {
       PP(os, "wire_SUB <= wireIn2(" + STR(n_bits_in + 1) + " downto " + STR(n_bits_in) + ") & (wireIn2(" + STR(n_bits_in - 1) + ") xor '1') & wireIn2(" + STR(n_bits_in - 2) + " downto 0);\n");
    }
@@ -1083,13 +1081,13 @@ void flopoco_wrapper::outputSignals(const std::string& FU_name_stored, std::ostr
    n_bits_in = prec_in;
    n_bits_out = prec_out;
 
-   if (format == flopoco_wrapper::FT_FLOAT)
+   if(format == flopoco_wrapper::FT_FLOAT)
    {
-      if (type == flopoco_wrapper::UT_ADDSUB)
+      if(type == flopoco_wrapper::UT_ADDSUB)
       {
          Signals += "wire_ADDSUB, ";
       }
-      else if (type == flopoco_wrapper::UT_SUB)
+      else if(type == flopoco_wrapper::UT_SUB)
       {
          Signals += "wire_SUB, ";
       }
@@ -1097,7 +1095,7 @@ void flopoco_wrapper::outputSignals(const std::string& FU_name_stored, std::ostr
       // {
       //    PP(os, "signal wire_OP : std_logic;\n");
       // }
-      else if (type == flopoco_wrapper::UT_FF_CONV)
+      else if(type == flopoco_wrapper::UT_FF_CONV)
       {
          n_bits_in = prec_out;
       }
@@ -1151,21 +1149,21 @@ void flopoco_wrapper::outputPortDeclaration(const std::string& FU_prefix, const 
    prec_out = FU_to_prec_it->second.second;
    if(wrapped == c_type)
    {
-      if (format == flopoco_wrapper::FT_FLOAT)
+      if(format == flopoco_wrapper::FT_FLOAT)
       {
-         if (type != flopoco_wrapper::UT_IFIX2FP and type != flopoco_wrapper::UT_UFIX2FP)
+         if(type != flopoco_wrapper::UT_IFIX2FP and type != flopoco_wrapper::UT_UFIX2FP)
          {
             in_offset += FLOPOCO_ADDITIONAL_BITS;
          }
-         if (type != flopoco_wrapper::UT_FP2UFIX and type != flopoco_wrapper::UT_FP2IFIX and type != flopoco_wrapper::UT_compare_expr)
+         if(type != flopoco_wrapper::UT_FP2UFIX and type != flopoco_wrapper::UT_FP2IFIX and type != flopoco_wrapper::UT_compare_expr)
          {
             out_offset += FLOPOCO_ADDITIONAL_BITS;
          }
-         if (type == flopoco_wrapper::UT_FF_CONV)
+         if(type == flopoco_wrapper::UT_FF_CONV)
          {
             n_bits_in = n_bits_out = prec_out;
          }
-         else if (type == flopoco_wrapper::UT_compare_expr)
+         else if(type == flopoco_wrapper::UT_compare_expr)
          {
             n_bits_in = prec_in;
             n_bits_out = 1;
@@ -1178,7 +1176,7 @@ void flopoco_wrapper::outputPortDeclaration(const std::string& FU_prefix, const 
       }
       else //(format == flopoco_wrapper::FT_POSIT)
       {
-         if (type == flopoco_wrapper::UT_compare_expr)
+         if(type == flopoco_wrapper::UT_compare_expr)
          {
             n_bits_in = width_;
             n_bits_out = 1;
@@ -1192,10 +1190,10 @@ void flopoco_wrapper::outputPortDeclaration(const std::string& FU_prefix, const 
    }
    else if(in_wrap == c_type)
    {
-      if (format == flopoco_wrapper::FT_FLOAT)
+      if(format == flopoco_wrapper::FT_FLOAT)
       {
          out_offset += FLOPOCO_ADDITIONAL_BITS;
-         if (type == flopoco_wrapper::UT_FF_CONV)
+         if(type == flopoco_wrapper::UT_FF_CONV)
          {
             n_bits_in = prec_in;
             n_bits_out = prec_out;
@@ -1213,7 +1211,7 @@ void flopoco_wrapper::outputPortDeclaration(const std::string& FU_prefix, const 
    }
    else if(out_wrap == c_type)
    {
-      if (format == flopoco_wrapper::FT_FLOAT)
+      if(format == flopoco_wrapper::FT_FLOAT)
       {
          in_offset += FLOPOCO_ADDITIONAL_BITS;
          n_bits_in = n_bits_out = prec_out;
